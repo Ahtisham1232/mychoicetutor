@@ -6,13 +6,17 @@ use Illuminate\Console\Command;
 use App\Models\democlasses;
 use App\Models\studentprofile;
 use App\Models\tutorprofile;
+use App\Models\tutorregistration;
+use App\Models\SlotBooking;
+use App\Models\zoom_classes;
+use App\Models\subjects;
 use App\Services\TwilioWhatsAppService;
 use Carbon\Carbon;
 
 class SendClassReminders extends Command
 {
     protected $signature = 'classes:send-reminders';
-    protected $description = 'Send WhatsApp reminders 30 minutes before demo classes';
+    protected $description = 'Send WhatsApp reminders 30 minutes before demo classes and regular classes';
 
     protected $whatsApp;
 
@@ -37,28 +41,129 @@ class SendClassReminders extends Command
             ])
             ->get();
 
+        // Process demo classes
         foreach ($classes as $class) {
             $student = studentprofile::where('student_id', $class->student_id)->first();
             $tutor   = tutorprofile::where('tutor_id', $class->slot_confirmed_by)->first();
 
-            $meetingLink = $class->demo_link ?? "https://mychoicetutor.com/waiting-room";
+            if (!$student || !$tutor) continue;
 
-            $message = "⏰ Reminder!\n\n" .
-                       "Your demo class will start in 30 minutes.\n" .
-                       "Subject: {$class?->subject?->name}\n" .
-                       "Date/Time: " . date('d M Y h:i A', strtotime($class->slot_confirmed)) . "\n\n" .
-                       "👉 Join here: {$meetingLink}";
+            $subject = subjects::find($class->subject_id);
+            $meetingLink = $class->demo_link ?? "https://mychoicetutor.com/waiting-room";
+            
+            // Use template for demo class reminders
+            $templateIdDemo = 1644; // TODO: Replace with actual template ID for demo class reminder
+            $templateIdDemoTutor = 1642; // TODO: Replace with actual template ID for demo class reminder
+            
+            $classDateTime = Carbon::parse($class->slot_confirmed);
+            $formattedDateTime = $classDateTime->format('d M Y h:i A');
 
             // Send to student
             if (!empty($student->mobile)) {
-                $to = "+92" . ltrim($student->mobile, "0");
-                $this->whatsApp->sendMessage($to, $message);
+                try {
+                    $studentNumber = "+92" . ltrim($student->mobile, "0");
+                    $bodyVariablesStudent = [
+                        $student->name ?? 'Student',
+                        $subject->name ?? 'Demo Class',
+                        $formattedDateTime,
+                        $tutor->name ?? 'Tutor',
+                        $meetingLink,
+                    ];
+                    $this->whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdDemo);
+                } catch (\Exception $e) {
+                    $this->error('Failed to send reminder to student: ' . $e->getMessage());
+                }
             }
 
             // Send to tutor
             if (!empty($tutor->mobile)) {
-                $to = "+92" . ltrim($tutor->mobile, "0");
-                $this->whatsApp->sendMessage($to, $message);
+                try {
+                    $tutorNumber = "+92" . ltrim($tutor->mobile, "0");
+                    $bodyVariablesTutor = [
+                        $tutor->name ?? 'Tutor',
+                        $subject->name ?? 'Demo Class',
+                        $formattedDateTime,
+                        $student->name ?? 'Student',
+                        $meetingLink,
+                    ];
+                    $this->whatsApp->sendMessage($tutorNumber, $bodyVariablesTutor, $templateIdDemoTutor);
+                } catch (\Exception $e) {
+                    $this->error('Failed to send reminder to tutor: ' . $e->getMessage());
+                }
+            }
+        }
+
+        // Process regular classes (SlotBooking)
+        // Get slot bookings that are scheduled and starting in 30 minutes
+        $targetDate = $targetTime->format('Y-m-d');
+        $targetSlotTime = $targetTime->format('H:i');
+        
+        // Small window for slot matching (within 5 minutes)
+        $slotBookings = SlotBooking::where('status', 1) // confirmed bookings
+            ->where('date', $targetDate)
+            ->whereNotNull('student_id')
+            ->whereNotNull('meeting_id')
+            ->get()
+            ->filter(function ($booking) use ($targetTime) {
+                // Parse the slot time and check if it's within the window
+                try {
+                    $slotDateTime = Carbon::parse($booking->date . ' ' . $booking->slot);
+                    return $slotDateTime->between(
+                        $targetTime->copy()->subMinute(5),
+                        $targetTime->copy()->addMinute(5)
+                    );
+                } catch (\Exception $e) {
+                    return false;
+                }
+            });
+
+        $templateIdRegular = 1643; // TODO: Replace with actual template ID for regular class reminder
+        $templateIdRegularTutor = 1641; // TODO: Replace with actual template ID for regular class reminder
+
+        foreach ($slotBookings as $booking) {
+            $studentProfile = studentprofile::where('student_id', $booking->student_id)->first();
+            $tutorReg = tutorregistration::find($booking->tutor_id);
+            $subject = subjects::find($booking->subject_id);
+            $zoomClass = zoom_classes::find($booking->meeting_id);
+
+            if (!$studentProfile || !$tutorReg) continue;
+
+            $meetingLink = $zoomClass->join_url ?? $zoomClass->start_url ?? "https://mychoicetutor.com/waiting-room";
+            $classDateTime = Carbon::parse($booking->date . ' ' . $booking->slot);
+            $formattedDateTime = $classDateTime->format('d M Y h:i A');
+
+            // Send to student
+            if (!empty($studentProfile->mobile)) {
+                try {
+                    $studentNumber = "+92" . ltrim($studentProfile->mobile, "0");
+                    $bodyVariablesStudent = [
+                        $studentProfile->name ?? 'Student',
+                        $subject->name ?? 'Class',
+                        $formattedDateTime,
+                        $tutorReg->name ?? 'Tutor',
+                        $meetingLink,
+                    ];
+                    $this->whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdRegular);
+                } catch (\Exception $e) {
+                    $this->error('Failed to send reminder to student: ' . $e->getMessage());
+                }
+            }
+
+            // Send to tutor
+            if (!empty($tutorReg->mobile)) {
+                try {
+                    $tutorNumber = "+92" . ltrim($tutorReg->mobile, "0");
+                    $bodyVariablesTutor = [
+                        $tutorReg->name ?? 'Tutor',
+                        $subject->name ?? 'Class',
+                        $formattedDateTime,
+                        $studentProfile->name ?? 'Student',
+                        $meetingLink,
+                    ];
+                    $this->whatsApp->sendMessage($tutorNumber, $bodyVariablesTutor, $templateIdRegularTutor);
+                } catch (\Exception $e) {
+                    $this->error('Failed to send reminder to tutor: ' . $e->getMessage());
+                }
             }
         }
 

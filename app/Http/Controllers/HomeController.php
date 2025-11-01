@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Illuminate\Support\Str;
 
@@ -36,6 +37,7 @@ class HomeController extends Controller
     // }
     public function index()
     {
+       
 
         // return 'Email has been sent!';
 
@@ -601,48 +603,61 @@ class HomeController extends Controller
 
     public function registration(Request $request)
     {
+        try {
+            DB::beginTransaction();
 
-        if ($request->id == "1") {
+            if ($request->id == "1") {
+                $request->validate([
+                    'studentmobile' => 'required|min:4|max:11',
+                    'class' => 'required',
+                ]);
+
+                $user = new studentregistration();
+                $user->mobile = $request->studentmobile;
+                $user->role_id = "3";
+                $user->class_id = $request->class;
+                $user->parent_password = Hash::make($request->studentmobile);
+                // $user->is_active = "1";
+            } else {
+                $request->validate([
+                    'tutormobile' => 'required|min:4|max:11',
+                ]);
+
+                $user = new tutorregistration();
+                $user->mobile = $request->tutormobile;
+                $user->role_id = "2";
+                $user->is_active = "0";
+            }
             $request->validate([
-                'studentmobile' => 'required|min:4|max:11',
-                'class' => 'required',
+                'name' => 'required',
+                'email' => 'email|required',
+                'password' => 'min:4|required_with:confirmpassword|same:confirmpassword',
+                'confirmpassword' => 'min:4',
+
             ]);
 
-            $user = new studentregistration();
-            $user->mobile = $request->studentmobile;
-            $user->role_id = "3";
-            $user->class_id = $request->class;
-            $user->parent_password = Hash::make($request->studentmobile);
-            // $user->is_active = "1";
-        } else {
-            $request->validate([
-                'tutormobile' => 'required|min:4|max:11',
-            ]);
-
-            $user = new tutorregistration();
-            $user->mobile = $request->tutormobile;
-            $user->role_id = "2";
+            $user->name = $request->name;
+            $user->email = $request->email;
             $user->is_active = "0";
-        }
-        $request->validate([
-            'name' => 'required',
-            'email' => 'email|required',
-            'password' => 'min:4|required_with:confirmpassword|same:confirmpassword',
-            'confirmpassword' => 'min:4',
+            $user->password = Hash::make($request->password);
 
-        ]);
-
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->is_active = "0";
-        $user->password = Hash::make($request->password);
-
-        $res = $user->save();
-        if ($res) {
-            return back()->with('success', 'Registration successfull');
-            // return redirect('student/dashboard');
-        } else {
-            return back()->with('fail', 'Registration failed');
+            $res = $user->save();
+            
+            if ($res) {
+                DB::commit();
+                return back()->with('success', 'Registration successfull');
+                // return redirect('student/dashboard');
+            } else {
+                DB::rollBack();
+                return back()->with('fail', 'Registration failed');
+            }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Registration failed: ' . $e->getMessage());
+            return back()->with('fail', 'Registration failed. Please try again later.');
         }
     }
 
@@ -1054,287 +1069,300 @@ class HomeController extends Controller
     }
     public function student_registration_form(Request $request)
     {
-
-        // if ($request->id == "1") {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email',
-            'mobile' => 'required|min:4|max:13',
-            'password' => 'required|min:8|max:50',
-            'confpassword' => 'required|min:8|max:50|same:password',
-            'expcheck' => 'required|accepted',
-        ], [
-            'name.required' => 'Name is required.',
-            'email.required' => 'Email is required.',
-            'email.email' => 'Email must be a valid email address.',
-            'mobile.required' => 'Mobile number is required.',
-            'mobile.min' => 'Mobile number must be at least 4 digits.',
-            'mobile.max' => 'Mobile number must not exceed 13 digits.',
-            'password.required' => 'Password is required.',
-            'password.min' => 'Password must be at least 8 characters.',
-            'password.max' => 'Password must not exceed 50 characters.',
-            'confpassword.required' => 'Confirmation password is required.',
-            'confpassword.min' => 'Confirmation password must be at least 8 characters.',
-            'confpassword.max' => 'Confirmation password must not exceed 50 characters.',
-            'confpassword.same' => 'Password and confirmation password must match.',
-            'expcheck.required' => 'You must accept the terms.',
-            'expcheck.accepted' => 'The terms must be accepted.',
-        ]);
-
-        if ($request->registerAs == 'student') {
-
-            $user = studentregistration::where('mobile', '=', $request->mobile, )->first();
-            // echo $user;
-            // dd();
-            if ($user) {
-                return back()->with('fail', 'Mobile Already Registered');
-            }
-
-            $user = studentregistration::where('email', '=', $request->email, )->first();
-            if ($user) {
-                return back()->with('fail', 'Email Already Registered');
-            }
-            $user = new studentregistration();
-            $user->mobile = $request->mobile;
-            $user->role_id = "3";
-            $user->class_id = '0';
-            $user->name = $request->name;
-            $user->email = $request->email;
-            $user->is_active = "1";
-            $user->password = Hash::make($request->password);
-            $user->parent_password = Hash::make($request->mobile);
-            $res = $user->save();
-
-            $finduser = studentregistration::select('*')->where('mobile', $request->mobile)->first();
-            $studentprofile = new studentprofile();
-            $studentprofile->name = $request->name;
-            $studentprofile->mobile = $request->mobile;
-            $studentprofile->email = $request->email;
-            $studentprofile->student_id = $finduser->id;
-            // $studentprofile->profile_pic =
-            $studentprofile->grade = 1;
-            $studentprofile->save();
-
-            // Send welcome mail
-            $details = [
-                'name' => $request->name,
-                'mobile' => $request->mobile,
-                'password' => $request->password,
-                'mailtype' => 1,
-            ];
-
-            Mail::to($request->email)->send(new SendMail($details));
-            // Send welcome mail ends here ..
-
-            $mobile = $request->mobile;
-            $formattedDate = Carbon::now()->format('Y-m-d');
-            // Generate a random 4-digit OTP
-            $otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
-            $username = 'BhashWAPAI';
-            $pass = '123456';
-            $sender = 'BUZWAP';
-            // $phone = '+917004920897';
-            $phone = $mobile;
-            // $phone = $res->mobile;
-            $text = 'delivery';
-            $priority = 'wa';
-            $stype = 'normal';
-            $params = $otp . ',' . $formattedDate;
-
-            $url = "https://bhashsms.com/api/sendmsg.php?user=$username&pass=$pass&sender=$sender&phone=$phone&text=$text&priority=$priority&stype=$stype&params=$params";
-
-            // Initialize Guzzle client
-            $client = new Client();
-
-            try {
-                // Send GET request to the URL
-                $response = $client->get($url);
-
-                // Get the response body
-                $responseBody = $response->getBody();
-
-                // You can process the response here
-                // For example, you can log the response or return it to the view
-                response()->json(['message' => 'OTP sent successfully', 'response' => $responseBody]);
-                // return view('common.tutor-mobile-verify');
-            } catch (\Exception $e) {
-                // Handle any exceptions that occur during the request
-                return response()->json(['message' => 'OTP sending failed', 'error' => $e->getMessage()], 500);
-            }
-
-            if ($res) {
-
-                $studentRegistration = studentregistration::where('mobile', $mobile)->first();
-                $studentRegistration->mobile_otp = '1234';
-                // $studentRegistration->mobile_otp = $otp;
-                $studentRegistration->save();
-                // switch ($user->role_id) {
-                //     case 1:
-                //         echo "Admin - Under development";
-                //         dd($user->role_id);
-                //         break;
-                //     case 2:
-                //         return redirect('tutor/dashboard');
-                //     case 3:
-                //         return redirect('student/dashboard');
-                //     case 4:
-                //         echo "Parent";
-                //         dd($user->role_id);
-
-                //         break;
-                // }
-                $user = studentregistration::where('mobile', '=', $mobile)->first();
-
-                // if (Hash::check($request->password, $user->password)) {
-                //  event(new Registered($user));
-
-                $user_role = Auth::user();
-                // dd($user->role_id);
-                $request->session()->put('userid', $user);
-                return redirect('student/dashboard')->with('success','Registration successful. Explore tutors and book classes. Best Wishes!!');
-                // return view('common.student-mobile-verify', compact('mobile'))->with('success', 'Registration successful. Please Login Now To Access More Features.');
-
-                // return redirect('student/dashboard');
-            } else {
-                return back()->with('fail', 'Registration failed');
-            }
-        }
-        if ($request->registerAs == 'tutor') {
-
+        try {
+            // if ($request->id == "1") {
             $request->validate([
                 'name' => 'required',
-                'email' => 'required',
-                'mobile' => 'required|min:4|max:11',
+                'email' => 'required|email',
+                'mobile' => 'required|min:4|max:13',
                 'password' => 'required|min:8|max:50',
+                'confpassword' => 'required|min:8|max:50|same:password',
+                'expcheck' => 'required|accepted',
+            ], [
+                'name.required' => 'Name is required.',
+                'email.required' => 'Email is required.',
+                'email.email' => 'Email must be a valid email address.',
+                'mobile.required' => 'Mobile number is required.',
+                'mobile.min' => 'Mobile number must be at least 4 digits.',
+                'mobile.max' => 'Mobile number must not exceed 13 digits.',
+                'password.required' => 'Password is required.',
+                'password.min' => 'Password must be at least 8 characters.',
+                'password.max' => 'Password must not exceed 50 characters.',
+                'confpassword.required' => 'Confirmation password is required.',
+                'confpassword.min' => 'Confirmation password must be at least 8 characters.',
+                'confpassword.max' => 'Confirmation password must not exceed 50 characters.',
+                'confpassword.same' => 'Password and confirmation password must match.',
+                'expcheck.required' => 'You must accept the terms.',
+                'expcheck.accepted' => 'The terms must be accepted.',
             ]);
 
-            $user = tutorregistration::where('email', '=', $request->email, )->first();
-            if ($user) {
-                return back()->with('fail', 'Email Already Registered');
-            }
+            if ($request->registerAs == 'student') {
+                DB::beginTransaction();
 
-            $user = tutorregistration::where('mobile', '=', $request->mobile, )->first();
-            if ($user) {
-                return back()->with('fail', 'Mobile Already Registered');
-            }
+                try {
+                    $user = studentregistration::where('mobile', '=', $request->mobile, )->first();
+                    // echo $user;
+                    // dd();
+                    if ($user) {
+                        DB::rollBack();
+                        return back()->with('fail', 'Mobile Already Registered');
+                    }
 
-            $user = new tutorregistration();
-            $user->mobile = $request->mobile;
-            $user->role_id = "2";
-            $user->name = $request->name;
-            $user->email = $request->email;
-            $user->is_active = "0";
-            $user->password = Hash::make($request->password);
+                    $user = studentregistration::where('email', '=', $request->email, )->first();
+                    if ($user) {
+                        DB::rollBack();
+                        return back()->with('fail', 'Email Already Registered');
+                    }
+                    $user = new studentregistration();
+                    $user->mobile = $request->mobile;
+                    $user->role_id = "3";
+                    $user->class_id = '0';
+                    $user->name = $request->name;
+                    $user->email = $request->email;
+                    $user->is_active = "1";
+                    $user->password = Hash::make($request->password);
+                    $user->parent_password = Hash::make($request->mobile);
+                    $res = $user->save();
 
-            $res = $user->save();
+                    if (!$res) {
+                        DB::rollBack();
+                        return back()->with('fail', 'Failed to save student registration.');
+                    }
 
-            $checktutorid = tutorregistration::select('*')->where('mobile', $request->mobile)->first();
-            $tprofile = new tutorprofile();
-            $tprofile->name = $request->name;
-            $tprofile->mobile = $request->mobile;
-            $tprofile->email = $request->email;
-            $tprofile->tutor_id = $checktutorid->id;
-            $tprofile->qualification = " ";
-            $tprofile->rateperhour = 0;
-            $tprofile->admin_commission = 0;
-            $tprofile->save();
+                    $finduser = studentregistration::select('*')->where('mobile', $request->mobile)->first();
+                    if (!$finduser) {
+                        DB::rollBack();
+                        return back()->with('fail', 'Failed to retrieve student registration.');
+                    }
 
-            // Send welcome mail
-            $details = [
-                'name' => $request->name,
-                'mobile' => $request->mobile,
-                'password' => $request->password,
-                'mailtype' => 1,
-            ];
+                    $studentprofile = new studentprofile();
+                    $studentprofile->name = $request->name;
+                    $studentprofile->mobile = $request->mobile;
+                    $studentprofile->email = $request->email;
+                    $studentprofile->student_id = $finduser->id;
+                    // $studentprofile->profile_pic =
+                    $studentprofile->grade = 1;
+                    $profileRes = $studentprofile->save();
 
-            Mail::to($request->email)->send(new SendMail($details));
-            // Send welcome mail ends here ..
+                    if (!$profileRes) {
+                        DB::rollBack();
+                        return back()->with('fail', 'Failed to save student profile.');
+                    }
 
-            $mobile = $request->mobile;
+                    // Send welcome mail
+                    try {
+                        $details = [
+                            'name' => $request->name,
+                            'mobile' => $request->mobile,
+                            'password' => $request->password,
+                            'mailtype' => 1,
+                        ];
 
-            $user = 'BhashWAPAI';
-            $pass = '123456';
-            $sender = 'BUZWAP';
-            // $phone = '7004920897';
-            $phone = $request->mobile;
-            $text = 'delivery';
-            $priority = 'wa';
-            $stype = 'normal';
-            $params = '1195,23aug2023';
+                        Mail::to($request->email)->send(new SendMail($details));
+                    } catch (\Exception $e) {
+                        Log::error('Failed to send welcome email: ' . $e->getMessage());
+                        // Don't fail registration if email fails
+                    }
 
-            $url = "https://bhashsms.com/api/sendmsg.php?user=$user&pass=$pass&sender=$sender&phone=$phone&text=$text&priority=$priority&stype=$stype&params=$params";
+                    $mobile = $request->mobile;
+                    $formattedDate = Carbon::now()->format('Y-m-d');
+                    // Generate a random 4-digit OTP
+                    $otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+                    $username = 'BhashWAPAI';
+                    $pass = '123456';
+                    $sender = 'BUZWAP';
+                    // $phone = '+917004920897';
+                    $phone = $mobile;
+                    // $phone = $res->mobile;
+                    $text = 'delivery';
+                    $priority = 'wa';
+                    $stype = 'normal';
+                    $params = $otp . ',' . $formattedDate;
 
-            // Initialize Guzzle client
-            $client = new Client();
+                    $url = "https://bhashsms.com/api/sendmsg.php?user=$username&pass=$pass&sender=$sender&phone=$phone&text=$text&priority=$priority&stype=$stype&params=$params";
 
-            $mobile = $request->mobile;
-            if ($res) {
-                $user = tutorregistration::where('mobile', '=', $mobile)->first();
+                    // Initialize Guzzle client
+                    $client = new Client();
 
-                // if (Hash::check($request->password, $user->password)) {
-                //  event(new Registered($user));
+                    try {
+                        // Send GET request to the URL
+                        $response = $client->get($url);
 
-                $user_role = Auth::user();
-                // dd($user->role_id);
-                $request->session()->put('userid', $user);
-                // Notification Starts here
-                $notificationdata = new Notification();
-                $notificationdata->alert_type = 8;
-                $notificationdata->notification = $request->name . " Registered as tutor and pending for approval";
-                $notificationdata->initiator_id = session('userid')->id;
-                $notificationdata->initiator_role = "2";
-                $notificationdata->event_id = $user->id;
-                // Sending to admin
+                        // Get the response body
+                        $responseBody = $response->getBody();
 
-                $notificationdata->show_to_admin = 1;
-                $notificationdata->show_to_admin_id = 1;
-                $notificationdata->show_to_all_admin = 1;
+                        // You can process the response here
+                        // For example, you can log the response or return it to the view
+                        response()->json(['message' => 'OTP sent successfully', 'response' => $responseBody]);
+                        // return view('common.tutor-mobile-verify');
+                    } catch (\Exception $e) {
+                        // Handle any exceptions that occur during the request
+                        Log::error('OTP sending failed: ' . $e->getMessage());
+                        // Don't fail registration if OTP sending fails
+                    }
 
-                $notificationdata->read_status = 0;
+                    $studentRegistration = studentregistration::where('mobile', $mobile)->first();
+                    if ($studentRegistration) {
+                        $studentRegistration->mobile_otp = '1234';
+                        // $studentRegistration->mobile_otp = $otp;
+                        $studentRegistration->save();
+                    }
 
-                $notified = $notificationdata->save();
-                broadcast(new RealTimeMessage('$notification'));
+                    DB::commit();
 
-                // Notification ends here
-                switch ($user->role_id) {
-                    case 1:
-                        echo "Admin - Under development";
-                        dd($user->role_id);
-                        break;
-                    case 2:
-                        return redirect('tutor/dashboard');
-                    case 3:
-                        return redirect('student/dashboard');
-                    case 4:
-                        echo "Parent";
-                        dd($user->role_id);
-
-                        break;
+                    $user = studentregistration::where('mobile', '=', $mobile)->first();
+                    if ($user) {
+                        $request->session()->put('userid', $user);
+                        return redirect('student/dashboard')->with('success','Registration successful. Explore tutors and book classes. Best Wishes!!');
+                    } else {
+                        return back()->with('fail', 'Registration completed but session failed. Please login.');
+                    }
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    Log::error('Student registration failed: ' . $e->getMessage());
+                    return back()->with('fail', 'Registration failed. Please try again later.');
                 }
-                // return redirect(RouteServiceProvider::HOME);
-                // }
-
-                // return view('common.tutor-mobile-verify', compact('mobile'))->with('success', 'Registration successful. Please Login Now To Access More Features.');
-
-                // return redirect('student/dashboard');
-            } else {
-                return back()->with('fail', 'Registration failed');
             }
+            if ($request->registerAs == 'tutor') {
+                DB::beginTransaction();
 
-            // try {
-            //     // Send GET request to the URL
-            //     $response = $client->get($url);
+                try {
+                    $request->validate([
+                        'name' => 'required',
+                        'email' => 'required',
+                        'mobile' => 'required|min:4|max:11',
+                        'password' => 'required|min:8|max:50',
+                    ]);
 
-            //     // Get the response body
-            //     $responseBody = $response->getBody();
+                    $user = tutorregistration::where('email', '=', $request->email, )->first();
+                    if ($user) {
+                        DB::rollBack();
+                        return back()->with('fail', 'Email Already Registered');
+                    }
 
-            //     // You can process the response here
-            //     // For example, you can log the response or return it to the view
-            //     return view('common.tutor-mobile-verify')->with('success','OTP sent successfully');
-            // } catch (\Exception $e) {
-            //     // Handle any exceptions that occur during the request
-            //     return response()->json(['message' => 'OTP sending failed', 'error' => $e->getMessage()], 500);
-            // }
+                    $user = tutorregistration::where('mobile', '=', $request->mobile, )->first();
+                    if ($user) {
+                        DB::rollBack();
+                        return back()->with('fail', 'Mobile Already Registered');
+                    }
+
+                    $user = new tutorregistration();
+                    $user->mobile = $request->mobile;
+                    $user->role_id = "2";
+                    $user->name = $request->name;
+                    $user->email = $request->email;
+                    $user->is_active = "0";
+                    $user->password = Hash::make($request->password);
+
+                    $res = $user->save();
+
+                    if (!$res) {
+                        DB::rollBack();
+                        return back()->with('fail', 'Failed to save tutor registration.');
+                    }
+
+                    $checktutorid = tutorregistration::select('*')->where('mobile', $request->mobile)->first();
+                    if (!$checktutorid) {
+                        DB::rollBack();
+                        return back()->with('fail', 'Failed to retrieve tutor registration.');
+                    }
+
+                    $tprofile = new tutorprofile();
+                    $tprofile->name = $request->name;
+                    $tprofile->mobile = $request->mobile;
+                    $tprofile->email = $request->email;
+                    $tprofile->tutor_id = $checktutorid->id;
+                    $tprofile->qualification = " ";
+                    $tprofile->rateperhour = 0;
+                    $tprofile->admin_commission = 0;
+                    $profileRes = $tprofile->save();
+
+                    if (!$profileRes) {
+                        DB::rollBack();
+                        return back()->with('fail', 'Failed to save tutor profile.');
+                    }
+
+                    // Send welcome mail
+                    try {
+                        $details = [
+                            'name' => $request->name,
+                            'mobile' => $request->mobile,
+                            'password' => $request->password,
+                            'mailtype' => 1,
+                        ];
+
+                        Mail::to($request->email)->send(new SendMail($details));
+                    } catch (\Exception $e) {
+                        Log::error('Failed to send welcome email: ' . $e->getMessage());
+                        // Don't fail registration if email fails
+                    }
+
+                    $mobile = $request->mobile;
+
+                    $user = 'BhashWAPAI';
+                    $pass = '123456';
+                    $sender = 'BUZWAP';
+                    // $phone = '7004920897';
+                    $phone = $request->mobile;
+                    $text = 'delivery';
+                    $priority = 'wa';
+                    $stype = 'normal';
+                    $params = '1195,23aug2023';
+
+                    $url = "https://bhashsms.com/api/sendmsg.php?user=$user&pass=$pass&sender=$sender&phone=$phone&text=$text&priority=$priority&stype=$stype&params=$params";
+
+                    // Initialize Guzzle client
+                    $client = new Client();
+
+                    // OTP sending is non-critical, so we'll try but not fail registration
+                    try {
+                        $response = $client->get($url);
+                    } catch (\Exception $e) {
+                        Log::error('OTP sending failed: ' . $e->getMessage());
+                        // Don't fail registration if OTP sending fails
+                    }
+
+                    $user = tutorregistration::where('mobile', '=', $mobile)->first();
+                    if (!$user) {
+                        DB::rollBack();
+                        return back()->with('fail', 'Failed to retrieve tutor after registration.');
+                    }
+
+                    // Notification Starts here
+                    try {
+                        $notificationdata = new Notification();
+                        $notificationdata->alert_type = 8;
+                        $notificationdata->notification = $request->name . " Registered as tutor and pending for approval";
+                        $notificationdata->initiator_id = $user->id;
+                        $notificationdata->initiator_role = "2";
+                        $notificationdata->event_id = $user->id;
+                        // Sending to admin
+                        $notificationdata->show_to_admin = 1;
+                        $notificationdata->show_to_admin_id = 1;
+                        $notificationdata->show_to_all_admin = 1;
+                        $notificationdata->read_status = 0;
+                        $notificationdata->save();
+                        broadcast(new RealTimeMessage($notificationdata));
+                    } catch (\Exception $e) {
+                        Log::error('Failed to send notification: ' . $e->getMessage());
+                        // Don't fail registration if notification fails
+                    }
+
+                    DB::commit();
+
+                    $request->session()->put('userid', $user);
+                    return redirect('tutor/dashboard')->with('success', 'Registration successful. Please complete your profile.');
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    Log::error('Tutor registration failed: ' . $e->getMessage());
+                    return back()->with('fail', 'Registration failed. Please try again later.');
+                }
+            }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            Log::error('Registration form error: ' . $e->getMessage());
+            return back()->with('fail', 'An error occurred. Please try again later.');
         }
     }
 
@@ -1419,31 +1447,76 @@ class HomeController extends Controller
     }
     public function tutor_registration_form(Request $request)
     {
+        try {
+            DB::beginTransaction();
 
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required',
-            'mobile' => 'required|min:4|max:11',
-            'password' => 'required|min:8|max:50',
-        ]);
+            $request->validate([
+                'name' => 'required',
+                'email' => 'required',
+                'mobile' => 'required|min:4|max:11',
+                'password' => 'required|min:8|max:50',
+            ]);
 
-        $user = new tutorregistration();
-        $user->mobile = $request->mobile;
-        $user->role_id = "2";
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->is_active = "0";
-        $user->password = Hash::make($request->password);
+            // Check for existing email
+            $existingEmail = tutorregistration::where('email', '=', $request->email)->first();
+            if ($existingEmail) {
+                DB::rollBack();
+                return back()->with('fail', 'Email Already Registered');
+            }
 
-        $res = $user->save();
+            // Check for existing mobile
+            $existingMobile = tutorregistration::where('mobile', '=', $request->mobile)->first();
+            if ($existingMobile) {
+                DB::rollBack();
+                return back()->with('fail', 'Mobile Already Registered');
+            }
 
-        $mobile = $request->mobile;
-        if ($res) {
+            $user = new tutorregistration();
+            $user->mobile = $request->mobile;
+            $user->role_id = "2";
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->is_active = "0";
+            $user->password = Hash::make($request->password);
+
+            $res = $user->save();
+
+            if (!$res) {
+                DB::rollBack();
+                return back()->with('fail', 'Registration failed');
+            }
+
+            // Create tutor profile
+            try {
+                $checktutorid = tutorregistration::select('*')->where('mobile', $request->mobile)->first();
+                if ($checktutorid) {
+                    $tprofile = new tutorprofile();
+                    $tprofile->name = $request->name;
+                    $tprofile->mobile = $request->mobile;
+                    $tprofile->email = $request->email;
+                    $tprofile->tutor_id = $checktutorid->id;
+                    $tprofile->qualification = " ";
+                    $tprofile->rateperhour = 0;
+                    $tprofile->admin_commission = 0;
+                    $tprofile->save();
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to create tutor profile: ' . $e->getMessage());
+                DB::rollBack();
+                return back()->with('fail', 'Registration failed. Please try again.');
+            }
+
+            DB::commit();
+
+            $mobile = $request->mobile;
             return view('common.tutor-mobile-verify', compact('mobile'))->with('success', 'Registration successful. Please Login Now To Access More Features.');
-
-            // return redirect('student/dashboard');
-        } else {
-            return back()->with('fail', 'Registration failed');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Tutor registration form error: ' . $e->getMessage());
+            return back()->with('fail', 'Registration failed. Please try again later.');
         }
     }
 

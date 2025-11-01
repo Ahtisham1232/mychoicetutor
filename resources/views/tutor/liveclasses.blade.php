@@ -67,11 +67,10 @@
                                 @elseif ($liveclass->status == 'cancelled' || $liveclass->status == 'Cancelled')
                                 <span class="badge bg-danger">Cancelled</span>
 
-                                @elseif ($liveclass->status == 'Completed' || $liveclasses->status == 'completed')
-                                        <span class="badge bg-success">Completed</span>
-                                {{-- @elseif ($liveclasses->status == 8)
-                                <span class="badge bg-primary">{{ $liveclasses->currentstatus }}</span> --}}
+                                @elseif ($liveclass->status == 'Completed' || $liveclass->status == 'completed')
+                                    <span class="badge bg-success">Completed</span>
                                 @endif
+
                             </td>
                             <td>{{ $liveclass->studentname }}</td>
                             <td>{{ $liveclass->classname }}</td>

@@ -139,11 +139,11 @@ class DemoListController extends Controller
 
     public function bookdemo(Request $request, TwilioWhatsAppService $whatsApp)
     {
-
+        $student = session('userid');
         // $studentprofile = studentprofile::select('*')->where('student_id',session('userid')->id)->first();
-        $profchk = studentprofile::select('email')->where('student_id', session('userid')->id)->first();
-        $tutorname = tutorregistration::select('*')->where('id', $request->demotutorid)->first();
-  
+        $profchk = studentprofile::select('email', 'mobile')->where('student_id', session('userid')->id)->first();
+
+        $tutor = tutorregistration::select('*')->where('id', $request->demotutorid)->first();
         if (!$profchk || $profchk->email === null) {
             return back()->with('fail', 'Please update your profile first. Visit your profile section to update');
         }
@@ -180,21 +180,19 @@ class DemoListController extends Controller
             'slot_1' => $request->demoslotfirst,
             'slot_2' => $request->demoslotsecond,
             'slot_3' => $request->demoslotthird,
-            'tutor_name' => $tutorname->name,
+            'tutor_name' => $tutor->name,
             'mailtype' => 2,
         ];
 
        
-try {
-    Mail::to(session('userid')->email)->send(new SendMail($details));
-    // success response if needed
-} catch (\Exception $e) {
-    // log error for debugging
-}
-        // Send welcome mail ends here ..
+        try {
+            Mail::to(session('userid')->email)->send(new SendMail($details));
+            // success response if needed
+        } catch (\Exception $e) {
+            // log error for debugging
+        }
 
         if ($res) {
-            //////////////// Here I need to pass notification into db
             $notificationdata = new Notification();
             $notificationdata->alert_type = 2;
             $notificationdata->notification = 'New Trial Class Scheduled By ' . session('userid')->name;
@@ -206,49 +204,44 @@ try {
             $notificationdata->show_to_admin = 1;
             // $notificationdata->show_to_admin_id = $request->receiver_id;
             $notificationdata->show_to_all_admin = 1;
-            // }
-            // Sending to tutor
-            // if($request->receiver_role_id == 2){
             $notificationdata->show_to_tutor = 1;
             $notificationdata->show_to_tutor_id = $request->demotutorid;
-            // $notificationdata->show_to_all_tutor = 0;
-            // }
-            // Sending to student
-            // if($request->receiver_role_id == 3){
-            //     $notificationdata->show_to_student = 1;
-            //     $notificationdata->show_to_student_id = $request->receiver_id;
-            //     // $notificationdata->show_to_all_student = 0;
-            // }
-            // // Sending to parent
-            // if($request->receiver_role_id == 3){
-            //     $notificationdata->show_to_parent = 1;
-            //     $notificationdata->show_to_parent_id = $request->receiver_id;
-            //     // $notificationdata->show_to_all_parent = 0;
-            // }
             $notificationdata->read_status = 0;
 
             $notified = $notificationdata->save();
-            
-             if (!empty($tutorname->mobile)) {
-    try {
-        $studentName = session('userid')->name;
-
-        $message = "👋 Hello {$tutorname->name},\n\n" .
-                   "A student **{$studentName}** has booked a trial class with you. 🎓\n\n" .
-                   "👉 Please confirm the class at your earliest convenience.";
-
-        // Format number in E.164 (WhatsApp requirement)
-        $to = "+92" . ltrim($tutorname->mobile, "0");
-
-        // Send via your TwilioWhatsAppService
-        $whatsApp->sendMessage($to, $message);
-
-    } catch (\Exception $e) {
-        \Log::error('WhatsApp message sending failed: ' . $e->getMessage());
-    }
-}
-
-
+            // Send WhatsApp to Tutor
+            if (!empty($tutor->mobile)) {
+                try {
+                    $templateIdTutor = 1634;
+                    $tutorNumber = '+92' . ltrim($tutor->mobile, '0');
+                    $bodyVariablesTutor = [
+                        $tutor->name,
+                        $request->demoslotfirst,
+                        $request->demoslotsecond,
+                        $request->demoslotthird,
+                        $student->name,
+                    ];
+                    $whatsApp->sendMessage($tutorNumber, $bodyVariablesTutor, $templateIdTutor);
+                } catch (\Exception $e) {
+                }
+            }
+        
+            // Send WhatsApp to Student
+            if (!empty($profchk->mobile)) {
+                try {
+                    $templateIdStudent = 1635;
+                    $studentNumber = '+92' . ltrim($profchk->mobile, '0');
+                    $bodyVariablesStudent = [
+                        $student->name,
+                        $tutor->name,
+                        $request->demoslotfirst,
+                        $request->demoslotsecond,
+                        $request->demoslotthird,
+                    ];
+                    $whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdStudent);
+                } catch (\Exception $e) {
+                }
+            }
             broadcast(new RealTimeMessage('$notification'));
 
 

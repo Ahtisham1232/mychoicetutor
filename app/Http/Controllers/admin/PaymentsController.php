@@ -21,6 +21,9 @@ use App\Models\Notification;
 use App\Events\RealTimeMessage;
 use App\Mail\SendMail;
 use Illuminate\Support\Facades\Mail;
+use App\Services\TwilioWhatsAppService;
+use App\Models\studentprofile;
+use Illuminate\Support\Facades\Log;
 
 class PaymentsController extends Controller
 {
@@ -626,6 +629,26 @@ class PaymentsController extends Controller
                 'mailtype' => 6, // New mail type for enrollment approval
             ];
             // Mail::to($student->email)->send(new SendMail($details));
+
+            // Send WhatsApp notification to Student when admin approves enrollment
+            try {
+                $whatsApp = app(TwilioWhatsAppService::class);
+                $studentProfile = studentprofile::where('student_id', $studentPayment->student_id)->first();
+                
+                if (!empty($studentProfile->mobile)) {
+                    $templateIdStudent = 1637; // TODO: Replace with actual template ID for admin approval notification
+                    $studentNumber = '+92' . ltrim($studentProfile->mobile, '0');
+                    $bodyVariablesStudent = [
+                        $student->name,
+                        $tutor->name,
+                        $studentPayment->classes_purchased,
+                        $studentPayment->rate_per_hr,
+                    ];
+                    $whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdStudent);
+                }
+            } catch (\Exception $e) {
+                Log::error('WhatsApp send failed for admin approval: ' . $e->getMessage());
+            }
 
             return redirect()->route('admin.enrollment-requests')->with('success', 'Enrollment request approved successfully!');
         } else {
