@@ -643,17 +643,26 @@ public function admintutorprofile($id)
                 $whatsApp = app(TwilioWhatsAppService::class);
                 $tutor = tutorregistration::find($request->tutorenrollid);
                 $student = session('userid');
-                
-                if (!empty($tutor->mobile)) {
-                    $templateIdTutor = 1605;
+                $firstSlot = SlotBooking::whereIn('id', explode(',', $request->slotids))
+                ->orderBy('date', 'asc')
+                ->first();
+                if (!empty($tutor->mobile) && $firstSlot) {
+                    $templateIdTutor = 1605; // Your approved template ID
                     $tutorNumber = '+92' . ltrim($tutor->mobile, '0');
+            
+                    // Format date & time nicely for WhatsApp message
+                    $slotDate = \Carbon\Carbon::parse($firstSlot->date)->format('d M Y');
+                    $slotTime = \Carbon\Carbon::parse($firstSlot->slot)->format('h:i A');
+            
+                    // Variables must match your template placeholders exactly
                     $bodyVariablesTutor = [
-                        $tutor->name,
-                        $student->name,
-                        $classId->name ?? 'N/A', // This is actually the subject name
-                        $request->requiredclassenroll,
-                        $request->totalamountenroll,
+                        $tutor->name,                       // {{1}}
+                        $classId->name ?? 'N/A',            // {{2}}
+                        $student->name,                     // {{3}}
+                        $slotDate,                          // {{4}}
+                        $slotTime,                          // {{5}}
                     ];
+            
                     $whatsApp->sendMessage($tutorNumber, $bodyVariablesTutor, $templateIdTutor);
                 }
             } catch (\Exception $e) {
