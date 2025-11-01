@@ -23,12 +23,12 @@ class TwilioWhatsAppService
     {
         try {
             $response = Http::withHeaders([
-                'hash' => '38bd44690170d1afe9f89edebf147d4b', // Replace with your actual VeevoTech hash
+                'hash' => env('VEETOTECH_HASH'),
             ])->post('https://wa-api.veevotech.com/wa/v1/send_message', [
                 'to' => $to,
                 'type' => 'template',
                 'template_id' => $templateId,
-                'header_variables' => [], // None used in your template
+                'header_variables' => [], 
                 'body_variables' => $bodyVariables,
                 'media_url' => [],
                 'priority' => 1,

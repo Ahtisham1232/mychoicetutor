@@ -381,26 +381,22 @@ try {
 
                 broadcast(new RealTimeMessage('$notification'));
                 if (!empty($demostudent->mobile)) {
-                    // If meeting link is available, use it; otherwise fallback
-                    $meetingLink = $response->hangoutLink ?? null;
-
-                    $message = "👋 Hello {$demostudent->name},\n\n".
-                            "Your trial/demo class has been confirmed ✅\n".
-                            "Subject: {$subjectdata->name}\n".
-                            "Date/Time: " . date('d M Y h:i A', strtotime($classstarttime)) . "\n".
-                            "Tutor: " . session('userid')->name . "\n";
-
-                    if ($meetingLink) {
-                        $message .= "Meeting Link: {$meetingLink}\n\n";
-                    } else {
-                        $message .= "Meeting link will be shared shortly. 📩\n\n";
+                    try {
+                        $templateIdDemoConfirm = 1645; 
+                        $studentNumber = '+92' . ltrim($demostudent->mobile, '0');
+                        $bodyVariablesStudent = [
+                            $demostudent->name,
+                            $subjectdata->name,
+                            Carbon::parse($request->slot)->format('d M Y h:i A'),
+                            session('userid')->name,
+                            $response->hangoutLink,
+                        ];
+                        $whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdDemoConfirm);
+                    } catch (\Exception $e) {
+                        Log::error('WhatsApp send failed for demo confirmation: ' . $e->getMessage());
                     }
-
-                    $message .= "Please be on time.";
-
-                    $to = "+92" . ltrim($demostudent->mobile, "0"); // format to E.164
-                    $whatsApp->sendMessage($to, $message);
                 }
+                
 
 
                 return redirect()->to('/tutor/demolist')->with('success', 'Trial confirmed successfully');
