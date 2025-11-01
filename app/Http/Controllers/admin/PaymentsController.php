@@ -628,7 +628,7 @@ class PaymentsController extends Controller
                 'tutor_name' => $tutor->name,
                 'mailtype' => 6, // New mail type for enrollment approval
             ];
-            Mail::to($student->email)->send(new SendMail($details));
+            // Mail::to($student->email)->send(new SendMail($details));
 
             // Send WhatsApp notification to Student when admin approves enrollment
             try {
@@ -644,36 +644,12 @@ class PaymentsController extends Controller
                         $studentPayment->classes_purchased,
                         $studentPayment->rate_per_hr,
                     ];
-                    $whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdStudent);
+                    dd($whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdStudent));
                 }
             } catch (\Exception $e) {
                 Log::error('WhatsApp send failed for admin approval: ' . $e->getMessage());
             }
-            $enrollmentRequests = paymentdetails::select(
-                'paymentdetails.*',
-                'paymentstudents.*',
-                'studentregistrations.name as student_name',
-                'studentregistrations.email as student_email',
-                'tutorregistrations.name as tutor_name',
-                'subjects.name as subject_name',
-                'classes.name as class_name'
-            )
-            ->join('paymentstudents', 'paymentstudents.transaction_id', 'paymentdetails.transaction_id')
-            ->join('studentregistrations', 'studentregistrations.id', 'paymentstudents.student_id')
-            ->join('tutorregistrations', 'tutorregistrations.id', 'paymentstudents.tutor_id')
-            ->join('subjects', 'subjects.id', 'paymentstudents.subject_id')
-            ->join('classes', 'classes.id', 'paymentstudents.class_id')
-            ->where('paymentdetails.status', 0) // 0 = pending approval
-            ->where('paymentdetails.payment_mode', 'Physical Payment')
-            ->orderBy('paymentdetails.created_at', 'desc')
-            ->paginate(10);
-
-            return redirect()
-    ->route('admin.enrollment-requests')
-    ->with([
-        'success' => 'Enrollment request approved successfully!',
-        'enrollmentRequests' => $enrollmentRequests
-    ]);
+            return redirect()->route('admin.enrollment-requests')->with('success', 'Enrollment request approved successfully!');
         } else {
             return redirect()->route('admin.enrollment-requests')->with('info', 'Enrollment request marked as pending payment verification.');
         }
@@ -681,6 +657,7 @@ class PaymentsController extends Controller
             return redirect()->route('admin.enrollment-requests')->with('fail', 'Something went wrong. Please try again. Error: ' . $e->getMessage());
         }
     }
+    
     /**
      * Reject enrollment request
      */
