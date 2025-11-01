@@ -561,123 +561,123 @@ public function admintutorprofile($id)
     ]);
     }
 
-    // // NEW: Enrollment request method (no payment required)
-    // public function purchaseclass(Request $request)
-    // {
-    //     // dd($request);
-    //     try {
-    //         $request->validate([
-    //             'tutorenrollid' => 'required',
-    //             'subjectenrollid' => 'required',
-    //             'requiredclassenroll' => 'required',
-    //             'rateperhourenroll' => 'required',
-    //             'totalamountenroll' => 'required',
-    //         ]);
+    // NEW: Enrollment request method (no payment required)
+    public function purchaseclass(Request $request)
+    {
+        // dd($request);
+        try {
+            $request->validate([
+                'tutorenrollid' => 'required',
+                'subjectenrollid' => 'required',
+                'requiredclassenroll' => 'required',
+                'rateperhourenroll' => 'required',
+                'totalamountenroll' => 'required',
+            ]);
 
-    //         $order_id = substr(uniqid(date('YmdHis')), 0, 20);
-    //         $classId = subjects::find($request->subjectenrollid);
-    //         $tutorname = tutorprofile::where('tutor_id', $request->tutorenrollid)->first();
+            $order_id = substr(uniqid(date('YmdHis')), 0, 20);
+            $classId = subjects::find($request->subjectenrollid);
+            $tutorname = tutorprofile::where('tutor_id', $request->tutorenrollid)->first();
 
-    //         // Check if subject and tutor exist
-    //         if (!$classId) {
-    //             return redirect()->back()->with('fail', 'Subject not found.');
-    //         }
-    //         if (!$tutorname) {
-    //             return redirect()->back()->with('fail', 'Tutor not found.');
-    //         }
+            // Check if subject and tutor exist
+            if (!$classId) {
+                return redirect()->back()->with('fail', 'Subject not found.');
+            }
+            if (!$tutorname) {
+                return redirect()->back()->with('fail', 'Tutor not found.');
+            }
 
-    //         // Save enrollment request (pending admin approval)
-    //         $paymentdetails = new paymentdetails();
-    //         $paymentdetails->transaction_id = $order_id;
-    //         $paymentdetails->payment_mode = 'Physical Payment';
-    //         $paymentdetails->amount = $request->totalamountenroll;
-    //         $paymentdetails->status = 0; // 0 = pending approval
-    //         $paymentdetails->save();
+            // Save enrollment request (pending admin approval)
+            $paymentdetails = new paymentdetails();
+            $paymentdetails->transaction_id = $order_id;
+            $paymentdetails->payment_mode = 'Physical Payment';
+            $paymentdetails->amount = $request->totalamountenroll;
+            $paymentdetails->status = 0; // 0 = pending approval
+            $paymentdetails->save();
 
-    //         // Save student enrollment request
-    //         $studentpayment = new paymentstudents();
-    //         $studentpayment->transaction_id = $order_id;
-    //         $studentpayment->student_id = session('userid')->id;
-    //         $studentpayment->class_id = $classId->class_id;
-    //         $studentpayment->subject_id = $request->subjectenrollid;
-    //         $studentpayment->tutor_id = $request->tutorenrollid;
-    //         $studentpayment->classes_purchased = $request->requiredclassenroll;
-    //         $studentpayment->rate_per_hr = $request->rateperhourenroll;
-    //         $studentpayment->save();
+            // Save student enrollment request
+            $studentpayment = new paymentstudents();
+            $studentpayment->transaction_id = $order_id;
+            $studentpayment->student_id = session('userid')->id;
+            $studentpayment->class_id = $classId->class_id;
+            $studentpayment->subject_id = $request->subjectenrollid;
+            $studentpayment->tutor_id = $request->tutorenrollid;
+            $studentpayment->classes_purchased = $request->requiredclassenroll;
+            $studentpayment->rate_per_hr = $request->rateperhourenroll;
+            $studentpayment->save();
 
-    //         // Book slots (temporarily reserved)
-    //         $slotIds = explode(',', $request->slotids);
-    //         foreach ($slotIds as $slotId) {
-    //             $slotbooking = SlotBooking::find($slotId);
-    //             if ($slotbooking) {
-    //                 $slotbooking->student_id = session('userid')->id;
-    //                 $slotbooking->booked_at = now();
-    //                 $slotbooking->transaction_id = $order_id;
-    //                 $slotbooking->subject_id = $request->subjectenrollid;
-    //                 $slotbooking->status = 2; // 2 = pending approval
-    //                 $slotbooking->contact_admin = $request->contactadmin == 'on' ? 1 : 0;
-    //                 $slotbooking->class_schedule_id = $studentpayment->id;
-    //                 $slotbooking->save();
-    //             }
-    //         }
+            // Book slots (temporarily reserved)
+            $slotIds = explode(',', $request->slotids);
+            foreach ($slotIds as $slotId) {
+                $slotbooking = SlotBooking::find($slotId);
+                if ($slotbooking) {
+                    $slotbooking->student_id = session('userid')->id;
+                    $slotbooking->booked_at = now();
+                    $slotbooking->transaction_id = $order_id;
+                    $slotbooking->subject_id = $request->subjectenrollid;
+                    $slotbooking->status = 2; // 2 = pending approval
+                    $slotbooking->contact_admin = $request->contactadmin == 'on' ? 1 : 0;
+                    $slotbooking->class_schedule_id = $studentpayment->id;
+                    $slotbooking->save();
+                }
+            }
 
-    //         // Send notification to admin
-    //         try {
-    //             $notificationdata = new Notification();
-    //             $notificationdata->alert_type = 8; // New alert type for enrollment requests
-    //             $notificationdata->notification = session('userid')->name . ' has requested enrollment for classes with ' . $tutorname->name;
-    //             $notificationdata->initiator_id = session('userid')->id;
-    //             $notificationdata->initiator_role = session('userid')->role_id;
-    //             $notificationdata->event_id = $request->tutorenrollid;
-    //             $notificationdata->show_to_admin = 1;
-    //             $notificationdata->show_to_all_admin = 1;
-    //             $notificationdata->read_status = 0;
-    //             $notificationdata->save();
-    //             broadcast(new RealTimeMessage('$notification'));
-    //         } catch (\Exception $e) {
-    //             // return redirect()->back()->with('fail', 'Enrollment request submitted, but notification failed. Error: ' . $e->getMessage());
-    //         }
+            // Send notification to admin
+            try {
+                $notificationdata = new Notification();
+                $notificationdata->alert_type = 8; // New alert type for enrollment requests
+                $notificationdata->notification = session('userid')->name . ' has requested enrollment for classes with ' . $tutorname->name;
+                $notificationdata->initiator_id = session('userid')->id;
+                $notificationdata->initiator_role = session('userid')->role_id;
+                $notificationdata->event_id = $request->tutorenrollid;
+                $notificationdata->show_to_admin = 1;
+                $notificationdata->show_to_all_admin = 1;
+                $notificationdata->read_status = 0;
+                $notificationdata->save();
+                broadcast(new RealTimeMessage('$notification'));
+            } catch (\Exception $e) {
+                // return redirect()->back()->with('fail', 'Enrollment request submitted, but notification failed. Error: ' . $e->getMessage());
+            }
 
-    //         // Send WhatsApp notification to Tutor when student purchases class
-    //         try {
-    //             $whatsApp = app(TwilioWhatsAppService::class);
-    //             $tutor = tutorregistration::find($request->tutorenrollid);
-    //             $student = session('userid');
+            // Send WhatsApp notification to Tutor when student purchases class
+            try {
+                $whatsApp = app(TwilioWhatsAppService::class);
+                $tutor = tutorregistration::find($request->tutorenrollid);
+                $student = session('userid');
                 
-    //             if (!empty($tutor->mobile)) {
-    //                 $templateIdTutor = 1637; // TODO: Replace with actual template ID for class purchase notification
-    //                 $tutorNumber = '+92' . ltrim($tutor->mobile, '0');
-    //                 $bodyVariablesTutor = [
-    //                     $tutor->name,
-    //                     $student->name,
-    //                     $classId->name ?? 'N/A', // This is actually the subject name
-    //                     $request->requiredclassenroll,
-    //                     $request->totalamountenroll,
-    //                 ];
-    //                 $whatsApp->sendMessage($tutorNumber, $bodyVariablesTutor, $templateIdTutor);
-    //             }
-    //         } catch (\Exception $e) {
-    //             Log::error('WhatsApp send failed for class purchase: ' . $e->getMessage());
-    //         }
+                if (!empty($tutor->mobile)) {
+                    $templateIdTutor = 1637; // TODO: Replace with actual template ID for class purchase notification
+                    $tutorNumber = '+92' . ltrim($tutor->mobile, '0');
+                    $bodyVariablesTutor = [
+                        $tutor->name,
+                        $student->name,
+                        $classId->name ?? 'N/A', // This is actually the subject name
+                        $request->requiredclassenroll,
+                        $request->totalamountenroll,
+                    ];
+                    $whatsApp->sendMessage($tutorNumber, $bodyVariablesTutor, $templateIdTutor);
+                }
+            } catch (\Exception $e) {
+                Log::error('WhatsApp send failed for class purchase: ' . $e->getMessage());
+            }
 
-    //         // Send mail to student
-    //         try {
-    //             $details = [
-    //                 'name' => session('userid')->name,
-    //                 'total_classes' => $request->requiredclassenroll,
-    //                 'tutor_name' => $tutorname->name,
-    //                 'mailtype' => 5, // New mail type for enrollment request
-    //             ];
-    //             Mail::to(session('userid')->email)->send(new SendMail($details));
-    //         } catch (\Exception $e) {
-    //             // return redirect()->back()->with('fail', 'Enrollment request submitted, but email failed. Error: ' . $e->getMessage());
-    //         }
+            // Send mail to student
+            try {
+                $details = [
+                    'name' => session('userid')->name,
+                    'total_classes' => $request->requiredclassenroll,
+                    'tutor_name' => $tutorname->name,
+                    'mailtype' => 5, // New mail type for enrollment request
+                ];
+                Mail::to(session('userid')->email)->send(new SendMail($details));
+            } catch (\Exception $e) {
+                // return redirect()->back()->with('fail', 'Enrollment request submitted, but email failed. Error: ' . $e->getMessage());
+            }
 
-    //         return redirect()->route('student.admission', ['id' => $request->tutorenrollid])->with('success', 'Enrollment request submitted successfully. Admin will review and approve your request.');
-    //     } catch (\Exception $e) {
-    //         return redirect()->back()->with('fail', 'Something went wrong. Please try again. Error: ' . $e->getMessage());
-    //     }
-    // }
+            return redirect()->route('student.admission', ['id' => $request->tutorenrollid])->with('success', 'Enrollment request submitted successfully. Admin will review and approve your request.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('fail', 'Something went wrong. Please try again. Error: ' . $e->getMessage());
+        }
+    }
     // public function purchaseclass(Request $request)
     // {
     //     // dd($request->all());
