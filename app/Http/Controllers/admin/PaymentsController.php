@@ -628,13 +628,13 @@ class PaymentsController extends Controller
                 'tutor_name' => $tutor->name,
                 'mailtype' => 6, // New mail type for enrollment approval
             ];
-            // Mail::to($student->email)->send(new SendMail($details));
+            Mail::to($student->email)->send(new SendMail($details));
 
             // Send WhatsApp notification to Student when admin approves enrollment
             try {
                 $whatsApp = app(TwilioWhatsAppService::class);
                 $studentProfile = studentprofile::where('student_id', $studentPayment->student_id)->first();
-                
+                Log::error('student mobile  for admin approval: ' . $studentProfile->mobile);
                 if (!empty($studentProfile->mobile)) {
                     $templateIdStudent = 1637; // TODO: Replace with actual template ID for admin approval notification
                     $studentNumber = '+92' . ltrim($studentProfile->mobile, '0');
