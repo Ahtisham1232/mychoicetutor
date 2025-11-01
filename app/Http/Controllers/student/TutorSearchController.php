@@ -645,7 +645,7 @@ public function admintutorprofile($id)
                 $student = session('userid');
                 
                 if (!empty($tutor->mobile)) {
-                    $templateIdTutor = 1637; // TODO: Replace with actual template ID for class purchase notification
+                    $templateIdTutor = 1605;
                     $tutorNumber = '+92' . ltrim($tutor->mobile, '0');
                     $bodyVariablesTutor = [
                         $tutor->name,
