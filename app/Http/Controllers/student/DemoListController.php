@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use App\Services\TwilioWhatsAppService;
+use Carbon\Carbon;
 
 class DemoListController extends Controller
 {
@@ -209,6 +210,20 @@ class DemoListController extends Controller
             $notificationdata->read_status = 0;
 
             $notified = $notificationdata->save();
+
+            // Format slots before sending WhatsApp
+            $formattedSlot1 = $request->demoslotfirst 
+            ? Carbon::parse($request->demoslotfirst)->format('d M Y, h:i A') 
+            : 'N/A';
+
+            $formattedSlot2 = $request->demoslotsecond 
+            ? Carbon::parse($request->demoslotsecond)->format('d M Y, h:i A') 
+            : 'N/A';
+
+            $formattedSlot3 = $request->demoslotthird 
+            ? Carbon::parse($request->demoslotthird)->format('d M Y, h:i A') 
+            : 'N/A';
+
             // Send WhatsApp to Tutor
             if (!empty($tutor->mobile)) {
                 try {
@@ -216,9 +231,9 @@ class DemoListController extends Controller
                     $tutorNumber = '+92' . ltrim($tutor->mobile, '0');
                     $bodyVariablesTutor = [
                         $tutor->name,
-                        $request->demoslotfirst,
-                        $request->demoslotsecond,
-                        $request->demoslotthird,
+                        $formattedSlot1,
+                        $formattedSlot2,
+                        $formattedSlot3,
                         $student->name,
                     ];
                     $whatsApp->sendMessage($tutorNumber, $bodyVariablesTutor, $templateIdTutor);
@@ -234,9 +249,9 @@ class DemoListController extends Controller
                     $bodyVariablesStudent = [
                         $student->name,
                         $tutor->name,
-                        $request->demoslotfirst,
-                        $request->demoslotsecond,
-                        $request->demoslotthird,
+                        $formattedSlot1,
+                        $formattedSlot2,
+                        $formattedSlot3,
                     ];
                     $whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdStudent);
                 } catch (\Exception $e) {
