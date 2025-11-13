@@ -582,6 +582,12 @@
 
                         </li>
 
+                        <li class="nav-item">
+                            <a class="nav-link menu-link{{ Request::is('admin/recordings*') ? 'active' : '' }}" href="{{route('admin.recordings')}}" role="button" aria-expanded="false" aria-controls="sidebarLayouts">
+                            <i class="ri-video-line"></i> <span data-key="t-dashboards">Recordings</span>
+                            </a>
+                        </li>
+
 
 
                          <li class="nav-item">

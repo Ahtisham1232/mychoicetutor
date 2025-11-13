@@ -249,6 +249,14 @@ Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], funct
     Route::get('scheduledclasses', [ClassController::class, 'scheduledclasses'])->name('admin.scheduledclasses');
     Route::get('tutorslots', [SlotBookingController::class, 'admintutorslots'])->name('admin.tutorslots');
     Route::post('tutorslotssearch', [SlotBookingController::class, 'admintutorslotssearch'])->name('admin.tutorslotssearch');
+    
+    // Recordings
+    Route::get('recordings', [\App\Http\Controllers\admin\RecordingsController::class, 'index'])->name('admin.recordings');
+    Route::get('recordings/view/{id}', [\App\Http\Controllers\admin\RecordingsController::class, 'view'])->name('admin.recordings.view');
+    Route::get('recordings/analytics', [\App\Http\Controllers\admin\RecordingsController::class, 'analytics'])->name('admin.recordings.analytics');
+    Route::get('recordings/download/{id}', [\App\Http\Controllers\admin\RecordingsController::class, 'download'])->name('admin.recordings.download');
+    Route::delete('recordings/{id}', [\App\Http\Controllers\admin\RecordingsController::class, 'destroy'])->name('admin.recordings.delete');
+    Route::post('recordings/{id}/update-link', [\App\Http\Controllers\admin\RecordingsController::class, 'updateRecordingLink'])->name('admin.recordings.update-link');
 
     // Subjects
     Route::get('subject', [SubjectController::class, 'index'])->name('admin.subject');
@@ -582,6 +590,9 @@ Route::group(['prefix' => 'parent', 'middleware' => ['StudentAuthenticate']], fu
 
 // Create Jitsi Meeting
 Route::get('/jitsi', [JitsiController::class, 'index']);
+
+// Jitsi Webhook for automatic recording processing
+Route::post('/webhook/jitsi/recording', [\App\Http\Controllers\JitsiWebhookController::class, 'handleWebhook'])->name('webhook.jitsi.recording');
 // Route::get('oauth2callback', [GoogleCalendarController::class,'oauthCallback'])->name('oauth2callback');
 Route::get('tutorprofile/{id}', [TutorSearchController::class, 'teacherprofile'])->name('tutorprofile');
 Route::get('/tutor/dashboard/oauth2callback', [GoogleCalendarController::class, 'oauth2callbackdemo']);

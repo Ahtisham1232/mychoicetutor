@@ -24,6 +24,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use App\Services\TwilioWhatsAppService;
+use App\Services\JitsiMeetService;
 use Illuminate\Support\Facades\Log;
 
 class GoogleCalendarController extends Controller
@@ -87,6 +88,7 @@ class GoogleCalendarController extends Controller
    
     public function scheduleclass(Request $request)
     {
+        
         try {
             if (session('userid')->is_active == 0) {
                 return back()->with('fail', 'Sorry! your Account is not verified. Please contact administrator');
@@ -98,6 +100,7 @@ class GoogleCalendarController extends Controller
             ]);
 
             $classdata = SlotBooking::select('*')->where('id', $request->classslotid)->first();
+          
             if (!$classdata) {
                 return back()->with('fail', 'Slot booking not found.');
             }
@@ -116,26 +119,6 @@ class GoogleCalendarController extends Controller
             if (!$tutor) {
                 return back()->with('fail', 'Tutor not found.');
             }
-        // $slotbooking->class_schedule_id = $studentpayment->id;
-
-        // try {
-            // Initialize the Google API client with OAuth 2.0 credentials
-            $client = new Google_Client();
-            $client->setClientId('676549087074-1ueuq9ch025rdru9tu8043qfg8o54cso.apps.googleusercontent.com');
-            $client->setClientSecret('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');
-            $client->setRedirectUri('https://mychoicetutor.com/tutor/dashboard/oauth2callback');
-            $client->addScope('https://www.googleapis.com/auth/calendar');
-            $client->setAccessType('offline'); // Allows access when the user is not present
-
-            // Check if the user is already authenticated
-            if (!$request->session()->has('access_token')) {
-                // Redirect the user to Google's OAuth 2.0 consent screen
-                $authUrl = $client->createAuthUrl();
-                return redirect()->away($authUrl);
-            }
-            $client->setAccessToken($request->session()->get('access_token'));
-
-            $service = new Google_Service_Calendar($client);
 
             // Get the actual date and time from slot booking
             $slotDate = Carbon::parse($classdata->date);
@@ -144,70 +127,45 @@ class GoogleCalendarController extends Controller
             $classduration = 60;
             $classpassword = $request->input('classpassword');
 
-            $event = new Google_Service_Calendar_Event([
-                'summary' => 'Live Class By ' . $tutor->name . '',
-                'description' => 'Live for student : ' . $student->name . ', by tutor : ' . $tutor->name,
-                'start' => [
-                    'dateTime' => $classstarttime->format(DateTime::RFC3339),
-                    'timeZone' => 'Asia/Kolkata',
-                ],
-                'end' => [
-                    'dateTime' => $classstarttime->copy()->addMinutes($classduration)->format(DateTime::RFC3339),
-                    'timeZone' => 'Asia/Kolkata',
-                ],
-                'conferenceData' => [
-                    'createRequest' => [
-                        'requestId' => uniqid(),
-                    ],
-                    'password' => $classpassword,
-                ],
-                'attendees' => [['email' => $student->email]],
-            ]);
-            $calendarId = 'primary';
+            // Get subject name for meeting room
+            $subject = subjects::find($classdata->subject_id);
+            $subjectName = $subject ? $subject->name : 'Live Class';
 
-            $response = null;
-            try {
-                // Code that makes the API request to Google Calendar
-                $response = $service->events->insert($calendarId, $event, ['conferenceDataVersion' => 1]);
-            } catch (\Google\Service\Exception $e) {
-                // Handle Google API exceptions
-                Log::error('Google Calendar API error: ' . $e->getMessage());
-                $authUrl = $client->createAuthUrl();
-                return redirect()->away($authUrl)->with('fail', 'Google Calendar authentication required.');
-            } catch (\Exception $e) {
-                // Handle other exceptions
-                Log::error('Error creating Google Calendar event: ' . $e->getMessage());
-                return back()->with('fail', 'Failed to create calendar event. Please try again.');
-            }
-
-            if ($response && $response->status == 'confirmed') {
+            // Use Jitsi Meet instead of Google Meet (FREE, no account needed per user)
+            $jitsiService = app(JitsiMeetService::class);
+            $meeting = $jitsiService->createClassMeeting(
+                $tutor->id,
+                $student->id,
+                $subjectName,
+                $classpassword
+            );
+            if ($meeting['success']) {
                 try {
-                    $data = new zoom_classes(); // zoom_classes -> Currently we are using gmeet to host meeting
+                    $data = new zoom_classes(); // Using zoom_classes table but with Jitsi Meet links
 
                     $data->tutor_id = session('userid')->id;
                     $data->batch_id = $student->id;
                     $data->student_id = $student->id;
-                    $data->uuid = $response->id;
-                    $data->meeting_id = $response->hangoutLink;
-                    $data->host_id = 'info@sofabespoke.co.uk';
-                    $data->host_email = 'info@sofabespoke.co.uk';
-                    $data->topic_id = 0;
-                    $data->topic_name = 'On Demand';
-                    $data->type = 2;
-                    $data->status = $response->status;
+                    $data->uuid = $meeting['room_name']; // Store room name as UUID
+                    $data->meeting_id = $meeting['meeting_url']; // Store meeting URL as meeting_id
+                    $data->host_id = (string)$tutor->id;
+                    $data->host_email = $tutor->email;
+                    $data->topic_id = $classdata->subject_id ?? 0;
+                    $data->topic_name = $subjectName;
+                    $data->type = 2; // 2 = scheduled meeting
+                    $data->status = 'confirmed';
                     $data->start_time = $classstarttime->format(DateTime::RFC3339);
                     $data->duration = $classduration;
                     $data->timezone = 'Asia/Kolkata';
-                    $data->agenda = $response->description ?? 'Live Class';
-                    $data->start_url = $response->hangoutLink ?? '';
-                    $data->join_url = $response->hangoutLink ?? '';
-                    $data->password = $classpassword;
-                    $data->h323_password = $classpassword;
-                    $data->pstn_password = $classpassword;
-                    $data->encrypted_password = $classpassword;
+                    $data->agenda = 'Live Class for ' . $student->name . ' by ' . $tutor->name;
+                    $data->start_url = $meeting['start_url'];
+                    $data->join_url = $meeting['join_url'];
+                    $data->password = $classpassword ?? '';
+                    $data->h323_password = $classpassword ?? '';
+                    $data->pstn_password = $classpassword ?? '';
+                    $data->encrypted_password = $classpassword ?? '';
 
                     $res = $data->save();
-
                     if ($res) {
                         try {
                             // Retrieve the id after saving
@@ -251,9 +209,10 @@ class GoogleCalendarController extends Controller
                     return back()->with('fail', 'Failed to save class. Please try again.');
                 }
             
-        } else {
-            return back()->with('fail', 'Failed to confirm calendar event. Please try again.');
-        }
+            } else {
+                Log::error('Jitsi Meet creation failed: ' . ($meeting['error'] ?? 'Unknown error'));
+                return back()->with('fail', 'Failed to create meeting. Please try again.');
+            }
         } catch (\Exception $e) {
             Log::error('Error in scheduleclass: ' . $e->getMessage());
             return back()->with('fail', 'An error occurred. Please try again later.');
@@ -285,67 +244,49 @@ class GoogleCalendarController extends Controller
     }
     public function democonfirm(Request $request, TwilioWhatsAppService $whatsApp)
     {
-        $request->validate([
-            'slot' => 'required',
-        ]);
+        try {
+            $request->validate([
+                'slot' => 'required',
+            ]);
 
-        $demodata = democlasses::select('*')->where('id', $request->confirmid)->first();
-        $demostudent = studentprofile::select('*')->where('student_id', $demodata->student_id)->first();
-        $client = new Google_Client();
-        $client->setClientId('676549087074-1ueuq9ch025rdru9tu8043qfg8o54cso.apps.googleusercontent.com');
-        $client->setClientSecret('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');
-        $client->setRedirectUri('https://mychoicetutor.com/tutor/dashboard/oauth2callback');
-        $client->addScope('https://www.googleapis.com/auth/calendar');
-        $client->setAccessType('offline');
+            $demodata = democlasses::select('*')->where('id', $request->confirmid)->first();
+            if (!$demodata) {
+                return back()->with('fail', 'Demo class not found.');
+            }
 
-        if (!$request->session()->has('access_token')) {
-            $authUrl = $client->createAuthUrl();
-            return redirect()->away($authUrl);
-        }
+            $demostudent = studentprofile::select('*')->where('student_id', $demodata->student_id)->first();
+            if (!$demostudent) {
+                return back()->with('fail', 'Student profile not found.');
+            }
 
-        $client->setAccessToken($request->session()->get('access_token'));
-        $service = new Google_Service_Calendar($client);
+            $classstarttime = $request->input('slot');
+            $classduration = 60;
+            $classpassword = $request->input('demopassword') ?? '12345678';
 
-        $classstarttime = $request->input('slot');
-        $classduration = 60;
-        $classpassword = '12345678';
-        $attendees[] = ['email' => $demostudent->email];
+            $subjectdata = subjects::select('*')->where('id', $demodata->subject_id)->first();
+            $subjectName = $subjectdata ? $subjectdata->name : 'Demo Class';
 
-        $subjectdata = subjects::select('*')->where('id', $demodata->subject_id)->first();
-        $batchdata = batches::select('*')->where('id', $request->batchid)->first();
+            // Use Jitsi Meet instead of Google Meet (FREE, no account needed per user)
+            $jitsiService = app(JitsiMeetService::class);
+            $tutorId = session('userid')->id;
+            $studentId = $demodata->student_id;
+            
+            $meeting = $jitsiService->createClassMeeting(
+                $tutorId,
+                $studentId,
+                $subjectName,
+                $classpassword
+            );
 
-        $event = new Google_Service_Calendar_Event([
-            'summary' => 'Demo Class(' . $subjectdata->name . ')',
-            'description' => $subjectdata->name,
-            'start' => [
-                'dateTime' => date('c', strtotime($classstarttime)),
-                'timeZone' => 'Asia/Kolkata',
-            ],
-            'end' => [
-                'dateTime' => date('c', strtotime($classstarttime . ' + ' . $classduration . ' minutes')),
-                'timeZone' => 'Asia/Kolkata',
-            ],
-            'conferenceData' => [
-                'createRequest' => [
-                    'requestId' => uniqid(),
-                ],
-                'password' => $classpassword,
-            ],
-            'attendees' => $attendees,
-        ]);
-
-        $calendarId = 'primary';
-        $response = $service->events->insert($calendarId, $event, ['conferenceDataVersion' => 1]);
-
-        if ($response->status == 'confirmed') {
-            $dcnf = democlasses::find($request->confirmid);
-            $dcnf->slot_confirmed = $request->slot;
-            $dcnf->slot_confirmed_at = Carbon::now();
-            $dcnf->slot_confirmed_by = session('userid')->id;
-            $dcnf->demo_link = $response->hangoutLink;
-            $dcnf->remarks = $request->demoremarks;
-            $dcnf->status = 3;
-            $res = $dcnf->save();
+            if ($meeting['success']) {
+                $dcnf = democlasses::find($request->confirmid);
+                $dcnf->slot_confirmed = $request->slot;
+                $dcnf->slot_confirmed_at = Carbon::now();
+                $dcnf->slot_confirmed_by = session('userid')->id;
+                $dcnf->demo_link = $meeting['meeting_url'];
+                $dcnf->remarks = $request->demoremarks;
+                $dcnf->status = 3;
+                $res = $dcnf->save();
 
             try {
             $details = [
@@ -386,10 +327,10 @@ try {
                         $studentNumber = '+92' . ltrim($demostudent->mobile, '0');
                         $bodyVariablesStudent = [
                             $demostudent->name,
-                            $subjectdata->name,
+                            $subjectName,
                             Carbon::parse($request->slot)->format('d M Y h:i A'),
                             session('userid')->name,
-                            $response->hangoutLink,
+                            $meeting['meeting_url'],
                         ];
                         $whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdDemoConfirm);
                     } catch (\Exception $e) {
@@ -400,11 +341,16 @@ try {
 
 
                 return redirect()->to('/tutor/demolist')->with('success', 'Trial confirmed successfully');
+                } else {
+                    return back()->with('fail', 'Something went wrong. Please try again later');
+                }
             } else {
-                return back()->with('fail', 'Something went wrong. Please try again later');
+                Log::error('Jitsi Meet creation failed for demo: ' . ($meeting['error'] ?? 'Unknown error'));
+                return back()->with('fail', 'Failed to create meeting. Please try again.');
             }
-        } else {
-            return response()->json(['error' => 'Failed to confirm demo'], 500);
+        } catch (\Exception $e) {
+            Log::error('Error in democonfirm: ' . $e->getMessage());
+            return back()->with('fail', 'An error occurred. Please try again later.');
         }
     }
     public function demoend(Request $request)
