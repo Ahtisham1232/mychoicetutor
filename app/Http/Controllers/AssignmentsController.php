@@ -225,12 +225,52 @@ class AssignmentsController extends Controller
     {
 
         // $datas = StudentAssignments::find($id);
-        $datas = StudentAssignments::select('*', 'student_assignment_lists.name as assignment_name', 'studentregistrations.id as student_id', 'studentregistrations.name as student_name')
+        $datas = StudentAssignments::select('student_assignments.*', 'student_assignment_lists.name as assignment_name', 'student_assignment_lists.assignment_link as assignment_link', 'studentregistrations.id as student_id', 'studentregistrations.name as student_name')
             ->join('student_assignment_lists', 'student_assignment_lists.id', 'student_assignments.assignment_id')
             ->join('studentregistrations', 'studentregistrations.id', 'student_assignments.submitted_by')
             ->where('assignment_id', $id)
             ->get();
         return view('tutor.assignmentsubmissions', compact('datas'));
+    }
+
+    public function updateMarksRemarks(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:student_assignments,id',
+            'results' => 'nullable|numeric|min:0',
+            'remarks' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            $submission = StudentAssignments::findOrFail($request->id);
+            $submission->results = $request->results;
+            $submission->reamrks = $request->remarks;
+            $submission->save();
+
+            // Send notification to student
+            $notificationdata = new Notification();
+            $notificationdata->alert_type = 3;
+            $notificationdata->notification = 'Assignment Marks and Remarks Updated By '.session('userid')->name;
+            $notificationdata->initiator_id = session('userid')->id;
+            $notificationdata->initiator_role = session('userid')->role_id;
+            $notificationdata->event_id = $submission->assignment_id;
+            $notificationdata->show_to_student = 1;
+            $notificationdata->show_to_student_id = $submission->submitted_by;
+            $notificationdata->show_to_all_student = 0;
+            $notificationdata->read_status = 0;
+            $notificationdata->save();
+            broadcast(new RealTimeMessage('$notification'));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Marks and remarks updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update marks and remarks: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function tutorassignmentscreate(Request $request)
@@ -329,7 +369,10 @@ class AssignmentsController extends Controller
             ->orderBy('student_assignment_lists.created_at', 'desc')
             ->paginate(10);
 
-            $submissions = StudentAssignments::select('*')->where('submitted_by',session('userid')->id)->where('is_active',1)->get();
+            $submissions = StudentAssignments::select('*', 'student_assignments.results', 'student_assignments.reamrks as remarks')
+                ->where('submitted_by',session('userid')->id)
+                ->where('is_active',1)
+                ->get();
         return view('student.assignments',get_defined_vars());
     }
 
@@ -370,7 +413,10 @@ class AssignmentsController extends Controller
         }
         $assignments = $query->paginate(10);
         $type = 'student-assignments';
-        $submissions = StudentAssignments::select('*')->where('submitted_by',session('userid')->id)->where('is_active',1)->get();
+        $submissions = StudentAssignments::select('*', 'student_assignments.results', 'student_assignments.reamrks as remarks')
+            ->where('submitted_by',session('userid')->id)
+            ->where('is_active',1)
+            ->get();
         $viewTable = view('admin.partials.common-search', compact('assignments','type','submissions'))->render();
         $viewPagination = $assignments->links()->render();
         return response()->json([

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\admin;
+namespace App\Http\Controllers\tutor;
 
 use App\Http\Controllers\CommonController;
 use App\Http\Controllers\Controller;
@@ -8,32 +8,34 @@ use App\Models\learningcontents;
 use App\Models\classes;
 use App\Models\subjects;
 use App\Models\topics;
+use App\Models\studentregistration;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
-class LearningsContentsController extends Controller
+class LearningContentsController extends Controller
 {
     public function index()
     {
-
         $contents = learningcontents::select('*','learningcontents.id as contentid','learningcontents.is_active as contentstatus','classes.name as classname','subjects.name as subjectname','topics.name as topicname')
-        ->join('classes','classes.id','learningcontents.class_id')
-        ->join('subjects','subjects.id','learningcontents.subject_id')
-        ->join('topics','topics.id','learningcontents.topic_id')
-        ->paginate(10);
+            ->join('classes','classes.id','learningcontents.class_id')
+            ->join('subjects','subjects.id','learningcontents.subject_id')
+            ->join('topics','topics.id','learningcontents.topic_id')
+            ->where('learningcontents.tutor_id', session('userid')->id)
+            ->paginate(10);
         $classes = classes::where('is_active',1)->get();
         $subjects = subjects::where('is_active',1)->get();
         $topics = topics::where('is_active',1)->get();
-        return view('admin.learningcontentslist',get_defined_vars());
+        return view('tutor.learningcontentslist',get_defined_vars());
     }
-    // search functionality
+
     public function search(Request $request)
     {
-       //  return $request->all();
         $query = learningcontents::select('*','learningcontents.id as contentid','learningcontents.is_active as contentstatus','classes.name as classname','subjects.name as subjectname','topics.name as topicname')
-        ->join('classes','classes.id','learningcontents.class_id')
-        ->join('subjects','subjects.id','learningcontents.subject_id')
-        ->join('topics','topics.id','learningcontents.topic_id');
-        // ->get();
+            ->join('classes','classes.id','learningcontents.class_id')
+            ->join('subjects','subjects.id','learningcontents.subject_id')
+            ->join('topics','topics.id','learningcontents.topic_id')
+            ->where('learningcontents.tutor_id', session('userid')->id);
+
         if ($request->class_name) {
             $query->where('learningcontents.class_id', $request->class_name);
         }
@@ -50,7 +52,6 @@ class LearningsContentsController extends Controller
             $query->where('learningcontents.is_active',$request->status_field);
         }
 
-
         $contents = $query->paginate(5);
         $type = 'contents';
         $viewTable = view('admin.partials.students-tutor-search', compact('contents','type'))->render();
@@ -65,16 +66,24 @@ class LearningsContentsController extends Controller
     {
         $pagename = 'Add Learning Content';
         $classes = (new CommonController)->classes();
-        // Get all active students for admin
-        $students = \App\Models\studentregistration::where('is_active', 1)
-            ->orderBy('name')
-            ->get(['id', 'name']);
-        return view('admin.addlearningcontents', compact('classes','pagename','students'));
+        
+        // Get students for this tutor
+        $students = studentregistration::select(
+            'studentregistrations.id',
+            'studentregistrations.name'
+        )
+        ->join('paymentstudents', 'paymentstudents.student_id', '=', 'studentregistrations.id')
+        ->where('paymentstudents.tutor_id', session('userid')->id)
+        ->where('studentregistrations.is_active', 1)
+        ->distinct()
+        ->orderBy('studentregistrations.name')
+        ->get();
+        
+        return view('tutor.addlearningcontents', compact('classes','pagename','students'));
     }
 
     public function store(Request $request)
     {
-
         $request->validate([
             'classid' => 'required',
             'subjectid' => 'required',
@@ -90,7 +99,7 @@ class LearningsContentsController extends Controller
         $data->class_id = $request->classid;
         $data->subject_id = $request->subjectid;
         $data->topic_id = $request->topicid;
-        $data->tutor_id = null; // Admin created content has no tutor_id
+        $data->tutor_id = session('userid')->id;
         
         // Handle student_ids - if empty, set to null (means all students)
         if ($request->student_ids && count($request->student_ids) > 0) {
@@ -116,7 +125,6 @@ class LearningsContentsController extends Controller
         $data->blog_description = $request->blogdescription;
         $data->is_active = 1;
 
-
         $res = $data->save();
         if ($data) {
             return back()->with('success', 'Content added successfully');
@@ -124,8 +132,14 @@ class LearningsContentsController extends Controller
             return back()->with('fail', 'Something went wrong. Please try again later');
         }
     }
+
     public function status(Request $request){
         $data = learningcontents::find($request->id);
+        // Verify tutor owns this content
+        if($data->tutor_id != session('userid')->id) {
+            return json_encode(array('statusCode'=>403, 'message'=>'Unauthorized'));
+        }
+        
         if($request->status == 1){
             $status = 0;
         }
@@ -142,10 +156,34 @@ class LearningsContentsController extends Controller
         $pagename = 'Update content details';
         $classes = (new CommonController)->classes();
         $ucontents = learningcontents::find($id);
-        // Get all active students for admin
-        $students = \App\Models\studentregistration::where('is_active', 1)
-            ->orderBy('name')
-            ->get(['id', 'name']);
-        return view('admin.addlearningcontents',compact('ucontents','pagename','classes','students'));
+        
+        // Verify tutor owns this content
+        if($ucontents->tutor_id != session('userid')->id) {
+            return redirect()->route('tutor.learningcontents')->with('fail', 'Unauthorized access');
+        }
+        
+        // Get students for this tutor
+        $students = studentregistration::select(
+            'studentregistrations.id',
+            'studentregistrations.name'
+        )
+        ->join('paymentstudents', 'paymentstudents.student_id', '=', 'studentregistrations.id')
+        ->where('paymentstudents.tutor_id', session('userid')->id)
+        ->where('studentregistrations.is_active', 1)
+        ->distinct()
+        ->orderBy('studentregistrations.name')
+        ->get();
+        
+        return view('tutor.addlearningcontents',compact('ucontents','pagename','classes','students'));
+    }
+
+    public function deleteAll()
+    {
+        // Delete all learning contents
+        $deleted = learningcontents::truncate();
+        return response()->json([
+            'success' => true,
+            'message' => 'All learning contents deleted successfully'
+        ]);
     }
 }

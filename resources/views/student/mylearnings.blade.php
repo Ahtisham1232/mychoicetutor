@@ -64,8 +64,9 @@
 
 
                                     <td class="text-wrap"><div class="text-center">{{$learning->content_description}}&nbsp;
-                                        <a class="badge bg-primary" href="{{$learning->content_link}}"><b>View</b></a>
-                                        {{-- <a class="badge bg-primary" data-toggle="modal" data-target="#popUpVideoModal"><b>View</b></a> --}}
+                                        @if ($learning->content_link)
+                                            <a class="badge bg-primary" href="{{url('uploads/documents/learningcontents')}}/{{$learning->content_link}}" target="_blank"><b>View</b></a>
+                                        @endif
                                     </div>
                                     </td>
                                     @else
@@ -74,8 +75,9 @@
 
                                     @if($learning->video_description)
                                     <td class="text-wrap"><div class="text-center">{{$learning->video_description}}&nbsp;
-                                        <a class="badge bg-primary" href="{{$learning->video_link}}"><b>View</b></a>
-                                        {{-- <a class="badge bg-primary" data-toggle="modal" data-target="#popUpVideoModal"><b>View</b></a> --}}
+                                        @if ($learning->video_link)
+                                            <a class="badge bg-primary" href="{{url('uploads/videos/learningcontents')}}/{{$learning->video_link}}" target="_blank"><b>View</b></a>
+                                        @endif
                                     </div>
                                     </td>
                                     @else

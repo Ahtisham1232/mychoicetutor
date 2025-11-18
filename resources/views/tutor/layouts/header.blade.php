@@ -982,20 +982,25 @@
 
                         </li> <!-- end Dashboard Menu -->
                         <li class="nav-item">
-                            <a class="nav-link menu-link {{ Request::is('tutor/assignments') ? 'active' : '' }}"
+                            <a class="nav-link menu-link {{ Request::is('tutor/assignments') || Request::is('tutor/learningcontents') ? 'active' : '' }}"
                                 href="#sidebarLanding" data-bs-toggle="collapse" role="button"
-                                aria-expanded="{{ Request::is('tutor/assignments') ? 'true' : 'false' }}"
+                                aria-expanded="{{ Request::is('tutor/assignments') || Request::is('tutor/learningcontents') ? 'true' : 'false' }}"
                                 aria-controls="sidebarLanding">
                                 <img src="/images/Tutor-Dashboard-menu-icons/Study Materials.svg"
                                     alt="">&nbsp; <span data-key="t-dashboards">Study Materials</span>
                             </a>
-                            <div class="collapse menu-dropdown {{ Request::is('tutor/assignments') ? 'show' : '' }}"
+                            <div class="collapse menu-dropdown {{ Request::is('tutor/assignments') || Request::is('tutor/learningcontents') ? 'show' : '' }}"
                                 id="sidebarLanding">
                                 <ul class="nav nav-sm flex-column">
                                     <li class="nav-item">
                                         <a href="{{ route('tutor.assignments') }}"
                                             class="nav-link {{ Request::is('tutor/assignments') ? 'active' : '' }}"
                                             data-key="t-one-page">Assignments</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('tutor.learningcontents') }}"
+                                            class="nav-link {{ Request::is('tutor/learningcontents') ? 'active' : '' }}"
+                                            data-key="t-one-page">Learning Contents</a>
                                     </li>
                                 </ul>
                             </div>

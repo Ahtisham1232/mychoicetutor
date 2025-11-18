@@ -31,13 +31,16 @@
                     <th scope="col">Submitted By Student</th>
                     <th scope="col">Submission Date</th>
                     <th scope="col">View Submission</th>
+                    <th scope="col">Results (Marks)</th>
+                    <th scope="col">Remarks</th>
+                    <th scope="col">Action</th>
 
 
                 </tr>
             </thead>
             <tbody>
                 @foreach ($datas as $data)
-                    <tr>
+                    <tr id="row_{{$data->id}}">
                         <td>{{$loop->iteration}}</td>
                         <td><div class="text-center"><b> {{$data->assignment_name}}</b><br><br><a class="badge bg-primary" href ="{{$data->assignment_link}}" target="_blank">View</a></td>
                         <td>{{$data->student_name}}</td>
@@ -51,6 +54,26 @@
                                 target="_blank"><button class="badge bg-primary"><span class="fa fa-search"></span> View Submission</button>
                             @endif
 
+                        </td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm" id="results_{{$data->id}}" 
+                                value="{{$data->results ?? ''}}" 
+                                placeholder="Enter marks" 
+                                step="0.01" 
+                                min="0"
+                                style="width: 100px;">
+                        </td>
+                        <td>
+                            <textarea class="form-control form-control-sm" id="remarks_{{$data->id}}" 
+                                rows="2" 
+                                placeholder="Enter remarks"
+                                style="min-width: 200px;">{{$data->reamrks ?? ''}}</textarea>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-success" 
+                                onclick="saveMarksRemarks({{$data->id}})">
+                                <span class="fa fa-save"></span> Save
+                            </button>
                         </td>
 
                     </tr>
@@ -121,10 +144,49 @@ aria-hidden="true">
     <!-- <div class="modal-body">
                     <p>Don't have an acocunt? <a onclick="registerModalShow();">Register</a></p>
                 </div> -->
-</div>
+    </div>
 </div>
 </div>
 
-
+<script>
+    function saveMarksRemarks(submissionId) {
+        var results = $('#results_' + submissionId).val();
+        var remarks = $('#remarks_' + submissionId).val();
+        
+        // Show loading state
+        var saveBtn = $('#row_' + submissionId).find('button');
+        var originalText = saveBtn.html();
+        saveBtn.prop('disabled', true).html('<span class="fa fa-spinner fa-spin"></span> Saving...');
+        
+        $.ajax({
+            url: "{{ route('tutor.assignments.updateMarksRemarks') }}",
+            type: "POST",
+            data: {
+                id: submissionId,
+                results: results,
+                remarks: remarks,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Show success message
+                    alert('Marks and remarks saved successfully!');
+                    saveBtn.prop('disabled', false).html(originalText);
+                } else {
+                    alert('Error: ' + (response.message || 'Failed to save marks and remarks'));
+                    saveBtn.prop('disabled', false).html(originalText);
+                }
+            },
+            error: function(xhr) {
+                var errorMsg = 'Failed to save marks and remarks';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                alert('Error: ' + errorMsg);
+                saveBtn.prop('disabled', false).html(originalText);
+            }
+        });
+    }
+</script>
 
 @endsection

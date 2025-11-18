@@ -444,6 +444,14 @@ Route::group(['prefix' => 'tutor', 'middleware' => ['TutorAuthenticate']], funct
     Route::get('assignments', [AssignmentsController::class, 'tutorassignments'])->name('tutor.assignments');
     Route::post('assignments', [AssignmentsController::class, 'tutorassignmentscreate'])->name('tutor.assignments.create');
     Route::get('assignments/{id}', [AssignmentsController::class, 'tutorview'])->name('tutor.assignments.view');
+    Route::post('assignments/update-marks-remarks', [AssignmentsController::class, 'updateMarksRemarks'])->name('tutor.assignments.updateMarksRemarks');
+    // Tutor Learning Contents
+    Route::get('learningcontents', [\App\Http\Controllers\tutor\LearningContentsController::class, 'index'])->name('tutor.learningcontents');
+    Route::get('learningcontents/add', [\App\Http\Controllers\tutor\LearningContentsController::class, 'add'])->name('tutor.learningcontents.add');
+    Route::post('learningcontents/create', [\App\Http\Controllers\tutor\LearningContentsController::class, 'store'])->name('tutor.learningcontents.create');
+    Route::get('learningcontents/status', [\App\Http\Controllers\tutor\LearningContentsController::class, 'status'])->name('tutor.learningcontents.status');
+    Route::get('learningcontents/{id}', [\App\Http\Controllers\tutor\LearningContentsController::class, 'edit'])->name('tutor.learningcontents.edit');
+    Route::post('learningcontents-search', [\App\Http\Controllers\tutor\LearningContentsController::class, 'search'])->name('tutor.learningcontents.search');
     // Live Classes(GMeet Meeting)
     Route::get('liveclass', [ZoomClassesController::class, 'index'])->name('tutor.liveclass');
     Route::any('liveclass/completed/{id}', [ZoomClassesController::class, 'completed'])->name('tutor.liveclass.completed');
