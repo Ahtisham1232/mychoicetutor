@@ -836,6 +836,10 @@ class OnlineTestController extends Controller
     function assigntest($id)
     {
         $testdata = OnlineTests::select('*')->where('id', $id)->where('is_active', 1)->first();
+
+        if (!$testdata) {
+            return back()->with('fail', 'Test not found or inactive.');
+        }
         $students = studentregistration::select('studentregistrations.*')
             ->leftJoin('paymentstudents', function ($join) {
                 $join->on('paymentstudents.student_id', '=', 'studentregistrations.id')
@@ -847,7 +851,7 @@ class OnlineTestController extends Controller
             ->get();
 
         $test_id = $id;
-        // dd($students);
+        
         $studentdata = AssignTest::select('assign_tests.*', 'online_tests.name as test_name', 'studentregistrations.name as student_name')
             ->join('online_tests', 'online_tests.id', 'assign_tests.test_id')
             ->join('studentregistrations', 'studentregistrations.id', 'assign_tests.student_id')
@@ -855,7 +859,7 @@ class OnlineTestController extends Controller
             ->where('assign_tests.tutor_id', session('userid')
                 ->id)->where('assign_tests.is_active', 1)
             ->get();
-
+// dd($studentdata);
         return view('tutor.assigntest', get_defined_vars());
     }
     function assigntestdata(Request $request)
@@ -968,6 +972,27 @@ class OnlineTestController extends Controller
             'questiondata' => 'required',
         ]);
 
+        // Handle new JSON format question data
+        $questionData = $request->questiondata;
+        if (is_string($questionData)) {
+            $questionData = json_decode($questionData, true);
+        }
+        if (empty($questionData) || !is_array($questionData)) {
+            return back()->with('fail', 'Please select at least one question for your quiz.');
+        }
+
+        // Validate that all questions are of the correct type
+        $testType = $request->test_type;
+        $invalidQuestions = questionbank::whereIn('id', $questionData)
+            ->where('type', '!=', $testType)
+            ->where('is_active', 1)
+            ->get();
+
+        if ($invalidQuestions->count() > 0) {
+            return back()->with('fail', 'All questions must be of the same type as the test (' .
+                ($testType == 1 ? 'Objective' : 'Subjective') . '). Please check your question selection.');
+        }
+
         if ($request->id) {
             $data = OnlineTests::find($request->id);
             $msg = 'Test updated successfully';
@@ -985,7 +1010,7 @@ class OnlineTestController extends Controller
         $data->test_duration = $request->duration;
         $data->test_start_date = Carbon::now();
         $data->test_end_date = Carbon::now();
-        $data->question_id = json_encode($request->questiondata);
+        $data->question_id = json_encode($questionData);
         $res = $data->save();
 
         $notificationdata = new Notification();
@@ -1263,5 +1288,157 @@ class OnlineTestController extends Controller
         }
 
         return 0; // Return 0 if the correct option is not found (shouldn't happen)
+    }
+
+    // New API endpoints for improved UX
+
+    /**
+     * Get questions for visual selector (with pagination and search)
+     */
+    public function getQuestionsForSelector(Request $request)
+    {
+        $subjectId = $request->get('subject_id');
+        $type = $request->get('type');
+        $search = $request->get('search');
+        $typeFilter = $request->get('type_filter');
+        $page = $request->get('page', 1);
+        $perPage = 12;
+
+        if (!$subjectId || !$type) {
+            return response()->json([
+                'questions' => [],
+                'pagination' => null
+            ]);
+        }
+
+        $query = questionbank::where('subject_id', $subjectId)
+            ->where('type', $type)
+            ->where('is_active', 1);
+
+        // Apply type filter if specified
+        if ($typeFilter) {
+            $query->where('type', $typeFilter);
+        }
+
+        // Apply search
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('question', 'like', '%' . $search . '%')
+                  ->orWhere('topic_name', 'like', '%' . $search . '%')
+                  ->orWhere('remarks', 'like', '%' . $search . '%');
+            });
+        }
+
+        $questions = $query->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'questions' => $questions->items(),
+            'pagination' => [
+                'current_page' => $questions->currentPage(),
+                'last_page' => $questions->lastPage(),
+                'per_page' => $questions->perPage(),
+                'total' => $questions->total(),
+                'links' => (string) $questions->links()
+            ]
+        ]);
+    }
+
+    /**
+     * Get question details by IDs
+     */
+    public function getQuestionDetails(Request $request)
+    {
+        $questionIds = $request->get('question_ids', []);
+
+        if (empty($questionIds) || !is_array($questionIds)) {
+            return response()->json(['questions' => []]);
+        }
+
+        $questions = questionbank::whereIn('id', $questionIds)
+            ->where('is_active', 1)
+            ->get();
+
+        return response()->json(['questions' => $questions]);
+    }
+
+    /**
+     * Quick create question from quiz form
+     */
+    public function quickCreateQuestion(Request $request)
+    {
+        $request->validate([
+            'subject_id' => 'required',
+            'class_id' => 'required',
+            'topic' => 'required',
+            'question' => 'required',
+            'type' => 'required|in:1,2',
+        ]);
+
+        $questionType = (int)$request->type;
+        
+        if ($questionType == 1) {
+            $request->validate([
+                'optiona' => 'required',
+                'optionb' => 'required',
+                'optionc' => 'required',
+                'optiond' => 'required',
+                'correctanswer' => 'required|in:A,B,C,D',
+            ]);
+        }
+
+        $data = new questionbank();
+        $data->class_id = $request->class_id;
+        $data->subject_id = $request->subject_id;
+        $data->topic_name = $request->topic;
+        $data->question = $request->question;
+        $data->type = $questionType;
+        $data->remarks = $request->remarks ?? '';
+
+        if ($questionType == 1) {
+            $data->option1 = $request->optiona;
+            $data->option2 = $request->optionb;
+            $data->option3 = $request->optionc;
+            $data->option4 = $request->optiond;
+
+            // Set correct option
+            if ($request->correctanswer == 'A') {
+                $data->correct_option = $request->optiona;
+            } elseif ($request->correctanswer == 'B') {
+                $data->correct_option = $request->optionb;
+            } elseif ($request->correctanswer == 'C') {
+                $data->correct_option = $request->optionc;
+            } elseif ($request->correctanswer == 'D') {
+                $data->correct_option = $request->optiond;
+            }
+        }
+
+        $res = $data->save();
+
+        if ($res) {
+            // Question is saved to question bank - tutors can see it in question bank
+            return response()->json([
+                'success' => true,
+                'message' => 'Question created and saved to question bank successfully!',
+                'question' => [
+                    'id' => $data->id,
+                    'question' => $data->question,
+                    'type' => $data->type,
+                    'option1' => $data->option1 ?? null,
+                    'option2' => $data->option2 ?? null,
+                    'option3' => $data->option3 ?? null,
+                    'option4' => $data->option4 ?? null,
+                    'correct_option' => $data->correct_option ?? null,
+                    'topic_name' => $data->topic_name,
+                    'subject_id' => $data->subject_id,
+                    'class_id' => $data->class_id
+                ]
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create question'
+            ], 500);
+        }
     }
 }

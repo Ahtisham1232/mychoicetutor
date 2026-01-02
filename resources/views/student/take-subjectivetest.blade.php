@@ -24,6 +24,27 @@
         display: none !important; /* Hides the notification */
     }
 
+    /* Submission loading styles */
+    #submission-loading {
+        backdrop-filter: blur(2px);
+    }
+
+    #submission-loading .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    /* Disabled submit button styles */
+    button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    button:disabled:hover {
+        background-color: #6c757d !important;
+        border-color: #6c757d !important;
+    }
+
     </style>
     <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
 
@@ -179,6 +200,48 @@
                     timerDisplay.textContent = "Time's up!";
                 }
 
+                // Loading overlay functions
+                function showSubmissionLoading() {
+                    // Create loading overlay if it doesn't exist
+                    if (!document.getElementById('submission-loading')) {
+                        const loadingDiv = document.createElement('div');
+                        loadingDiv.id = 'submission-loading';
+                        loadingDiv.style.cssText = `
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            background-color: rgba(0, 0, 0, 0.7);
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            z-index: 9999;
+                            color: white;
+                            font-size: 18px;
+                            flex-direction: column;
+                        `;
+                        loadingDiv.innerHTML = `
+                            <div class="text-center">
+                                <div class="spinner-border text-light mb-3" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <h4>Submitting your test...</h4>
+                                <p>Please wait, do not close this window.</p>
+                            </div>
+                        `;
+                        document.body.appendChild(loadingDiv);
+                    }
+                    document.getElementById('submission-loading').style.display = 'flex';
+                }
+
+                function hideSubmissionLoading() {
+                    const loadingDiv = document.getElementById('submission-loading');
+                    if (loadingDiv) {
+                        loadingDiv.style.display = 'none';
+                    }
+                }
+
                 let selectedAnswers = []; // Array to store selected answers for each question
 
                 const quizData = @json($questions); // Convert PHP array to JSON for JavaScript usage
@@ -260,6 +323,18 @@
                 });
 
                 document.querySelector("#finalsubmit").addEventListener("click", function() {
+                    // Prevent multiple submissions
+                    const submitBtn = this;
+                    const originalText = submitBtn.innerHTML;
+
+                    // Disable button and show loading state
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="fa fa-spinner fa-spin"></span> Submitting...';
+                    submitBtn.style.pointerEvents = 'none';
+
+                    // Hide modal and show loading overlay
+                    $('#openmodal').modal('hide');
+                    showSubmissionLoading();
 
                     const testId = document.getElementById("testid").value;
 
@@ -280,13 +355,26 @@
                         .then(response => response.json())
 
                         .then(data => {
-                            // console.log(data.message); // You can handle the response message as needed
+                            // Success - redirect to results
                             const successMessage = encodeURIComponent(data.message);
                             const redirectUrl = `/student/exams?message=${successMessage}`;
                             window.location.href = redirectUrl;
                         })
                         .catch(error => {
-                            // console.error('Error saving responses:', error);
+                            // Error - re-enable button and show error
+                            console.error('Error saving responses:', error);
+                            hideSubmissionLoading();
+
+                            // Re-enable the button
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.style.pointerEvents = 'auto';
+
+                            // Show error message
+                            alert('Error submitting test. Please try again.');
+
+                            // Re-show the modal
+                            $('#openmodal').modal('show');
                         });
                 })
 

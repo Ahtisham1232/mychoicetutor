@@ -507,6 +507,9 @@ Route::group(['prefix' => 'tutor', 'middleware' => ['TutorAuthenticate']], funct
     Route::get('onlinetestquestions/{id}', [OnlineTestController::class, 'tutorviewquestions'])->name('tutor.onlinetestquestions.viewquestions');
     Route::post('onlinetestlist-search', [OnlineTestController::class, 'tutoronlinetestSearch'])->name('tutor.onlinetests-search');
     Route::post('fetchquestions', [OnlineTestController::class, 'tutorfetchquestions'])->name('tutor.fetchquestions');
+    Route::get('questions/selector', [OnlineTestController::class, 'getQuestionsForSelector'])->name('tutor.questions.selector');
+    Route::post('questions/details', [OnlineTestController::class, 'getQuestionDetails'])->name('tutor.questions.details');
+    Route::post('questions/quick-create', [OnlineTestController::class, 'quickCreateQuestion'])->name('tutor.questions.quick-create');
     Route::get('onlinetest/status', [OnlineTestController::class, 'tutorstatus'])->name('tutor.onlinetest.status');
     Route::get('onlinetest/assign/status', [OnlineTestController::class, 'assignteststatus'])->name('tutor.onlinetestassign.status');
     Route::get('assigntest/{id}', [OnlineTestController::class, 'assigntest'])->name('tutor.assigntest');
