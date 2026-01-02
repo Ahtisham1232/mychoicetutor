@@ -31,10 +31,16 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
     'twilio' => [
-    'sid'   => env('TWILIO_SID'),
-    'token' => env('TWILIO_AUTH_TOKEN'),
-    'from'  => env('TWILIO_WHATSAPP_FROM'),
-],
+        'sid'   => env('TWILIO_SID'),
+        'token' => env('TWILIO_AUTH_TOKEN'),
+        'from'  => env('TWILIO_WHATSAPP_FROM'),
+    ],
+
+    'jibri' => [
+        'domain' => env('JIBRI_RECORDER_DOMAIN', 'recorder.meet.mychoicetutor.com'),
+        'username' => env('JIBRI_RECORDER_USERNAME', 'recorder'),
+        'password' => env('JIBRI_RECORDER_PASSWORD', '4fe715d8f2c70cc8fd8bfb0511896567'),
+    ],
 
 
 ];

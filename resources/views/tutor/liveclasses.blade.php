@@ -95,8 +95,20 @@
                                         </button>
                                 @endif
                                 @if ($liveclass->status == 'started' || $liveclass->status == 'Started')
-                                <button class="btn btn-sm btn-primary" onclick="openMarkModal({{$liveclass->liveclass_id}});"><span
+                                <button class="btn btn-sm btn-primary" onclick="openMarkModal({{$liveclass->liveclass_id}}, '{{$liveclass->recording_link}}', '{{$liveclass->topics}}');"><span
                                         class="fa fa-check "></span> Mark Completed</button>
+                                @endif
+                                @if (isset($liveclass->recording_link) && $liveclass->recording_link)
+                                    @php
+                                        $recordingUrl = filter_var($liveclass->recording_link, FILTER_VALIDATE_URL) 
+                                            ? $liveclass->recording_link 
+                                            : asset('storage/' . $liveclass->recording_link);
+                                    @endphp
+                                    <a href="{{ $recordingUrl }}" target="_blank">
+                                        <button class="btn btn-sm btn-success">
+                                            <i class="ri-play-circle-line"></i> Watch Recording
+                                        </button>
+                                    </a>
                                 @endif
                             </td>
                             {{-- <td><button class="btn btn-sm btn-primary"
@@ -332,13 +344,16 @@
                             <!-- Topic Input -->
                             <div class="row mb-3">
                                 <div class="col-md-12">
-                                    <input type="text" class="form-control" placeholder="Enter Topic Here" name="video_topic" required>
+                                    <label>Topic:</label>
+                                    <input type="text" class="form-control" placeholder="Enter Topic Here" id="video_topic" name="video_topic" required>
                                 </div>
                             </div>
                             <!-- Video Link Input -->
                             <div class="row mb-3">
                                 <div class="col-md-12">
-                                    <input type="text" class="form-control" placeholder="Paste Video Link Here" name="video_link" required>
+                                    <label>Video Link:</label>
+                                    <input type="text" class="form-control" placeholder="Paste Video Link Here" id="video_link" name="video_link" required>
+                                    <small class="text-muted" id="link-hint"></small>
                                 </div>
                             </div>
                             <!-- Student Present/Absent Radio Buttons -->
@@ -373,8 +388,20 @@
         $('#scheduleclassmodal').modal('hide');
     }
 
-    function openMarkModal(class_id) {
+    function openMarkModal(class_id, recording_link, topic) {
         $('#liveclass-id').val(class_id);
+        $('#video_topic').val(topic);
+        
+        if (recording_link && recording_link !== '') {
+            // If it's a local recording, we might want to show the full URL or just the relative path
+            // For pre-filling, the relative path is what the controller expects if it's already there
+            $('#video_link').val(recording_link);
+            $('#link-hint').text('Recording found automatically.');
+        } else {
+            $('#video_link').val('');
+            $('#link-hint').text('No automatic recording found. Please paste the link if available.');
+        }
+        
         $('#markcompleted').modal('show');
     }
 

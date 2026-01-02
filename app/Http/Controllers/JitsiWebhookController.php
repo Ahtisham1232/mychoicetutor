@@ -3,10 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\zoom_classes;
+use App\Models\SlotBooking;
+use App\Models\Notification;
+use App\Models\tutorregistration;
+use App\Events\RealTimeMessage;
 use App\Services\RecordingStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class JitsiWebhookController extends Controller
 {
@@ -139,9 +144,39 @@ class JitsiWebhookController extends Controller
                 $zoomClass->recording_duration = $duration ?? null;
                 $zoomClass->recording_file_size = $saveResult['file_size'] ?? $fileSize ?? null;
                 $zoomClass->recording_completed_at = now();
+                
+                // Auto-finalize class
+                $zoomClass->is_completed = 1;
+                $zoomClass->status = 'Completed';
+                $zoomClass->completed_at = Carbon::now();
                 $zoomClass->save();
 
-                Log::info('Recording saved automatically', [
+                // Update SlotBooking
+                $slotupdate = SlotBooking::where('meeting_id', '=', $zoomClass->id)->first();
+                if ($slotupdate) {
+                    $slotupdate->is_class_scheduled = 2;
+                    $slotupdate->update();
+                }
+
+                // Send Notification to student
+                $tutor = tutorregistration::find($zoomClass->tutor_id);
+                $tutorName = $tutor ? $tutor->name : 'Tutor';
+
+                $notificationdata = new Notification();
+                $notificationdata->alert_type = 7;
+                $notificationdata->notification = 'Class has been completed and recording is now available.';
+                $notificationdata->initiator_id = $zoomClass->tutor_id;
+                $notificationdata->initiator_role = 2; // Tutor role
+                $notificationdata->event_id = $zoomClass->id;
+                $notificationdata->show_to_student = 1;
+                $notificationdata->show_to_student_id = $zoomClass->student_id;
+                $notificationdata->show_to_all_student = 0;
+                $notificationdata->read_status = 0;
+                $notificationdata->save();
+
+                broadcast(new RealTimeMessage('$notification'));
+
+                Log::info('Recording saved and class finalized automatically', [
                     'room' => $roomName,
                     'file_path' => $saveResult['relative_path'],
                 ]);

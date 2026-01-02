@@ -102,10 +102,16 @@
                             <td>{{ $class->start_time }}</td>
                             <td>{{ $class->duration }}</td>
                             <td>
-                                @if ($class->is_completed == 1)
-                                <button class="btn btn-sm btn-success" onclick="play('{{$class->recording_link}}');"><i class="ri-play-circle-line"></i> Play</button>
-                                @endforelse
-
+                                @if ($class->recording_link)
+                                    @php
+                                        $recordingUrl = filter_var($class->recording_link, FILTER_VALIDATE_URL) 
+                                            ? $class->recording_link 
+                                            : asset('storage/' . $class->recording_link);
+                                    @endphp
+                                    <button class="btn btn-sm btn-success" onclick="play('{{ $recordingUrl }}');"><i class="ri-play-circle-line"></i> Play</button>
+                                @else
+                                    <span class="text-muted">No Recording</span>
+                                @endif
                             </td>
 
                         </tr>

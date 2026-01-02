@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class MessagesController extends Controller
 {
@@ -172,7 +173,8 @@ class MessagesController extends Controller
      */
     public function messagesbytutor()
     {
-        return view('tutor.messages')->with('info', 'Messages feature is temporarily unavailable.');
+        $userlists = User::where('id', '!=', session('userid')->id)->get();
+        return view('tutor.messages', compact('userlists'))->with('info', 'Messages feature is temporarily unavailable.');
     }
 
     /**
@@ -180,7 +182,8 @@ class MessagesController extends Controller
      */
     public function messagesbytutoradmins()
     {
-        return view('tutor.messages')->with('info', 'Admin messages feature is temporarily unavailable.');
+        $userlists = User::where('id', '!=', session('userid')->id)->get();
+        return view('tutor.messages', compact('userlists'))->with('info', 'Admin messages feature is temporarily unavailable.');
     }
 
     /**
@@ -204,7 +207,8 @@ class MessagesController extends Controller
      */
     public function messagesbytutorstudents()
     {
-        return view('tutor.messages')->with('info', 'Student messages feature is temporarily unavailable.');
+        $userlists = User::where('id', '!=', session('userid')->id)->get();
+        return view('tutor.messages', compact('userlists'))->with('info', 'Student messages feature is temporarily unavailable.');
     }
 
     /**

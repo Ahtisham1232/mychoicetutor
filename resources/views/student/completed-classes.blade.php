@@ -126,11 +126,18 @@
 
                             </td>
                             <td>
-                                @if ($class->is_completed == 1)
-                                <button class="btn btn-sm btn-success" onclick="play('{{$class->recording_link}}');"><i class="ri-play-circle-line"></i> Play</button>
-
-                                @endforelse
-
+                                @if ($class->recording_link)
+                                    @php
+                                        $recordingUrl = filter_var($class->recording_link, FILTER_VALIDATE_URL)
+                                            ? $class->recording_link
+                                            : asset('storage/' . $class->recording_link);
+                                    @endphp
+                                    <a href="{{ $recordingUrl }}" target="_blank">
+                                        <button class="btn btn-sm btn-success">
+                                            <i class="ri-play-circle-line"></i> Watch Recording
+                                        </button>
+                                    </a>
+                                @endif
                             </td>
 
                         </tr>

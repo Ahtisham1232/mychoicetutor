@@ -83,7 +83,15 @@
                                                 <span class="badge bg-danger">Not taken</span>
                                             @endif
                                         </td>
-                                        <td><a href="{{ $liveclass->recording_link }}" target="_blank"><button class="btn btn-sm btn-success">Play Now</button></a></td>
+                                        <td>
+                                            @php
+                                                $recordingUrl = filter_var($liveclass->recording_link, FILTER_VALIDATE_URL)
+                                                    ? $liveclass->recording_link
+                                                    : asset('storage/' . $liveclass->recording_link);
+                                            @endphp
+                                            <a href="{{ $recordingUrl }}" target="_blank"><button
+                                                    class="btn btn-sm btn-success">Play Now</button></a>
+                                        </td>
                                         {{-- <td>{{ $liveclass->tutor_review }} ({{$liveclass->tutor_rating}} ⭐)</td> --}}
                                         <td><button class="btn btn-sm btn-primary"
                                                 onclick="openAttModal('{{ $liveclass->id }}','{{ $liveclass->student }}','{{ $liveclass->student_present }}')">Attendance</button>

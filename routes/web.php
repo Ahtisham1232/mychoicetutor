@@ -601,6 +601,18 @@ Route::get('/jitsi', [JitsiController::class, 'index']);
 
 // Jitsi Webhook for automatic recording processing
 Route::post('/webhook/jitsi/recording', [\App\Http\Controllers\JitsiWebhookController::class, 'handleWebhook'])->name('webhook.jitsi.recording');
+
+// Jibri HTTP API routes (bypass buggy XMPP in Jibri 8.0)
+Route::prefix('jibri')->group(function () {
+    Route::post('/start-recording', [\App\Http\Controllers\JibriRecordingController::class, 'startRecording'])->name('jibri.start');
+    Route::post('/stop-recording', [\App\Http\Controllers\JibriRecordingController::class, 'stopRecording'])->name('jibri.stop');
+    Route::get('/status', [\App\Http\Controllers\JibriRecordingController::class, 'getStatus'])->name('jibri.status');
+});
+
+// Test page for Jibri recording (remove in production)
+Route::get('/test-recording', function () {
+    return view('test-recording');
+});
 // Route::get('oauth2callback', [GoogleCalendarController::class,'oauthCallback'])->name('oauth2callback');
 Route::get('tutorprofile/{id}', [TutorSearchController::class, 'teacherprofile'])->name('tutorprofile');
 Route::get('/tutor/dashboard/oauth2callback', [GoogleCalendarController::class, 'oauth2callbackdemo']);

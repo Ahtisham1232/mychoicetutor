@@ -146,16 +146,29 @@
                                     {{-- </a> --}}
                                 @endif
                                 @if ($class->is_completed == 1 || $class->status == 'completed' || $class->status == 'Completed')
-                                @if (session('usertype') == 'Parent')
-                                @else
-                                    @if( $class->status == 'completed' || $class->status == 'Completed')
-                                <button class="btn btn-sm btn-primary" data-toggle="modal"
-                                    data-target="#openreviewsmodal"
-                                    onclick="openfeedbackmodal('{{$class->class_id}}','{{$class->subject_id}}','{{$class->tutor_id}}')"><span
-                                        class="fa fa-check "></span> Give Feedback</button>
+                                    @if (session('usertype') != 'Parent')
+                                        @if($class->status == 'completed' || $class->status == 'Completed')
+                                            <button class="btn btn-sm btn-primary" data-toggle="modal"
+                                                data-target="#openreviewsmodal"
+                                                onclick="openfeedbackmodal('{{$class->class_id}}','{{$class->subject_id}}','{{$class->tutor_id}}')">
+                                                <span class="fa fa-check"></span> Give Feedback
+                                            </button>
                                         @endif
-                                @endforelse
                                     @endif
+                                    
+                                    @if ($class->recording_link)
+                                        @php
+                                            $recordingUrl = filter_var($class->recording_link, FILTER_VALIDATE_URL) 
+                                                ? $class->recording_link 
+                                                : asset('storage/' . $class->recording_link);
+                                        @endphp
+                                        <a href="{{ $recordingUrl }}" target="_blank">
+                                            <button class="btn btn-sm btn-success">
+                                                <i class="ri-play-circle-line"></i> Watch Recording
+                                            </button>
+                                        </a>
+                                    @endif
+                                @endif
                             </td>
                             {{-- <td><button class="btn btn-sm btn-primary"
                                             onclick="openstudentmodal({{ $liveclass->batch_id }});"><span

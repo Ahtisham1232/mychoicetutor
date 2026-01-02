@@ -67,6 +67,8 @@ class ClassController extends Controller
 
     public function tutorclasses()
 {
+    $tutorId = session('userid')->id; // Get the current tutor's ID
+    
     $liveclasses = zoom_classes::select(
             'zoom_classes.*',
             'classes.id as class_id',
@@ -91,7 +93,9 @@ class ClassController extends Controller
         // })
         ->where('zoom_classes.is_completed', 1)
         ->where('zoom_classes.is_active', 1)
-        ->where('zoom_classes.tutor_id', session('userid')->id)
+        ->where('zoom_classes.tutor_id', $tutorId) // Ensure only this tutor's recordings
+        ->whereNotNull('zoom_classes.recording_link') // Only show classes with recordings
+        ->where('zoom_classes.recording_link', '!=', '') // Exclude empty recording links
         ->get();
 
     $classes = (new CommonController)->classes();
@@ -190,8 +194,11 @@ class ClassController extends Controller
                  ->where('tutorreviews.student_id', '=', $targetValue); // Match tutor_id, subject_id, and student_id
         })
         ->where('zoom_classes.is_active', 1)
-        ->where('zoom_classes.student_id', $targetValue)
+        ->where('zoom_classes.student_id', $targetValue) // Ensure only this student's recordings
+        ->where('slot_bookings.student_id', $targetValue) // Double-check with slot_bookings
         ->where('zoom_classes.is_completed', 1)
+        ->whereNotNull('zoom_classes.recording_link') // Only show classes with recordings
+        ->where('zoom_classes.recording_link', '!=', '') // Exclude empty recording links
         ->paginate(10000);
 
     // Fetch active subjects and batches
@@ -224,7 +231,10 @@ class ClassController extends Controller
         ->join('subjects', 'subjects.id', 'slot_bookings.subject_id')
         ->where('zoom_classes.is_active', 1)
         ->where('zoom_classes.is_completed', 1)
-        ->where('slot_bookings.student_id', $targetValue);
+        ->where('zoom_classes.student_id', $targetValue) // Filter by student_id in zoom_classes table
+        ->where('slot_bookings.student_id', $targetValue) // Also filter by student_id in slot_bookings for extra security
+        ->whereNotNull('zoom_classes.recording_link') // Only show classes with recordings
+        ->where('zoom_classes.recording_link', '!=', ''); // Exclude empty recording links
 
         // Apply subject filter if present
         if ($request->subject_name) {
