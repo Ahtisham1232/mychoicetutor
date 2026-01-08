@@ -110,7 +110,7 @@
 
                             <div class="term-Condition">
                                 <input type="checkbox" id="expcheck" name="expcheck" {{ old('expcheck') ? 'checked' : '' }}> <span for="termCondition">I have read and agree to all <a
-                                        href="#">Terms & conditions</a></span>
+                                        href="{{route('termsandconditions')}}">Terms & conditions</a></span>
                             </div>
                             <span class="text-danger error-message">
                                 @error('expcheck')
