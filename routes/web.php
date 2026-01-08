@@ -667,7 +667,7 @@ Route::get('refundpolicy', function(){
 });
 Route::get('termsandconditions', function(){
     return view('front-cms/termsandconditions');
-});
+})->name('termsandconditions');
 
 Route::get('contact', function(){
     return view('front-cms/contact');
