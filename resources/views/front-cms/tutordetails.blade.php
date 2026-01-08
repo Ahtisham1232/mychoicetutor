@@ -114,7 +114,7 @@
                     <div class="sub-btns">
                         @if(isset($tutorpd->keywords))
                         @foreach (explode(',', $tutorpd->keywords) as $keyword)
-                            <button>{{ trim($keyword) }}</button>
+                            <button class="mb-2">{{ trim($keyword) }}</button>
                         @endforeach
                         @endif
                     </div>
