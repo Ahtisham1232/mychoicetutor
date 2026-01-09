@@ -22,13 +22,12 @@ class LearningContentsController extends Controller
             'learningcontents.is_active as contentstatus',
             'classes.name as classname',
             'subjects.name as subjectname',
-            'learningcontents.topic_name as topicname' // use topic_name directly
+            'learningcontents.topic_name as topicname' 
         )
             ->join('classes', 'classes.id', 'learningcontents.class_id')
             ->join('subjects', 'subjects.id', 'learningcontents.subject_id')
             ->where('learningcontents.tutor_id', session('userid')->id)
             ->paginate(10);
-        //    dd($contents->items());
 
 
         $classes = classes::where('is_active', 1)->get();
@@ -97,7 +96,6 @@ class LearningContentsController extends Controller
 
     public function store(Request $request)
     {
-        // dd($request->all());
         $request->validate([
             'classid' => 'required',
             'subjectid' => 'required',
