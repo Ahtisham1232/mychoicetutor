@@ -42,7 +42,6 @@
                                     value="{{ $ucontents->class_id ?? '' }}">
                                     <option value="">--Select--</option>
                                     @foreach ($classes as $class)
-                                        {{-- <option value="">test</option> --}}
                                         <option value="{{ $class->id }}"
                                             @if (isset($ucontents) && $ucontents->class_id == $class->id) selected @endif>{{ $class->name }}</option>
                                     @endforeach
@@ -55,7 +54,6 @@
                             </div>
                             <div class="col-md-4 col-sm-4 col-12">
                                 <label>Subject<i style="color:red">*</i></label>
-                                {{-- <select class="form-control" id="subjectid" name="subjectid" onchange="fetchTopics();"> --}}
                                 <select class="form-control" id="subjectid" name="subjectid">
                                     <option value="">--Select--</option>
                                     @if (isset($subjects))
@@ -75,9 +73,6 @@
 
                             <div class="col-md-4 col-sm-4 col-12">
                                 <label>Topic<i style="color:red">*</i></label>
-                                {{-- <select class="form-control" id="topicid" name="topicid">
-                                        <option value="">--Select--</option>
-                                    </select> --}}
                                 <input type="text" class="form-control" placeholder="Topic Name" id="topicid"
                                     name="topicid" value="{{ $ucontents->topic_name ?? '' }}">
                                 <span class="text-danger">
@@ -89,7 +84,7 @@
                         </div>
                         <div class="row mt-3">
                             <div class="col-md-12 col-sm-12 col-12 mb-3">
-                                <label>Select Students <small class="text-muted">(Leave empty to show to all
+                                <label for="student_ids">Select Students <small class="text-muted">(Leave empty to show to all
                                         students)</small></label>
                                 <select class="form-control student-select" id="student_ids" name="student_ids[]" multiple>
                                     @foreach ($students as $student)

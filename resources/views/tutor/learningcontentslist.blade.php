@@ -132,9 +132,20 @@
                                             @else
                                                 <i class="ri-close-circle-line align-middle text-danger"></i> Inactive
                                             @endif
-                                            <input class="form-check-input" type="checkbox" role="switch" id="SwitchCheck1"
-                                                onclick="changestatus('{{ $content->contentid }}','{{ $content->contentstatus }}');"
-                                                class="checkbox" @if ($content->contentstatus == 1) then checked @endif>
+
+                                            <input 
+                                                class="form-check-input" 
+                                                type="checkbox" 
+                                                role="switch" 
+                                                id="SwitchCheck_{{ $content->contentid }}"
+                                                onchange="changestatus('{{ $content->contentid }}','{{ $content->contentstatus }}');"
+                                                @if ($content->contentstatus == 1) 
+                                                    checked 
+                                                    aria-checked="true" 
+                                                @else 
+                                                    aria-checked="false" 
+                                                @endif
+                                            >
                                         </div>
                                     </td>
 
