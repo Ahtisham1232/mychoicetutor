@@ -33,8 +33,6 @@ class LearningContentsController extends Controller
         $classes = classes::where('is_active', 1)->get();
         $subjects = subjects::where('is_active', 1)->get();
 
-        // You can remove $topics if not needed anymore
-        // $topics = topics::where('is_active',1)->get();
 
         return view('tutor.learningcontentslist', get_defined_vars());
     }

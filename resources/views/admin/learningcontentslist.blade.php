@@ -56,7 +56,7 @@
                                     <select class="form-control" name="topic_name" id="topicid">
                                         <option value="">Select Topic</option>
                                         @foreach ($topics as $topic)
-                                            <option value="{{$topic->topic_name}}" >{{ $topic->topic_name }}</option>
+                                            <option value="{{ $topic->topic_name }}">{{ $topic->topic_name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -105,7 +105,7 @@
                             </thead>
                             <tbody>
                                 @foreach ($contents as $content)
-                                {{-- @dd($content) --}}
+                                    {{-- @dd($content) --}}
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $content->classname }}</td>
@@ -141,10 +141,13 @@
                                                 @else
                                                     <i class="ri-close-circle-line align-middle text-danger"></i> Inactive
                                                 @endif
-                                                <input class="form-check-input" type="checkbox" role="switch"
-                                                    id="SwitchCheck1"
+                                                <input class="form-check-input checkbox" type="checkbox" role="switch"
+                                                    id="SwitchCheck{{ $content->contentid }}"
                                                     onclick="changestatus('{{ $content->contentid }}','{{ $content->contentstatus }}');"
-                                                    class="checkbox" @if ($content->contentstatus == 1) then checked @endif>
+                                                    @if ($content->contentstatus == 1) checked @endif
+                                                    onkeypress="handleKeyPress(event, '{{ $content->contentid }}')"
+                                                    onkeydown="handleKeyDown(event, '{{ $content->contentid }}')"
+                                                    onkeyup="handleKeyUp(event, '{{ $content->contentid }}')">
                                             </div>
                                         </td>
 
@@ -213,7 +216,6 @@
                         });
 
                     };
-
                 </script>
                 <script>
                     function updateTableAndPagination(data) {
