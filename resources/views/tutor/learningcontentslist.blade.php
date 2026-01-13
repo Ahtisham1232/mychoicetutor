@@ -69,10 +69,17 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="form-group">
+                            <div class="form-group" style="display: flex; justify-content: flex-end; gap: 10px;">
                                 <button class="btn btn-primary" style="float:right"> <span class="fa fa-search"></span>
                                     Search</button>
+                                <a href="{{ route('tutor.learningcontents') }}" class="btn btn-primary">
+                                    Reset
+                                    <span class=" fa fa-refresh"></span>
+
+                                </a>
+
                             </div>
+
                         </div>
                     </div>
                 </form>
@@ -133,19 +140,13 @@
                                                 <i class="ri-close-circle-line align-middle text-danger"></i> Inactive
                                             @endif
 
-                                            <input 
-                                                class="form-check-input" 
-                                                type="checkbox" 
-                                                role="switch" 
+                                            <input class="form-check-input" type="checkbox" role="switch"
                                                 id="SwitchCheck_{{ $content->contentid }}"
                                                 onchange="changestatus('{{ $content->contentid }}','{{ $content->contentstatus }}');"
-                                                @if ($content->contentstatus == 1) 
-                                                    checked 
+                                                @if ($content->contentstatus == 1) checked 
                                                     aria-checked="true" 
                                                 @else 
-                                                    aria-checked="false" 
-                                                @endif
-                                            >
+                                                    aria-checked="false" @endif>
                                         </div>
                                     </td>
 
@@ -252,6 +253,7 @@
         $(document).ready(function() {
             $('#payment-search').submit(function(e) {
                 e.preventDefault();
+                let topicValue = $('#topic_name').val();
                 const page = 1;
                 const ajaxUrl = '{{ route('tutor.learningcontents.search') }}'
                 var formData = $(this).serialize();
@@ -269,6 +271,7 @@
                     success: function(data) {
                         // console.log(data)
                         updateTableAndPagination(data);
+                        $('#topic_name').val(topicValue);
                     },
                     error: function(xhr, status, error) {
                         console.log(xhr.responseText);
