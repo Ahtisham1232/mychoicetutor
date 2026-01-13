@@ -19,8 +19,8 @@ class MyLearningController extends Controller
                 $q->whereNull('learningcontents.student_ids')
                     ->orWhereJsonContains('learningcontents.student_ids', $studentId);
             });
+            
         if ($request->input('topic')) {
-            // Filter by topic_name directly from learningcontents
             $query->where('learningcontents.topic_name', 'like', '%' . $request->topic . '%');
         }
 

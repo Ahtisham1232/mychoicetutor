@@ -22,7 +22,7 @@ class LearningContentsController extends Controller
             'learningcontents.is_active as contentstatus',
             'classes.name as classname',
             'subjects.name as subjectname',
-            'learningcontents.topic_name as topicname' 
+            'learningcontents.topic_name as topicname'
         )
             ->join('classes', 'classes.id', 'learningcontents.class_id')
             ->join('subjects', 'subjects.id', 'learningcontents.subject_id')
@@ -42,37 +42,47 @@ class LearningContentsController extends Controller
 
     public function search(Request $request)
     {
-        $query = learningcontents::select('*', 'learningcontents.id as contentid', 'learningcontents.is_active as contentstatus', 'classes.name as classname', 'subjects.name as subjectname', 'topics.name as topicname')
+        $query = learningcontents::select(
+            'learningcontents.*',
+            'learningcontents.id as contentid',
+            'learningcontents.is_active as contentstatus',
+            'classes.name as classname',
+            'subjects.name as subjectname',
+            'learningcontents.topic_name as topicname' 
+        )
             ->join('classes', 'classes.id', 'learningcontents.class_id')
             ->join('subjects', 'subjects.id', 'learningcontents.subject_id')
-            ->join('topics', 'topics.id', 'learningcontents.topic_id')
             ->where('learningcontents.tutor_id', session('userid')->id);
 
         if ($request->class_name) {
             $query->where('learningcontents.class_id', $request->class_name);
         }
+
         if ($request->subject_name) {
             $query->where('learningcontents.subject_id', $request->subject_name);
         }
+
         if ($request->topic_name) {
-            $query->where('learningcontents.topic_id', $request->topic_name);
+            $query->where('learningcontents.topic_name', 'like', '%' . $request->topic_name . '%');
         }
+
         if ($request->status_field) {
-            if ($request->status_field == '2') {
-                $request->status_field = '0';
-            }
-            $query->where('learningcontents.is_active', $request->status_field);
+            $status = $request->status_field == '2' ? 0 : $request->status_field;
+            $query->where('learningcontents.is_active', $status);
         }
 
         $contents = $query->paginate(5);
+
         $type = 'contents';
         $viewTable = view('admin.partials.students-tutor-search', compact('contents', 'type'))->render();
         $viewPagination = $contents->links()->render();
+
         return response()->json([
             'table' => $viewTable,
             'pagination' => $viewPagination
         ]);
     }
+
 
     public function add()
     {

@@ -65,7 +65,7 @@
             <td>{{$loop->iteration}}</td>
             <td>{{$content->classname}}</td>
             <td>{{$content->subjectname}}</td>
-            <td>{{$content->topicname}}</td>
+            <td>{{$content->topic_name}}</td>
             <td><div class="text-center">{{$content->content_description}}</div><br>
                 @if ($content->content_link)
                 <div class="text-center"><a href="{{url('uploads/documents/learningcontents')}}/{{$content->content_link}}" target="_blank" class="badge bg-primary mt-2 ">View</a></div>
