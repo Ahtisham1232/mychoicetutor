@@ -305,9 +305,27 @@
                                                     </div>
 
                                                     <div>
-                                                    <a href="enrollnow/{{ $tutorlist->tutor_id }}"> <button
-                                                            class="btn btn-sm btn-success" id="enrollnow">Enroll
-                                                            Now</button></a>
+                                                        @if(!empty($tutorlist->subject))
+                                                            <a href="enrollnow/{{ $tutorlist->tutor_id }}">
+                                                                <button class="btn btn-sm btn-success">
+                                                                    Enroll Now
+                                                                </button>
+                                                            </a>
+                                                        @else
+                                                            <span 
+                                                                data-toggle="tooltip"
+                                                                title="Tutor has not added any subject yet"
+                                                                style="display:inline-block; cursor:not-allowed;"
+                                                            >
+                                                                <button 
+                                                                    class="btn btn-sm btn-secondary"
+                                                                    disabled
+                                                                    style="pointer-events:none;"
+                                                                >
+                                                                    Enroll Now
+                                                                </button>
+                                                            </span>
+                                                        @endif 
                                                     </div>
 
 

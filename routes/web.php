@@ -391,6 +391,8 @@ Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], funct
     Route::get('blogs/create', [BlogsController::class, 'create'])->name('admin.blogs.create');
     Route::post('blogs/create', [BlogsController::class, 'store'])->name('admin.blogs.store');
     Route::get('blogs/update/{id}', [BlogsController::class, 'edit'])->name('admin.blogs.edit');
+    Route::post('admin/blogs/status', [BlogsController::class, 'changeStatus'])->name('admin.blogs.status');
+
 
 });
 
