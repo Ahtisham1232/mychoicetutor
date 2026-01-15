@@ -81,7 +81,7 @@
         <div class="container-fluid">
             <div class="card chatPannel">
                 <div class="row g-0">
-                    <div class="col-12 col-lg-5 col-xl-3 border-right">
+                    <div class="col-12 col-lg-5 col-xl-3 border-right {{ $header->name ?? '' ? 'd-none' : '' }}">
                         <div class="m-4 adminTutorBtn">
                             <a href="{{ route('tutor.messages.students') }}"> <button
                                     class="badge bg-primary">Students</button></a>
@@ -123,7 +123,7 @@
                             <hr class="d-block d-lg-none mt-1 mb-0">
                     </div>
 
-                    <div class="col-12 col-lg-7 col-xl-9">
+                    <div class="col-12 {{ $header->name ?? '' ? 'col-lg-12 col-xl-12' : 'col-lg-7 col-xl-9' }}">
                         @if ($header->name ?? '')
                         <div class="py-2 px-4 border-bottom d-none d-lg-block">
                             <div class="d-flex align-items-center py-1">
@@ -144,6 +144,16 @@
 
                             </div>
                         </div>
+                        @else
+                            <div class="d-flex align-items-center justify-content-center h-100 py-5">
+                                <div class="text-center">
+                                    <div class="mb-3">
+                                        <i class="fas fa-comments fa-3x text-muted"></i>
+                                    </div>
+                                    <h5 class="text-muted">Select a conversation</h5>
+                                    <p class="text-muted">Choose someone from the list to start chatting</p>
+                                </div>
+                            </div>
                         @endif
                         <div class="position-relative" id="chatbox">
                             <div class="chat-messages p-4">
@@ -162,8 +172,13 @@
                             </div> --}}
                             <div class="chat-message-right pb-4">
                                 <div>
-                                    <img src="{{ url('images/tutors/profilepics') }}/{{ $profile_pics->profile_pic ?? ''}}"
-                                        class="rounded-circle mr-1" alt="Chris Wood" width="40" height="40">
+                                    @if (empty($tutorProfile->profile_pic ?? ''))
+                                        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-profiles/avatar-1.webp"
+                                            class="rounded-circle mr-1" alt="You" width="40" height="40">
+                                    @else
+                                        <img src="{{ url('images/tutors/profilepics') }}/{{ $tutorProfile->profile_pic }}"
+                                            class="rounded-circle mr-1" alt="You" width="40" height="40">
+                                    @endif
                                     <div class="text-muted small text-nowrap mt-2">
                                         {{ $message->created_at }}</div>
                                 </div>
@@ -179,8 +194,18 @@
                         </div> --}}
                         <div class="chat-message-left pb-4">
                             <div>
-                                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-profiles/avatar-1.webp"
-                                    class="rounded-circle mr-1" alt="Chris Wood" width="40" height="40">
+                                @if ($header->role_id == 1)
+                                    <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-profiles/avatar-1.webp"
+                                        class="rounded-circle mr-1" alt="{{ $header->name }}" width="40" height="40">
+                                @elseif ($header->role_id == 3)
+                                    @if (empty($header->profile_pic))
+                                        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-profiles/avatar-1.webp"
+                                            class="rounded-circle mr-1" alt="{{ $header->name }}" width="40" height="40">
+                                    @else
+                                        <img src="{{ url('images/students/profilepics') }}/{{ $header->profile_pic }}"
+                                            class="rounded-circle mr-1" alt="{{ $header->name }}" width="40" height="40">
+                                    @endif
+                                @endif
                                 <div class="text-muted small text-nowrap mt-2">
                                     {{ $message->created_at }}</div>
                             </div>
@@ -266,9 +291,89 @@
             @endif
         }
 
+        @if(isset($header) && $header !== null)
+        // Pusher real-time messaging
+        var pusher = new Pusher('{{ config("chatify.pusher.key") }}', {
+            cluster: '{{ config("chatify.pusher.options.cluster") }}',
+            encrypted: true
+        });
 
-        // Reload chat messages every 10 seconds
-        setInterval(reloadChat, 10000);
+                var channel = pusher.subscribe('chat.{{ session("userid")->id }}');
+                channel.bind('new-message', function(data) {
+                    console.log('New message received:', data);
+                    // Reload chat when new message arrives
+                    reloadChat();
+                });
+
+                var notificationChannel = pusher.subscribe('notifications.{{ session("userid")->id }}');
+                notificationChannel.bind('message.notification', function(data) {
+                    console.log('Notification received:', data);
+                    // Show notification
+                    showNotification(data.message);
+
+                    // Reload chat to show new message
+                    reloadChat();
+                });
+        @endif
+
+        // Function to show notifications
+        function showNotification(message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = 'alert alert-info alert-dismissible fade show position-fixed';
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            notification.innerHTML = `
+                <strong>New Message!</strong> ${message}
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            `;
+
+            // Add to page
+            document.body.appendChild(notification);
+
+            // Auto remove after 5 seconds
+            setTimeout(function() {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 5000);
+        }
+
+        // Fallback: Reload chat messages every 30 seconds (reduced frequency)
+        setInterval(reloadChat, 30000);
+
+        // Handle form submission via AJAX
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageForm = document.querySelector('form[action*="messages.send"]');
+            if (messageForm) {
+                messageForm.addEventListener('submit', function(e) {
+                    e.preventDefault(); // Prevent normal form submission
+
+                    const formData = new FormData(this);
+                    const messageInput = document.getElementById('message');
+
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Clear the message input
+                        if (messageInput) messageInput.value = '';
+                        // Reload chat to show the new message
+                        reloadChat();
+                    })
+                    .catch(error => {
+                        console.error('Error sending message:', error);
+                        alert('Failed to send message. Please try again.');
+                    });
+                });
+            }
+        });
     </script>
 
 </div>
