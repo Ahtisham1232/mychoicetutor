@@ -198,6 +198,7 @@ class QuestionBankController extends Controller
         $questions = questionbank::select('*','questionbanks.id as question_id','questionbanks.is_active as question_status','classes.name as class','subjects.name as subject','questionbanks.topic_name as topic')
         ->join('classes','classes.id','questionbanks.class_id')
         ->join('subjects','subjects.id','questionbanks.subject_id')
+        ->where('questionbanks.tutor_id', session('userid')->id)
         ->orderby('questionbanks.created_at','desc')
         ->paginate(10);
         $classes = classes::where('is_active',1)->get();
@@ -234,6 +235,7 @@ class QuestionBankController extends Controller
         $data->class_id = $request->classname;
         $data->subject_id = $request->subject;
         $data->topic_name=$request->topic;
+        $data->tutor_id = session('userid')->id;
         $data->question=$request->editor1;
         $data->option1=$request->optiona;
         $data->option2=$request->optionb;
