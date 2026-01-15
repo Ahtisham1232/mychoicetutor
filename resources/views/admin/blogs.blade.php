@@ -1,18 +1,18 @@
 @extends('admin.layouts.main')
 @section('main-section')
-<meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
 
 
- <!--==============================================================-->
+    <!--==============================================================-->
     <!-- Start right Content here -->
     <!-- ============================================================== -->
     <div class="main-content">
         <style>
-        .listHeader {
-            display: flex;
-            justify-content: space-between;
-        }
+            .listHeader {
+                display: flex;
+                justify-content: space-between;
+            }
         </style>
 
         <div class="page-content">
@@ -21,12 +21,11 @@
                 <div id="" class="mb-3 listHeader page-title-box">
                     <h3>Blogs</h3>
                     <div class="dropdown">
-                        <a href="/admin/blogs/create">  <button class="btn btn-primary" type="button" id="dropdownMenuButton"
-                            data-toggle="" aria-haspopup="true" aria-expanded="false">
-                            Add New Blog
-                        </button>
+                        <a href="/admin/blogs/create"> <button class="btn btn-primary" type="button" id="dropdownMenuButton"
+                                data-toggle="" aria-haspopup="true" aria-expanded="false">
+                                Add New Blog
+                            </button>
                         </a>
-                       
                     </div>
                 </div>
 
@@ -44,98 +43,72 @@
                     </thead>
                     <tbody>
                         @foreach ($blogs as $blog)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{ $blog->name }}</td>
-                            <td>{!! $blog->description !!}</td>
-                            <td><img src="{{url('/images/blogs/'. $blog->image) }}" width="50px"></td>
-                            <td><img src="{{url('/images/blogs/'. $blog->banner) }}" width="50px"></td>
-                            {{-- <td><div ><textarea class="form-control">{{$question->question}}</textarea>
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $blog->name }}</td>
+                                <td>{!! $blog->description !!}</td>
+                                <td><img src="{{ url('/images/blogs/' . $blog->image) }}" width="50px"></td>
+                                <td><img src="{{ url('/images/blogs/' . $blog->banner) }}" width="50px"></td>
+
+                                <td>
+                                    <div class="form-check form-switch text-nowrap">
+                                        <label class="form-check-label">
+                                            @if ($blog->is_active)
+                                                <i class="ri-checkbox-circle-line align-middle text-success"></i> Active
+                                            @else
+                                                <i class="ri-close-circle-line align-middle text-danger"></i> Inactive
+                                            @endif
+                                        </label>
+
+                                        <input type="checkbox" class="form-check-input" role="switch"
+                                            id="blogStatus{{ $blog->id }}" {{ $blog->is_active ? 'checked' : '' }}
+                                            onclick="changestatus({{ $blog->id }}, {{ $blog->is_active }})">
+                                    </div>
+
+                                </td>
+
+
+                                <td>
+                                    <div class="text-center"><a class="btn btn-sm bg-primary text-white"
+                                            href="{{ url('admin/blogs/update') . '/' . $blog->id }}">View/Update</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+
+                    </tbody>
+                </table>
+
             </div>
-            </td> --}}
-            <td>
-                <div class="form-check form-switch text-nowrap">
-                    @if ($blog->is_active == 1)
-                    <i class="ri-checkbox-circle-line align-middle text-success"></i> Active
-                    @else
-                    <i class="ri-close-circle-line align-middle text-danger"></i> Inactive
-                    @endif
-                    <input class="form-check-input" type="checkbox" role="switch" id="SwitchCheck1"
-                        onclick="changestatus('{{ $blog->id }}','{{ $blog->is_active }}');"
-                        class="checkbox" @if ($blog->is_active == 1) then checked @endif>
-                </div>
-            </td>
-
-
-            <td>
-                <div class="text-center"><a class="btn btn-sm bg-primary text-white"
-                        href="{{ url('admin/blogs/update') . '/' . $blog->id }}">View/Update</a>
-                </div>
-            </td>
-            </tr>
-            @endforeach
-
-            </tbody>
-            </table>
-
         </div>
         <!-- content-wrapper ends -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script>
             function changestatus(id, status) {
-
-                var url = "{{ URL('admin/blogs/status') }}";
-                // var id= 
                 $.ajax({
-                    url: url,
-                    type: "GET",
-                    cache: false,
+                    url: "{{ route('admin.blogs.status') }}",
+                    type: "POST",
                     data: {
-                        _token: '{{ csrf_token() }}',
+                        _token: "{{ csrf_token() }}",
                         id: id,
                         status: status
                     },
-                    success: function(dataResult) {
-                        dataResult = JSON.parse(dataResult);
-                        if (dataResult.statusCode) {
-                            window.location = "/admin/blogs";
+                    success: function(response) {
+                        if (response.statusCode === 200) {
+                            location.reload();
                         } else {
-                            alert("Something went wrong. Please try again later");
+                            alert("Something went wrong");
                         }
-
-                    }
-                }); 
-            }           
-        </script>
-        <script src = "https://code.jquery.com/jquery-3.6.0.min.js" > </script>
-        <script>
-            function changestatus(id, status) {
-
-                var url = "{{ URL('admin/blogs/status') }}";
-                // var id=
-                $.ajax({
-                    url: url,
-                    type: "GET",
-                    cache: false,
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        id: id,
-                        status: status
                     },
-                    success: function(dataResult) {
-                        dataResult = JSON.parse(dataResult);
-                        if (dataResult.statusCode) {
-                            window.location = "/admin/blogs";
-                        } else {
-                            alert("Something went wrong. Please try again later");
-                        }
-
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                        alert("Route not found or server error");
                     }
                 });
-
             }
-
-            
         </script>
+
+
         <script>
             function updateTableAndPagination(data) {
                 // $('#tableContainer').html(data.table);
@@ -197,4 +170,4 @@
 
             });
         </script>
-        @endsection
+    @endsection
