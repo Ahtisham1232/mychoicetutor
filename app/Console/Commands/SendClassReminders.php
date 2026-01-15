@@ -28,7 +28,21 @@ class SendClassReminders extends Command
 
     public function handle()
     {
-        $now = Carbon::now();
+        // Set timezone based on environment variable
+        $timezone = env('APP_TIMEZONE', 'UTC');
+
+        // Map common timezone names to proper timezone identifiers
+        $timezoneMap = [
+            'pakistan' => 'Asia/Karachi',
+            'england' => 'Europe/London',
+            'london' => 'Europe/London',
+            'karachi' => 'Asia/Karachi',
+        ];
+
+        $timezoneIdentifier = $timezoneMap[strtolower($timezone)] ?? $timezone;
+
+        // Set the timezone for all Carbon operations in this command
+        $now = Carbon::now($timezoneIdentifier);
 
         // Target = classes starting 30 minutes from now
         $targetTime = $now->copy()->addMinutes(30);
@@ -55,7 +69,7 @@ class SendClassReminders extends Command
             $templateIdDemo = 1644; // TODO: Replace with actual template ID for demo class reminder
             $templateIdDemoTutor = 1642; // TODO: Replace with actual template ID for demo class reminder
             
-            $classDateTime = Carbon::parse($class->slot_confirmed);
+            $classDateTime = Carbon::parse($class->slot_confirmed, $timezoneIdentifier);
             $formattedDateTime = $classDateTime->format('d M Y h:i A');
 
             // Send to student
@@ -107,7 +121,7 @@ class SendClassReminders extends Command
             ->filter(function ($booking) use ($targetTime) {
                 // Parse the slot time and check if it's within the window
                 try {
-                    $slotDateTime = Carbon::parse($booking->date . ' ' . $booking->slot);
+                    $slotDateTime = Carbon::parse($booking->date . ' ' . $booking->slot, $timezoneIdentifier);
                     return $slotDateTime->between(
                         $targetTime->copy()->subMinute(5),
                         $targetTime->copy()->addMinute(5)
@@ -129,7 +143,7 @@ class SendClassReminders extends Command
             if (!$studentProfile || !$tutorReg) continue;
 
             $meetingLink = $zoomClass->join_url ?? $zoomClass->start_url ?? "https://mychoicetutor.com/waiting-room";
-            $classDateTime = Carbon::parse($booking->date . ' ' . $booking->slot);
+            $classDateTime = Carbon::parse($booking->date . ' ' . $booking->slot, $timezoneIdentifier);
             $formattedDateTime = $classDateTime->format('d M Y h:i A');
 
             // Send to student
