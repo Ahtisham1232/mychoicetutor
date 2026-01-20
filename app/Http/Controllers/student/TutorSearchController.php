@@ -198,27 +198,46 @@ class TutorSearchController extends Controller
 
         // Fetch the tutor's profile along with the associated subject and calculated rate
         $tutorpd = tutorprofile::select(
-                'tutorprofiles.*',
-                'subjects.id as subjectid',
-                'subjects.name as subject',
-                DB::raw('(tutorprofiles.rateperhour * tutorprofiles.admin_commission / 100) + tutorprofiles.rateperhour as rate'),
-                DB::raw('ROUND(COALESCE(AVG(tutorreviews.ratings), 0), 1) AS avg_rating'), // Average rating rounded to 1 decimal
-                DB::raw('COUNT(tutorreviews.id) AS total_reviews') // Total reviews count
-            )
+            'tutorprofiles.*',
+            'subjects.id as subjectid',
+            'subjects.name as subject',
+            DB::raw('(tutorprofiles.rateperhour * tutorprofiles.admin_commission / 100) + tutorprofiles.rateperhour as rate'),
+            DB::raw('ROUND(COALESCE(AVG(tutorreviews.ratings), 0), 1) AS avg_rating'), // Average rating rounded to 1 decimal
+            DB::raw('COUNT(tutorreviews.id) AS total_reviews') // Total reviews count
+        )
             ->leftJoin('tutorsubjectmappings', 'tutorsubjectmappings.tutor_id', '=', 'tutorprofiles.tutor_id')
             ->leftJoin('teacherclassmappings', 'teacherclassmappings.subject_mapping_id', '=', 'tutorsubjectmappings.id')
             ->leftJoin('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
             ->leftJoin('tutorreviews', 'tutorreviews.tutor_id', '=', 'tutorprofiles.tutor_id') // Join for reviews to get ratings
             ->where('tutorsubjectmappings.tutor_id', '=', $id)
             ->groupBy(
-                'tutorprofiles.tutor_id','tutorprofiles.id','tutorprofiles.goal','tutorprofiles.name',
-                'tutorprofiles.mobile','tutorprofiles.secondary_mobile','tutorprofiles.email',
-                'tutorprofiles.qualification','tutorprofiles.intro_video_link','tutorprofiles.profile_pic',
-                'tutorprofiles.expertise','tutorprofiles.experience','tutorprofiles.certification',
-                'tutorprofiles.headline','tutorprofiles.detail_1','tutorprofiles.detail_2','tutorprofiles.detail_3',
-                'tutorprofiles.keywords','tutorprofiles.created_at','tutorprofiles.updated_at',
-                'tutorprofiles.country_id','tutorprofiles.gender','tutorprofiles.rateperhour',
-                'tutorprofiles.admin_commission','tutorprofiles.rate','subjects.id','subjects.name'
+                'tutorprofiles.tutor_id',
+                'tutorprofiles.id',
+                'tutorprofiles.goal',
+                'tutorprofiles.name',
+                'tutorprofiles.mobile',
+                'tutorprofiles.secondary_mobile',
+                'tutorprofiles.email',
+                'tutorprofiles.qualification',
+                'tutorprofiles.intro_video_link',
+                'tutorprofiles.profile_pic',
+                'tutorprofiles.expertise',
+                'tutorprofiles.experience',
+                'tutorprofiles.certification',
+                'tutorprofiles.headline',
+                'tutorprofiles.detail_1',
+                'tutorprofiles.detail_2',
+                'tutorprofiles.detail_3',
+                'tutorprofiles.keywords',
+                'tutorprofiles.created_at',
+                'tutorprofiles.updated_at',
+                'tutorprofiles.country_id',
+                'tutorprofiles.gender',
+                'tutorprofiles.rateperhour',
+                'tutorprofiles.admin_commission',
+                'tutorprofiles.rate',
+                'subjects.id',
+                'subjects.name'
             )
             ->first();
 
@@ -226,19 +245,19 @@ class TutorSearchController extends Controller
             return redirect()->back()->with('fail', 'Tutor not found');
         }
 
-            // Fetch achievements for the tutor
+        // Fetch achievements for the tutor
         $achievement = tutorachievements::where('tutor_id', $tutorpd->tutor_id)->get();
 
         $reviews = tutorreviews::select(
-                'tutorreviews.id',
-                'tutorreviews.name',
-                'tutorreviews.ratings',
-                'studentprofiles.name as student_name',
-                'studentprofiles.profile_pic as student_pic',
-                'tutorreviews.subject_id',
-                'tutorreviews.tutor_id',
-                'subjects.name as subject'
-            )
+            'tutorreviews.id',
+            'tutorreviews.name',
+            'tutorreviews.ratings',
+            'studentprofiles.name as student_name',
+            'studentprofiles.profile_pic as student_pic',
+            'tutorreviews.subject_id',
+            'tutorreviews.tutor_id',
+            'subjects.name as subject'
+        )
             ->leftJoin('subjects', 'subjects.id', '=', 'tutorreviews.subject_id')
             ->leftJoin('studentprofiles', 'studentprofiles.student_id', '=', 'tutorreviews.student_id')
             ->where('tutorreviews.tutor_id', '=', $tutorpd->tutor_id)
@@ -252,11 +271,11 @@ class TutorSearchController extends Controller
         return view('student.tutorprofile', compact('tutorpd', 'achievement', 'reviews', 'subjects'));
     }
 
-public function admintutorprofile($id)
-{
+    public function admintutorprofile($id)
+    {
 
-    // Fetch the tutor's profile along with the associated subject and calculated rate
-    $tutorpd = tutorprofile::select(
+        // Fetch the tutor's profile along with the associated subject and calculated rate
+        $tutorpd = tutorprofile::select(
             'tutorprofiles.*',
             'subjects.id as subjectid',
             'subjects.name as subject',
@@ -264,22 +283,22 @@ public function admintutorprofile($id)
             DB::raw('ROUND(COALESCE(AVG(tutorreviews.ratings), 0), 1) AS avg_rating'), // Average rating rounded to 1 decimal
             DB::raw('COUNT(tutorreviews.id) AS total_reviews') // Total reviews count
         )
-	->leftJoin('tutorregistrations', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
-        ->leftJoin('tutorsubjectmappings', 'tutorsubjectmappings.tutor_id', '=', 'tutorprofiles.tutor_id')
-        ->leftJoin('teacherclassmappings', 'teacherclassmappings.subject_mapping_id', '=', 'tutorsubjectmappings.id')
-        ->leftJoin('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
-        ->leftJoin('tutorreviews', 'tutorreviews.tutor_id', '=', 'tutorprofiles.tutor_id') // Join for reviews to get ratings
-        ->where('tutorregistrations.id', '=', $id)
- // ->where('tutorsubjectmappings.tutor_id', '=', $id)     
-   ->groupBy('tutorprofiles.tutor_id','tutorprofiles.id','tutorprofiles.goal','tutorprofiles.name','tutorprofiles.mobile','tutorprofiles.secondary_mobile','tutorprofiles.email','tutorprofiles.qualification','tutorprofiles.intro_video_link','tutorprofiles.profile_pic','tutorprofiles.expertise','tutorprofiles.experience','tutorprofiles.certification','tutorprofiles.headline','tutorprofiles.detail_1','tutorprofiles.detail_2','tutorprofiles.detail_3','tutorprofiles.keywords','tutorprofiles.created_at','tutorprofiles.updated_at','tutorprofiles.country_id','tutorprofiles.gender','tutorprofiles.rateperhour','tutorprofiles.admin_commission','tutorprofiles.rate','subjects.id','subjects.name') // Group by tutor ID to aggregate the ratings
-        ->first();
-// dd( $tutorpd);
-    if ($tutorpd) {
-        // Fetch achievements for the tutor
-        $achievement = tutorachievements::select('*')->where('tutor_id', '=', $tutorpd->tutor_id)->get();
+            ->leftJoin('tutorregistrations', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
+            ->leftJoin('tutorsubjectmappings', 'tutorsubjectmappings.tutor_id', '=', 'tutorprofiles.tutor_id')
+            ->leftJoin('teacherclassmappings', 'teacherclassmappings.subject_mapping_id', '=', 'tutorsubjectmappings.id')
+            ->leftJoin('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
+            ->leftJoin('tutorreviews', 'tutorreviews.tutor_id', '=', 'tutorprofiles.tutor_id') // Join for reviews to get ratings
+            ->where('tutorregistrations.id', '=', $id)
+            // ->where('tutorsubjectmappings.tutor_id', '=', $id)     
+            ->groupBy('tutorprofiles.tutor_id', 'tutorprofiles.id', 'tutorprofiles.goal', 'tutorprofiles.name', 'tutorprofiles.mobile', 'tutorprofiles.secondary_mobile', 'tutorprofiles.email', 'tutorprofiles.qualification', 'tutorprofiles.intro_video_link', 'tutorprofiles.profile_pic', 'tutorprofiles.expertise', 'tutorprofiles.experience', 'tutorprofiles.certification', 'tutorprofiles.headline', 'tutorprofiles.detail_1', 'tutorprofiles.detail_2', 'tutorprofiles.detail_3', 'tutorprofiles.keywords', 'tutorprofiles.created_at', 'tutorprofiles.updated_at', 'tutorprofiles.country_id', 'tutorprofiles.gender', 'tutorprofiles.rateperhour', 'tutorprofiles.admin_commission', 'tutorprofiles.rate', 'subjects.id', 'subjects.name') // Group by tutor ID to aggregate the ratings
+            ->first();
+        // dd( $tutorpd);
+        if ($tutorpd) {
+            // Fetch achievements for the tutor
+            $achievement = tutorachievements::select('*')->where('tutor_id', '=', $tutorpd->tutor_id)->get();
 
-        // Fetch detailed reviews for the tutor
-        $reviews = tutorreviews::select(
+            // Fetch detailed reviews for the tutor
+            $reviews = tutorreviews::select(
                 'tutorreviews.id',
                 'tutorreviews.name',
                 'tutorreviews.ratings',
@@ -289,23 +308,23 @@ public function admintutorprofile($id)
                 'tutorreviews.tutor_id',
                 'subjects.name as subject'
             )
-            ->leftJoin('subjects', 'subjects.id', '=', 'tutorreviews.subject_id')
-            ->leftJoin('studentprofiles', 'studentprofiles.student_id', '=', 'tutorreviews.student_id')
-            ->where('tutorreviews.tutor_id', '=', $tutorpd->tutor_id)
+                ->leftJoin('subjects', 'subjects.id', '=', 'tutorreviews.subject_id')
+                ->leftJoin('studentprofiles', 'studentprofiles.student_id', '=', 'tutorreviews.student_id')
+                ->where('tutorreviews.tutor_id', '=', $tutorpd->tutor_id)
+                ->get();
+        }
+
+        if (!$tutorpd) {
+            return view('admin.tutorprofile')->with('fail', 'Something went wrong');
+        }
+        $subjects = tutorSubjectMapping::select('subjects.name as subject_name')
+            ->join('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
+            ->where('tutor_id', $id)
+            ->groupBy('subjects.name')
             ->get();
-    }
 
-    if (!$tutorpd) {
-        return view('admin.tutorprofile')->with('fail', 'Something went wrong');
+        return view('admin.tutorprofile', compact('tutorpd', 'achievement', 'reviews', 'subjects'));
     }
-    $subjects = tutorSubjectMapping::select('subjects.name as subject_name')
-        ->join('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
-        ->where('tutor_id', $id)
-        ->groupBy('subjects.name')
-        ->get();
-
-    return view('admin.tutorprofile', compact('tutorpd', 'achievement', 'reviews','subjects'));
-}
 
     public function tutoradvs(Request $request)
     {
@@ -313,7 +332,9 @@ public function admintutorprofile($id)
         $classes = classes::all('id', 'name');
 
         $tutors = tutorprofile::select(
-            'tutorsubjectmappings.id as submapid', 'tutorprofiles.name', 'tutorprofiles.profile_pic',
+            'tutorsubjectmappings.id as submapid',
+            'tutorprofiles.name',
+            'tutorprofiles.profile_pic',
             'subjects.name as subject',
             'classes.name as className',
             'my_favourites.status as myfav',
@@ -324,7 +345,7 @@ public function admintutorprofile($id)
             ->leftjoin('teacherclassmappings', 'teacherclassmappings.subject_mapping_id', '=', 'tutorsubjectmappings.id')
             ->leftjoin('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
             ->join('classes', 'classes.id', '=', 'tutorsubjectmappings.class_id')
-        // ->leftJoin('zoom_classes', 'zoom_classes.tutor_id', '=', 'tutorprofiles.tutor_id')
+            // ->leftJoin('zoom_classes', 'zoom_classes.tutor_id', '=', 'tutorprofiles.tutor_id')
             ->leftJoin('my_favourites', function ($join) {
                 $join->on('my_favourites.tutor_id', '=', 'tutorprofiles.tutor_id')
                     ->where('my_favourites.student_id', session('userid')->id);
@@ -350,7 +371,7 @@ public function admintutorprofile($id)
             'tutorprofiles.tutor_id as tutor_id',
             'my_favourites.status as myfav',
             'tutorprofiles.name',
-            'tutorprofiles.headline', 
+            'tutorprofiles.headline',
             'tutorprofiles.experience',
             DB::raw('(tutorprofiles.rateperhour + (tutorprofiles.rateperhour * tutorprofiles.admin_commission / 100)) as rateperhour'),
             'tutorprofiles.profile_pic',
@@ -469,7 +490,9 @@ public function admintutorprofile($id)
         //     ->leftjoin('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
         //     ->get();
         $tutors = tutorprofile::select(
-            'tutorsubjectmappings.id as submapid', 'tutorprofiles.name', 'tutorprofiles.profile_pic',
+            'tutorsubjectmappings.id as submapid',
+            'tutorprofiles.name',
+            'tutorprofiles.profile_pic',
             'subjects.name as subject',
             'classes.name as className',
             DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'),
@@ -527,7 +550,6 @@ public function admintutorprofile($id)
 
         // dd( ($tutors));
         return view('front-cms.index', get_defined_vars());
-
     }
 
     // BACKUP: Original Stripe payment method - renamed for backup
@@ -555,10 +577,11 @@ public function admintutorprofile($id)
 
         session(['stripe_payload' => $stripeData]);
         $stripekey = env('STRIPE_KEY') ? env('STRIPE_KEY') : 'pk_test_51RQRnr2eHjtuGCfAR6Ox2n88Dnq04kT3XkPMguqjnNX0scs6NN5t24k1xnNwKOfFhGAUyqISv8lPOX9DPePiKZuw003Tgc5fMq';
-        
-        return view('stripe', ['amt' => $request->totalamountenroll,
-                              'stripeKey' => $stripekey
-    ]);
+
+        return view('stripe', [
+            'amt' => $request->totalamountenroll,
+            'stripeKey' => $stripekey
+        ]);
     }
 
     // NEW: Enrollment request method (no payment required)
@@ -644,16 +667,16 @@ public function admintutorprofile($id)
                 $tutor = tutorregistration::find($request->tutorenrollid);
                 $student = session('userid');
                 $firstSlot = SlotBooking::whereIn('id', explode(',', $request->slotids))
-                ->orderBy('date', 'asc')
-                ->first();
+                    ->orderBy('date', 'asc')
+                    ->first();
                 if (!empty($tutor->mobile) && $firstSlot) {
                     $templateIdTutor = 1605; // Your approved template ID
                     $tutorNumber = '+92' . ltrim($tutor->mobile, '0');
-            
+
                     // Format date & time nicely for WhatsApp message
                     $slotDate = \Carbon\Carbon::parse($firstSlot->date)->format('d M Y');
                     $slotTime = \Carbon\Carbon::parse($firstSlot->slot)->format('h:i A');
-            
+
                     // Variables must match your template placeholders exactly
                     $bodyVariablesTutor = [
                         $tutor->name,                       // {{1}}
@@ -662,7 +685,7 @@ public function admintutorprofile($id)
                         $slotDate,                          // {{4}}
                         $slotTime,                          // {{5}}
                     ];
-            
+
                     $whatsApp->sendMessage($tutorNumber, $bodyVariablesTutor, $templateIdTutor);
                 }
             } catch (\Exception $e) {
@@ -708,7 +731,7 @@ public function admintutorprofile($id)
 
     //     $classId = subjects::select('*')->where('id', $request->subjectenrollid)->first();
     //     $tutorname = tutorprofile::select('*')->where('tutor_id', $request->tutorenrollid)->first();
-       
+
     //     $amt = $request->totalamountenroll;
     //      return view('stripe',compact('amt'));
 
@@ -766,37 +789,37 @@ public function admintutorprofile($id)
     //     }
     //     if ($contactadmin == 'on') {
 
-            // Here I need to pass notification into db
+    // Here I need to pass notification into db
     //         $notificationdata = new Notification();
     //         $notificationdata->alert_type = 6;
     //         $notificationdata->notification = session('userid')->name . ' Need your help in slot booking';
     //         $notificationdata->initiator_id = session('userid')->id;
     //         $notificationdata->initiator_role = session('userid')->role_id;
     //         $notificationdata->event_id = $request->tutorenrollid;
-            // Sending to admin
-            // if($request->receiver_role_id == 1){
-            //     $notificationdata->show_to_admin = 1;
-            //     $notificationdata->show_to_admin_id = $request->receiver_id;
+    // Sending to admin
+    // if($request->receiver_role_id == 1){
+    //     $notificationdata->show_to_admin = 1;
+    //     $notificationdata->show_to_admin_id = $request->receiver_id;
     //         $notificationdata->show_to_all_admin = 1;
-            // }
-            // Sending to tutor
-            // if($request->receiver_role_id == 2){
-            // $notificationdata->show_to_tutor = 1;
-            // $notificationdata->show_to_tutor_id = $tutor_id->tutor_id;
-            // $notificationdata->show_to_all_tutor = 0;
-            // }
-            // Sending to student
-            // if($request->receiver_role_id == 3){
-            //     $notificationdata->show_to_student = 1;
-            //     $notificationdata->show_to_student_id = $request->receiver_id;
-            //     // $notificationdata->show_to_all_student = 0;
-            // }
-            // // Sending to parent
-            // if($request->receiver_role_id == 3){
-            //     $notificationdata->show_to_parent = 1;
-            //     $notificationdata->show_to_parent_id = $request->receiver_id;
-            //     // $notificationdata->show_to_all_parent = 0;
-            // }
+    // }
+    // Sending to tutor
+    // if($request->receiver_role_id == 2){
+    // $notificationdata->show_to_tutor = 1;
+    // $notificationdata->show_to_tutor_id = $tutor_id->tutor_id;
+    // $notificationdata->show_to_all_tutor = 0;
+    // }
+    // Sending to student
+    // if($request->receiver_role_id == 3){
+    //     $notificationdata->show_to_student = 1;
+    //     $notificationdata->show_to_student_id = $request->receiver_id;
+    //     // $notificationdata->show_to_all_student = 0;
+    // }
+    // // Sending to parent
+    // if($request->receiver_role_id == 3){
+    //     $notificationdata->show_to_parent = 1;
+    //     $notificationdata->show_to_parent_id = $request->receiver_id;
+    //     // $notificationdata->show_to_all_parent = 0;
+    // }
     //         $notificationdata->read_status = 0;
 
     //         $notified = $notificationdata->save();
@@ -855,7 +878,7 @@ public function admintutorprofile($id)
     // BACKUP: Original Stripe payment success method - renamed for backup
     public function stripePaymentSuccess_backup(Request $request)
     {
-        
+
         $data = session('stripe_payload');
 
         if (!$data) {
@@ -876,7 +899,7 @@ public function admintutorprofile($id)
 
         // Save paymentstudents
         $studentpayment = new paymentstudents();
-        $studentpayment->transaction_id = session('order_id')?? $order_id;
+        $studentpayment->transaction_id = session('order_id') ?? $order_id;
         $studentpayment->student_id = session('userid')->id;
         $studentpayment->class_id = $classId->class_id;
         $studentpayment->subject_id = $data['subjectenrollid'];
@@ -950,8 +973,8 @@ public function admintutorprofile($id)
             'tutorprofiles.id as rate_id'
         )
             ->leftJoin('tutorsubjectmappings', 'tutorsubjectmappings.tutor_id', '=', 'tutorregistrations.id')
-        // ->leftJoin('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
-        // ->leftJoin('classes', 'classes.id', '=', 'subjects.class_id')
+            // ->leftJoin('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
+            // ->leftJoin('classes', 'classes.id', '=', 'subjects.class_id')
             ->leftJoin('tutorprofiles', 'tutorprofiles.tutor_id', 'tutorregistrations.id')
             ->groupBy(
                 'tutorregistrations.id',
@@ -1003,7 +1026,6 @@ public function admintutorprofile($id)
             'table' => $viewTable,
             'pagination' => $viewPagination,
         ]);
-
     }
 
     // tutor search index page/common page
@@ -1015,7 +1037,9 @@ public function admintutorprofile($id)
         $classes = classes::all('id', 'name');
 
         $tutors = tutorprofile::select(
-            'tutorsubjectmappings.id as submapid', 'tutorprofiles.name', 'tutorprofiles.profile_pic',
+            'tutorsubjectmappings.id as submapid',
+            'tutorprofiles.name',
+            'tutorprofiles.profile_pic',
             'subjects.name as subject',
             'classes.name as className',
             DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'),
@@ -1041,7 +1065,18 @@ public function admintutorprofile($id)
         $locations = $request->input('locations');
 
         // Tutors List
-        $tutorlists = tutorprofile::select('tutorprofiles.tutor_id as tutor_id', 'classes.name as class_name', 'tutorprofiles.name', 'tutorprofiles.headline', 'tutorprofiles.experience', DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'), 'tutorprofiles.profile_pic', 'subjects.id as subjectid', 'subjects.name as subject', DB::raw('SUM(ratings) / COUNT(ratings) AS starrating, COUNT(DISTINCT topics.name) as total_topics'), 'tutorsubjectmappings.id as sub_map_id',
+        $tutorlists = tutorprofile::select(
+            'tutorprofiles.tutor_id as tutor_id',
+            'classes.name as class_name',
+            'tutorprofiles.name',
+            'tutorprofiles.headline',
+            'tutorprofiles.experience',
+            DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'),
+            'tutorprofiles.profile_pic',
+            'subjects.id as subjectid',
+            'subjects.name as subject',
+            DB::raw('SUM(ratings) / COUNT(ratings) AS starrating, COUNT(DISTINCT topics.name) as total_topics'),
+            'tutorsubjectmappings.id as sub_map_id',
             DB::raw('(SELECT COUNT(*) FROM classschedules WHERE classschedules.tutor_id = tutorprofiles.id) AS total_classes_done')
         )
             ->join('teacherclassmappings', 'teacherclassmappings.teacher_id', '=', 'tutorprofiles.tutor_id')
@@ -1061,21 +1096,21 @@ public function admintutorprofile($id)
             ->when($minPrice && $maxPrice, function ($query) use ($minPrice, $maxPrice) {
                 return $query->whereBetween(DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100))'), [$minPrice, $maxPrice]);
             })
-        // ->when($ratings, function ($query) use ($ratings) {
-        //     return $query->whereIn('tutorreviews.ratings', $ratings);
-        // })
-        // ->when($locations, function ($query) use ($locations) {
-        //     return $query->whereIn('locations.name', $locations);
-        // })
-        // ->when($subjectId, function ($query, $subjectId) {
-        //     return $query->where('subjects.id', $subjectId);
-        // })
-        // ->when($gradeId, function ($query, $gradeId) {
-        //     return $query->where('classes.id', $gradeId);
-        // })
-        // ->when($minPrice && $maxPrice, function ($query, $minPrice, $maxPrice) {
-        //     return $query->whereBetween(DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100))'), [$minPrice, $maxPrice]);
-        // })
+            // ->when($ratings, function ($query) use ($ratings) {
+            //     return $query->whereIn('tutorreviews.ratings', $ratings);
+            // })
+            // ->when($locations, function ($query) use ($locations) {
+            //     return $query->whereIn('locations.name', $locations);
+            // })
+            // ->when($subjectId, function ($query, $subjectId) {
+            //     return $query->where('subjects.id', $subjectId);
+            // })
+            // ->when($gradeId, function ($query, $gradeId) {
+            //     return $query->where('classes.id', $gradeId);
+            // })
+            // ->when($minPrice && $maxPrice, function ($query, $minPrice, $maxPrice) {
+            //     return $query->whereBetween(DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100))'), [$minPrice, $maxPrice]);
+            // })
             ->groupby('tutorprofiles.id', 'tutorprofiles.tutor_id', 'subjects.id', 'subjects.name', 'classes.name', 'tutorprofiles.rate', 'tutorprofiles.profile_pic', 'tutorprofiles.name', 'rate', 'sub_map_id', 'experience', 'headline', 'total_classes_done')
             ->get();
 
@@ -1112,7 +1147,9 @@ public function admintutorprofile($id)
         $classes = classes::all('id', 'name');
 
         $tutors = tutorprofile::select(
-            'tutorsubjectmappings.id as submapid', 'tutorprofiles.name', 'tutorprofiles.profile_pic',
+            'tutorsubjectmappings.id as submapid',
+            'tutorprofiles.name',
+            'tutorprofiles.profile_pic',
             'subjects.name as subject',
             'classes.name as className',
             DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'),
@@ -1136,7 +1173,18 @@ public function admintutorprofile($id)
         $maxPrice = $request->input('tmaxprice');
 
         // Tutors List
-        $tutorlists = tutorprofile::select('tutorprofiles.id', 'classes.name as class_name', 'tutorprofiles.name', 'tutorprofiles.headline', 'tutorprofiles.experience', DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'), 'tutorprofiles.profile_pic', 'subjects.id as subjectid', 'subjects.name as subject', DB::raw('SUM(ratings) / COUNT(ratings) AS starrating, COUNT(DISTINCT topics.name) as total_topics'), 'tutorsubjectmappings.id as sub_map_id',
+        $tutorlists = tutorprofile::select(
+            'tutorprofiles.id',
+            'classes.name as class_name',
+            'tutorprofiles.name',
+            'tutorprofiles.headline',
+            'tutorprofiles.experience',
+            DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'),
+            'tutorprofiles.profile_pic',
+            'subjects.id as subjectid',
+            'subjects.name as subject',
+            DB::raw('SUM(ratings) / COUNT(ratings) AS starrating, COUNT(DISTINCT topics.name) as total_topics'),
+            'tutorsubjectmappings.id as sub_map_id',
             DB::raw('(SELECT COUNT(*) FROM classschedules WHERE classschedules.tutor_id = tutorprofiles.id) AS total_classes_done')
         )
             ->join('teacherclassmappings', 'teacherclassmappings.teacher_id', '=', 'tutorprofiles.tutor_id')
@@ -1172,7 +1220,6 @@ public function admintutorprofile($id)
 
         // Return the HTML response
         return response()->json(['html' => $html]);
-
     }
     public function status(Request $request)
     {
@@ -1200,7 +1247,8 @@ public function admintutorprofile($id)
         return json_encode(array('statusCode' => 200));
     }
 
-    public function rateupdate(Request $request){
+    public function rateupdate(Request $request)
+    {
 
         $data = TutorProfile::where('tutor_id', $request->id)->first();
         // dd($data);
@@ -1215,7 +1263,7 @@ public function admintutorprofile($id)
             ->leftjoin('tutorsubjectmappings', 'tutorsubjectmappings.tutor_id', '=', 'tutorprofiles.tutor_id')
             ->leftjoin('teacherclassmappings', 'teacherclassmappings.subject_mapping_id', '=', 'tutorsubjectmappings.id')
             ->leftjoin('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
-        // ->where('tutorprofiles.id', '=', $id)
+            // ->where('tutorprofiles.id', '=', $id)
             ->where('tutorsubjectmappings.id', '=', $id)
             ->first();
 
@@ -1232,14 +1280,13 @@ public function admintutorprofile($id)
         }
 
         return view('common.tutorprofile', compact('tutorpd', 'achievement', 'reviews'));
-
     }
 
     public function enrollnow($id)
     {
         $subjects = subjects::select('subjects.*')
-        ->join('tutorsubjectmappings','tutorsubjectmappings.subject_id','subjects.id')
-        ->where('tutorsubjectmappings.tutor_id',$id)->get();
+            ->join('tutorsubjectmappings', 'tutorsubjectmappings.subject_id', 'subjects.id')
+            ->where('tutorsubjectmappings.tutor_id', $id)->get();
 
 
         $currentDate = Carbon::now()->toDateString();
@@ -1275,7 +1322,7 @@ public function admintutorprofile($id)
             ];
         }
 
-        return view('student.enrollnow', compact('enrollment', 'groupedSlots','subjects'));
+        return view('student.enrollnow', compact('enrollment', 'groupedSlots', 'subjects'));
     }
 
     public function enrollupdate($id)
@@ -1283,10 +1330,10 @@ public function admintutorprofile($id)
         $tutor_profile_id = $id;
         $studentid = session('userid')->id;
 
-        $enrollment = TutorSubjectMapping::select('tutorsubjectmappings.*', 'subjects.name as subject_name', 'tutorprofiles.name as tutor_name', DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'), )
+        $enrollment = TutorSubjectMapping::select('tutorsubjectmappings.*', 'subjects.name as subject_name', 'tutorprofiles.name as tutor_name', DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'),)
             ->join('tutorprofiles', 'tutorprofiles.tutor_id', '=', 'tutorsubjectmappings.tutor_id')
             ->join('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
-        // ->where('tutorsubjectmappings.id', $id)
+            // ->where('tutorsubjectmappings.id', $id)
             ->where('tutorsubjectmappings.tutor_id', $id)
             ->first();
 
@@ -1295,9 +1342,16 @@ public function admintutorprofile($id)
             ->leftJoin('subjects', 'subjects.id', '=', 'slot_bookings.subject_id')
             ->leftJoin('studentregistrations', 'studentregistrations.id', '=', 'slot_bookings.student_id')
             ->where('slot_bookings.tutor_id', $id)
-            ->where('slot_bookings.date', '>=', Carbon::now())
+            ->where(function ($query) {
+                $query->whereDate('slot_bookings.date', '>', Carbon::today())
+                    ->orWhere(function ($q) {
+                        $q->whereDate('slot_bookings.date', Carbon::today())
+                            ->whereTime('slot_bookings.slot', '>=', Carbon::now()->format('H:i:s'));
+                    });
+            })
             ->orderBy('slot_bookings.date')
             ->get();
+        // dd($slotsAvailability->toArray());
 
         $groupedSlots = [];
         $bookedSlotsCount = 0; // Initialize the count variable
@@ -1328,7 +1382,7 @@ public function admintutorprofile($id)
         }
 
 
-        return view('student.enrollupdate', compact('enrollment', 'groupedSlots', 'bookedSlotsCount','tutor_profile_id'));
+        return view('student.enrollupdate', compact('enrollment', 'groupedSlots', 'bookedSlotsCount', 'tutor_profile_id'));
     }
 
     public function updateslots(Request $request)
@@ -1393,50 +1447,49 @@ public function admintutorprofile($id)
         return view('admin.tutorslots', compact('slots'));
     }
 
-    public function enrollsuccess(){
+    public function enrollsuccess()
+    {
 
         return view('student.enrollsuccess');
     }
 
     public function tutordelete($id)
-{
-    // Check if there are any payments related to the tutor
-    $check = paymentstudents::where('tutor_id', $id)->first();
+    {
+        // Check if there are any payments related to the tutor
+        $check = paymentstudents::where('tutor_id', $id)->first();
 
-    if ($check) {
-        // Return with a failure message if the tutor has been involved in payments
-        return back()->with('fail', "Tutor can't be deleted because it is in use; a student has purchased some classes from this tutor.");
-    } else {
-        // Use transaction to ensure both deletions happen atomically
-        DB::beginTransaction();
-        try {
-            // Find the tutor profile by tutor_id and delete it
-            $tutorProfile = tutorprofile::where('tutor_id', $id)->first();
-            // $tutorProfile->delete();
-            if ($tutorProfile) {
-                $tutorProfile->delete();
+        if ($check) {
+            // Return with a failure message if the tutor has been involved in payments
+            return back()->with('fail', "Tutor can't be deleted because it is in use; a student has purchased some classes from this tutor.");
+        } else {
+            // Use transaction to ensure both deletions happen atomically
+            DB::beginTransaction();
+            try {
+                // Find the tutor profile by tutor_id and delete it
+                $tutorProfile = tutorprofile::where('tutor_id', $id)->first();
+                // $tutorProfile->delete();
+                if ($tutorProfile) {
+                    $tutorProfile->delete();
+                }
+
+                // Find the tutor registration by id and delete it
+                $tutorRegistration = tutorregistration::find($id);
+                if ($tutorRegistration) {
+                    $tutorRegistration->delete();
+                } else {
+                    // If the tutor registration doesn't exist, return with an error message
+                    return back()->with('fail', 'Tutor registration not found.');
+                }
+
+                // Commit the transaction
+                DB::commit();
+
+                return back()->with('success', 'Tutor deleted successfully.');
+            } catch (\Exception $e) {
+                // Rollback the transaction in case of any error
+                DB::rollBack();
+                return back()->with('fail', 'Something went wrong, please try again later.');
             }
-
-            // Find the tutor registration by id and delete it
-            $tutorRegistration = tutorregistration::find($id);
-            if ($tutorRegistration) {
-                $tutorRegistration->delete();
-            } else {
-                // If the tutor registration doesn't exist, return with an error message
-                return back()->with('fail', 'Tutor registration not found.');
-            }
-
-            // Commit the transaction
-            DB::commit();
-
-            return back()->with('success', 'Tutor deleted successfully.');
-        } catch (\Exception $e) {
-            // Rollback the transaction in case of any error
-            DB::rollBack();
-            return back()->with('fail', 'Something went wrong, please try again later.');
         }
     }
-}
-
-
 }
