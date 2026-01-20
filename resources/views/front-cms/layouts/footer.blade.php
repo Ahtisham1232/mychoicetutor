@@ -67,7 +67,7 @@
                     <label for="password">Password</label>
                     <input type="password" class="form-control" id="password" name="password" aria-describedby=""
                         placeholder="Password" required>
-                    <i class="fa fa-eye toggle-password" data-target="password"></i>
+                    <i class="fa fa-eye toggle-password mt-2" data-target="password"></i>
                 </div>
                 <span class="text-danger login-errorMessage">
                     @error('password')
