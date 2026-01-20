@@ -12,7 +12,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('classes:send-reminders')->everyMinute();
+        $schedule->command('classes:send-reminders')
+            ->everyMinute()
+            // Prevent duplicate sends if one run takes longer than 1 minute
+            ->withoutOverlapping(55)
+            ->onOneServer();
 
     }
 

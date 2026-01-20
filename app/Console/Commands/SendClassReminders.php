@@ -12,6 +12,7 @@ use App\Models\zoom_classes;
 use App\Models\subjects;
 use App\Services\TwilioWhatsAppService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class SendClassReminders extends Command
 {
@@ -49,6 +50,7 @@ class SendClassReminders extends Command
 
         $classes = democlasses::where('status', 3) // confirmed
             ->whereNotNull('slot_confirmed')
+            ->whereNull('reminder_sent_at')
             ->whereBetween('slot_confirmed', [
                 $targetTime->copy()->subMinute(5), // small window
                 $targetTime->copy()->addMinute(5)
@@ -71,6 +73,15 @@ class SendClassReminders extends Command
             
             $classDateTime = Carbon::parse($class->slot_confirmed, $timezoneIdentifier);
             $formattedDateTime = $classDateTime->format('d M Y h:i A');
+
+            // Atomically "claim" this reminder to prevent repeats if schedule overlaps/reruns
+            $claimed = democlasses::where('id', $class->id)
+                ->whereNull('reminder_sent_at')
+                ->update(['reminder_sent_at' => $now->copy()->setTimezone('UTC')]);
+
+            if ($claimed === 0) {
+                continue;
+            }
 
             // Send to student
             if (!empty($student->mobile)) {
@@ -117,8 +128,9 @@ class SendClassReminders extends Command
             ->where('date', $targetDate)
             ->whereNotNull('student_id')
             ->whereNotNull('meeting_id')
+            ->whereNull('reminder_sent_at')
             ->get()
-            ->filter(function ($booking) use ($targetTime) {
+            ->filter(function ($booking) use ($targetTime, $timezoneIdentifier) {
                 // Parse the slot time and check if it's within the window
                 try {
                     $slotDateTime = Carbon::parse($booking->date . ' ' . $booking->slot, $timezoneIdentifier);
@@ -141,6 +153,15 @@ class SendClassReminders extends Command
             $zoomClass = zoom_classes::find($booking->meeting_id);
 
             if (!$studentProfile || !$tutorReg) continue;
+
+            // Atomically "claim" this reminder to prevent repeats if schedule overlaps/reruns
+            $claimed = SlotBooking::where('id', $booking->id)
+                ->whereNull('reminder_sent_at')
+                ->update(['reminder_sent_at' => $now->copy()->setTimezone('UTC')]);
+
+            if ($claimed === 0) {
+                continue;
+            }
 
             $meetingLink = $zoomClass->join_url ?? $zoomClass->start_url ?? "https://mychoicetutor.com/waiting-room";
             $classDateTime = Carbon::parse($booking->date . ' ' . $booking->slot, $timezoneIdentifier);
