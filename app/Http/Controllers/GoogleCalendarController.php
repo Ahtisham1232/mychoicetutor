@@ -242,6 +242,7 @@ class GoogleCalendarController extends Controller
 
         return redirect()->route('error')->with('message', 'Authentication failed.');
     }
+    
     public function democonfirm(Request $request, TwilioWhatsAppService $whatsApp)
     {
         try {
@@ -280,7 +281,8 @@ class GoogleCalendarController extends Controller
 
             if ($meeting['success']) {
                 $dcnf = democlasses::find($request->confirmid);
-                $dcnf->slot_confirmed = $request->slot;
+                // $dcnf->slot_confirmed = $request->slot;
+                $dcnf->slot_confirmed = Carbon::parse($request->slot, 'Asia/Karachi')->utc();
                 $dcnf->slot_confirmed_at = Carbon::now();
                 $dcnf->slot_confirmed_by = session('userid')->id;
                 $dcnf->demo_link = $meeting['meeting_url'];
@@ -296,11 +298,11 @@ class GoogleCalendarController extends Controller
                 'mailtype' => 3,
             ];
             
-try {
-     Mail::to($demostudent->email)->send(new SendMail($details));
-} catch (\Exception $e) {
-    
-}
+            try {
+                Mail::to($demostudent->email)->send(new SendMail($details));
+            } catch (\Exception $e) {
+                
+            }
           
         } catch (\Throwable $e) {
             Log::error('Mail failed: ' . $e->getMessage());
@@ -353,6 +355,7 @@ try {
             return back()->with('fail', 'An error occurred. Please try again later.');
         }
     }
+
     public function demoend(Request $request)
     {
 

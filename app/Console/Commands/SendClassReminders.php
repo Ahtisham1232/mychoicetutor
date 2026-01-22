@@ -12,7 +12,7 @@ use App\Models\zoom_classes;
 use App\Models\subjects;
 use App\Services\TwilioWhatsAppService;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log; 
 
 class SendClassReminders extends Command
 {
@@ -29,178 +29,225 @@ class SendClassReminders extends Command
 
     public function handle()
     {
-        // Set timezone based on environment variable
-        $timezone = env('APP_TIMEZONE', 'UTC');
+        Log::info('SendClassReminders command started'); 
 
-        // Map common timezone names to proper timezone identifiers
-        $timezoneMap = [
-            'pakistan' => 'Asia/Karachi',
-            'england' => 'Europe/London',
-            'london' => 'Europe/London',
-            'karachi' => 'Asia/Karachi',
-        ];
-
-        $timezoneIdentifier = $timezoneMap[strtolower($timezone)] ?? $timezone;
-
-        // Set the timezone for all Carbon operations in this command
-        $now = Carbon::now($timezoneIdentifier);
-
-        // Target = classes starting 30 minutes from now
-        $targetTime = $now->copy()->addMinutes(30);
-
-        $classes = democlasses::where('status', 3) // confirmed
+        $now = Carbon::now('UTC');
+    
+        // ================= DEMO CLASSES =================
+        $classes = democlasses::where('status', 3)
             ->whereNotNull('slot_confirmed')
             ->whereNull('reminder_sent_at')
-            ->whereBetween('slot_confirmed', [
-                $targetTime->copy()->subMinute(5), // small window
-                $targetTime->copy()->addMinute(5)
-            ])
+            ->whereRaw(
+                'TIMESTAMPDIFF(MINUTE, UTC_TIMESTAMP(), slot_confirmed) BETWEEN 25 AND 35'
+            )
             ->get();
 
-        // Process demo classes
+
+        Log::info('Demo classes fetched', ['count' => $classes->count()]); // LOG
+
         foreach ($classes as $class) {
+
+            Log::info('Processing demo class', [ 
+                'class_id' => $class->id,
+                'slot_confirmed' => $class->slot_confirmed,
+            ]);
+
             $student = studentprofile::where('student_id', $class->student_id)->first();
             $tutor   = tutorprofile::where('tutor_id', $class->slot_confirmed_by)->first();
 
-            if (!$student || !$tutor) continue;
+            if (!$student || !$tutor) {
+                Log::warning('Demo class skipped - missing student or tutor', [ // LOG
+                    'class_id' => $class->id,
+                    'student_found' => (bool) $student,
+                    'tutor_found' => (bool) $tutor,
+                ]);
+                continue;
+            }
 
             $subject = subjects::find($class->subject_id);
             $meetingLink = $class->demo_link ?? "https://mychoicetutor.com/waiting-room";
-            
-            // Use template for demo class reminders
-            $templateIdDemo = 1644; // TODO: Replace with actual template ID for demo class reminder
-            $templateIdDemoTutor = 1642; // TODO: Replace with actual template ID for demo class reminder
-            
-            $classDateTime = Carbon::parse($class->slot_confirmed, $timezoneIdentifier);
+
+            $classDateTime = Carbon::parse($class->slot_confirmed, 'UTC')
+                ->setTimezone('Asia/Karachi');
+
             $formattedDateTime = $classDateTime->format('d M Y h:i A');
 
-            // Atomically "claim" this reminder to prevent repeats if schedule overlaps/reruns
+
             $claimed = democlasses::where('id', $class->id)
                 ->whereNull('reminder_sent_at')
                 ->update(['reminder_sent_at' => $now->copy()->setTimezone('UTC')]);
 
             if ($claimed === 0) {
+                Log::warning('Demo reminder already sent or claim failed', [ // LOG
+                    'class_id' => $class->id,
+                ]);
                 continue;
             }
 
-            // Send to student
+            Log::info('Demo reminder claimed', ['class_id' => $class->id]); // LOG
+
             if (!empty($student->mobile)) {
                 try {
-                    $studentNumber = "+92" . ltrim($student->mobile, "0");
-                    $bodyVariablesStudent = [
-                        $student->name ?? 'Student',
-                        $subject->name ?? 'Demo Class',
-                        $formattedDateTime,
-                        $tutor->name ?? 'Tutor',
-                        $meetingLink,
-                    ];
-                    $this->whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdDemo);
-                } catch (\Exception $e) {
-                    $this->error('Failed to send reminder to student: ' . $e->getMessage());
-                }
-            }
+                    Log::info('Sending demo reminder to student', [ // LOG
+                        'class_id' => $class->id,
+                        'mobile' => $student->mobile,
+                    ]);
 
-            // Send to tutor
-            if (!empty($tutor->mobile)) {
-                try {
-                    $tutorNumber = "+92" . ltrim($tutor->mobile, "0");
-                    $bodyVariablesTutor = [
-                        $tutor->name ?? 'Tutor',
-                        $subject->name ?? 'Demo Class',
-                        $formattedDateTime,
-                        $student->name ?? 'Student',
-                        $meetingLink,
-                    ];
-                    $this->whatsApp->sendMessage($tutorNumber, $bodyVariablesTutor, $templateIdDemoTutor);
-                } catch (\Exception $e) {
-                    $this->error('Failed to send reminder to tutor: ' . $e->getMessage());
-                }
-            }
-        }
-
-        // Process regular classes (SlotBooking)
-        // Get slot bookings that are scheduled and starting in 30 minutes
-        $targetDate = $targetTime->format('Y-m-d');
-        $targetSlotTime = $targetTime->format('H:i');
-        
-        // Small window for slot matching (within 5 minutes)
-        $slotBookings = SlotBooking::where('status', 1) // confirmed bookings
-            ->where('date', $targetDate)
-            ->whereNotNull('student_id')
-            ->whereNotNull('meeting_id')
-            ->whereNull('reminder_sent_at')
-            ->get()
-            ->filter(function ($booking) use ($targetTime, $timezoneIdentifier) {
-                // Parse the slot time and check if it's within the window
-                try {
-                    $slotDateTime = Carbon::parse($booking->date . ' ' . $booking->slot, $timezoneIdentifier);
-                    return $slotDateTime->between(
-                        $targetTime->copy()->subMinute(5),
-                        $targetTime->copy()->addMinute(5)
+                    $this->whatsApp->sendMessage(
+                        "+92" . ltrim($student->mobile, "0"),
+                        [
+                            $student->name ?? 'Student',
+                            $subject->name ?? 'Demo Class',
+                            $formattedDateTime,
+                            $tutor->name ?? 'Tutor',
+                            $meetingLink,
+                        ],
+                        1644
                     );
                 } catch (\Exception $e) {
-                    return false;
-                }
-            });
-
-        $templateIdRegular = 1643; // TODO: Replace with actual template ID for regular class reminder
-        $templateIdRegularTutor = 1641; // TODO: Replace with actual template ID for regular class reminder
-
-        foreach ($slotBookings as $booking) {
-            $studentProfile = studentprofile::where('student_id', $booking->student_id)->first();
-            $tutorReg = tutorregistration::find($booking->tutor_id);
-            $subject = subjects::find($booking->subject_id);
-            $zoomClass = zoom_classes::find($booking->meeting_id);
-
-            if (!$studentProfile || !$tutorReg) continue;
-
-            // Atomically "claim" this reminder to prevent repeats if schedule overlaps/reruns
-            $claimed = SlotBooking::where('id', $booking->id)
-                ->whereNull('reminder_sent_at')
-                ->update(['reminder_sent_at' => $now->copy()->setTimezone('UTC')]);
-
-            if ($claimed === 0) {
-                continue;
-            }
-
-            $meetingLink = $zoomClass->join_url ?? $zoomClass->start_url ?? "https://mychoicetutor.com/waiting-room";
-            $classDateTime = Carbon::parse($booking->date . ' ' . $booking->slot, $timezoneIdentifier);
-            $formattedDateTime = $classDateTime->format('d M Y h:i A');
-
-            // Send to student
-            if (!empty($studentProfile->mobile)) {
-                try {
-                    $studentNumber = "+92" . ltrim($studentProfile->mobile, "0");
-                    $bodyVariablesStudent = [
-                        $studentProfile->name ?? 'Student',
-                        $subject->name ?? 'Class',
-                        $formattedDateTime,
-                        $tutorReg->name ?? 'Tutor',
-                        $meetingLink,
-                    ];
-                    $this->whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdRegular);
-                } catch (\Exception $e) {
-                    $this->error('Failed to send reminder to student: ' . $e->getMessage());
+                    Log::error('Student demo reminder failed', [ // LOG
+                        'class_id' => $class->id,
+                        'error' => $e->getMessage(),
+                    ]);
                 }
             }
 
-            // Send to tutor
-            if (!empty($tutorReg->mobile)) {
+            if (!empty($tutor->mobile)) {
                 try {
-                    $tutorNumber = "+92" . ltrim($tutorReg->mobile, "0");
-                    $bodyVariablesTutor = [
-                        $tutorReg->name ?? 'Tutor',
-                        $subject->name ?? 'Class',
-                        $formattedDateTime,
-                        $studentProfile->name ?? 'Student',
-                        $meetingLink,
-                    ];
-                    $this->whatsApp->sendMessage($tutorNumber, $bodyVariablesTutor, $templateIdRegularTutor);
+                    Log::info('Sending demo reminder to tutor', [ // LOG
+                        'class_id' => $class->id,
+                        'mobile' => $tutor->mobile,
+                    ]);
+
+                    $this->whatsApp->sendMessage(
+                        "+92" . ltrim($tutor->mobile, "0"),
+                        [
+                            $tutor->name ?? 'Tutor',
+                            $subject->name ?? 'Demo Class',
+                            $formattedDateTime,
+                            $student->name ?? 'Student',
+                            $meetingLink,
+                        ],
+                        1642
+                    );
                 } catch (\Exception $e) {
-                    $this->error('Failed to send reminder to tutor: ' . $e->getMessage());
+                    Log::error('Tutor demo reminder failed', [ // LOG
+                        'class_id' => $class->id,
+                        'error' => $e->getMessage(),
+                    ]);
                 }
             }
         }
+        // ================= REGULAR CLASSES (SlotBooking) =================
+
+        // $slotBookings = SlotBooking::where('status', 1) // confirmed
+        //     ->whereNotNull('student_id')
+        //     ->whereNotNull('meeting_id')
+        //     ->whereNull('reminder_sent_at')
+        //     ->whereRaw(
+        //         'TIMESTAMPDIFF(MINUTE, UTC_TIMESTAMP(), slot_confirmed) BETWEEN 25 AND 35'
+        //     )
+        //     ->get();
+        //     // dd($slotBookings);
+
+        // Log::info('Regular classes fetched', [
+        //     'count' => $slotBookings->count()
+        // ]);
+
+        // $templateIdRegularStudent = 1643;
+        // $templateIdRegularTutor   = 1641;
+
+        // foreach ($slotBookings as $booking) {
+
+        //     Log::info('Processing regular class', [
+        //         'booking_id' => $booking->id,
+        //         'slot_time'  => $booking->date . ' ' . $booking->slot,
+        //     ]);
+
+        //     $studentProfile = studentprofile::where('student_id', $booking->student_id)->first();
+        //     $tutorReg       = tutorregistration::find($booking->tutor_id);
+        //     $subject        = subjects::find($booking->subject_id);
+        //     $zoomClass      = zoom_classes::find($booking->meeting_id);
+
+        //     if (!$studentProfile || !$tutorReg) {
+        //         Log::warning('Regular class skipped - missing student or tutor', [
+        //             'booking_id' => $booking->id
+        //         ]);
+        //         continue;
+        //     }
+
+        //     //  Atomic claim (VERY IMPORTANT)
+        //     $claimed = SlotBooking::where('id', $booking->id)
+        //         ->whereNull('reminder_sent_at')
+        //         ->update([
+        //             'reminder_sent_at' => Carbon::now('UTC')
+        //         ]);
+
+        //     if ($claimed === 0) {
+        //         Log::warning('Regular reminder already sent', [
+        //             'booking_id' => $booking->id
+        //         ]);
+        //         continue;
+        //     }
+
+        //     $meetingLink = $zoomClass->join_url
+        //         ?? $zoomClass->start_url
+        //         ?? "https://mychoicetutor.com/waiting-room";
+
+        //     $classDateTime = Carbon::parse(
+        //         $booking->date . ' ' . $booking->slot,
+        //         'UTC'
+        //     )->setTimezone(config('app.timezone'));
+
+        //     $formattedDateTime = $classDateTime->format('d M Y h:i A');
+
+
+        //     // ================= SEND TO STUDENT =================
+        //     if (!empty($studentProfile->mobile)) {
+        //         try {
+        //             $this->whatsApp->sendMessage(
+        //                 "+92" . ltrim($studentProfile->mobile, "0"),
+        //                 [
+        //                     $studentProfile->name ?? 'Student',
+        //                     $subject->name ?? 'Class',
+        //                     $formattedDateTime,
+        //                     $tutorReg->name ?? 'Tutor',
+        //                     $meetingLink,
+        //                 ],
+        //                 $templateIdRegularStudent
+        //             );
+        //         } catch (\Exception $e) {
+        //             Log::error('Student regular reminder failed', [
+        //                 'booking_id' => $booking->id,
+        //                 'error' => $e->getMessage()
+        //             ]);
+        //         }
+        //     }
+
+        //     // ================= SEND TO TUTOR =================
+        //     if (!empty($tutorReg->mobile)) {
+        //         try {
+        //             $this->whatsApp->sendMessage(
+        //                 "+92" . ltrim($tutorReg->mobile, "0"),
+        //                 [
+        //                     $tutorReg->name ?? 'Tutor',
+        //                     $subject->name ?? 'Class',
+        //                     $formattedDateTime,
+        //                     $studentProfile->name ?? 'Student',
+        //                     $meetingLink,
+        //                 ],
+        //                 $templateIdRegularTutor
+        //             );
+        //         } catch (\Exception $e) {
+        //             Log::error('Tutor regular reminder failed', [
+        //                 'booking_id' => $booking->id,
+        //                 'error' => $e->getMessage()
+        //             ]);
+        //         }
+        //     }
+        // }
+
+        Log::info('SendClassReminders command finished'); // LOG
 
         $this->info("30-minute reminders sent successfully.");
     }
