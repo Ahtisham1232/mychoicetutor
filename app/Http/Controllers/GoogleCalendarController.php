@@ -86,7 +86,7 @@ class GoogleCalendarController extends Controller
         }
     }
    
-    public function scheduleclass(Request $request)
+    public function scheduleclass(Request $request, TwilioWhatsAppService $whatsApp)
     {
         
         try {
@@ -193,8 +193,44 @@ class GoogleCalendarController extends Controller
                                 $notificationdata->save();
                                 broadcast(new RealTimeMessage($notificationdata));
                             } catch (\Exception $e) {
-                                Log::error('Failed to send notification: ' . $e->getMessage());
+                                Log::error('Failed to send notification of regular class: ' . $e->getMessage());
                             }
+
+                            // =======================
+                            // WhatsApp Message (Non-blocking)
+                            // =======================
+                            if (!empty($student->mobile)) {
+                                try {
+                                    $templateIdClassConfirm = 1630; 
+
+                                    $studentNumber = '+92' . ltrim($student->mobile, '0');
+
+                                    $bodyVariablesStudent = [
+                                        $student->name,                            
+                                        $subjectName,                             
+                                        $tutor->name,                              
+                                        $classstarttime->format('d M Y'),         
+                                        $classstarttime->format('h:i A'),        
+                                    ];
+
+                                    $whatsApp->sendMessage(
+                                        $studentNumber,
+                                        $bodyVariablesStudent,
+                                        $templateIdClassConfirm
+                                    );
+
+                                } catch (\Exception $e) {
+                                    // IMPORTANT: Do NOT stop execution
+                                    Log::error(
+                                        'WhatsApp send failed for regular class scheduling: ' . $e->getMessage(),
+                                        [
+                                            'student_id' => $student->id,
+                                            'mobile' => $student->mobile
+                                        ]
+                                    );
+                                }
+                            }
+
 
                             return redirect()->to('/tutor/getclasslist')->with('success', 'Class scheduled successfully!');
                         } catch (\Exception $e) {
