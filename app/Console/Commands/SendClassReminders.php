@@ -146,7 +146,7 @@ class SendClassReminders extends Command
              ->whereNotNull('tutor_id')
              ->whereNotNull('meeting_id')
              ->whereNull('reminder_sent_at')
-             ->where('is_class_schedule',1)
+             ->where('is_class_scheduled',1)
              ->whereRaw(
                  'TIMESTAMPDIFF(MINUTE, UTC_TIMESTAMP(), slot) BETWEEN 25 AND 35'
              )
