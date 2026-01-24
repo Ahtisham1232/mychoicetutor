@@ -137,7 +137,7 @@
                             <td>{{ $slot->booked_at ? \Carbon\Carbon::parse($slot->booked_at)->format('d-m-Y h:i A') : '' }}
                             </td>
                             <td>{{ $slot->subject }}</td>
-                            <td>{{ \Carbon\Carbon::parse($slot->date)->format('d-m-Y') }}</td>
+                            <td>{{ $slot->date }}</td>
                             <td>{{ \Carbon\Carbon::parse($slot->slot)->format('h:i A') }}</td>
                             @if ($slot->status == 0)
                             <td class=""><span class="badge bg-success">Available</span></td>

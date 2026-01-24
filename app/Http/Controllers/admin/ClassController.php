@@ -140,7 +140,15 @@ class ClassController extends Controller
         }) // Exclude completed classes only if they exist
         ->orderBy('zoom_classes.id','desc')->get();
 
-
+        // Convert slot dates and times from UTC to PKT for display
+        $classes->each(function ($class) {
+            if (isset($class->slotdate) && $class->slotdate) {
+                $class->slotdate = Carbon::parse($class->slotdate, 'UTC')->setTimezone('Asia/Karachi')->toDateString();
+            }
+            if (isset($class->slottime) && $class->slottime) {
+                $class->slottime = Carbon::parse($class->slottime, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+            }
+        });
 
             // dd($classes);
         $subjects = subjects::where('is_active', 1)->get();

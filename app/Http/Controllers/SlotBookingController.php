@@ -15,15 +15,16 @@ class SlotBookingController extends Controller
 {
     public function tutorslots(){
 
-        $slots = SlotBooking::select('slot_bookings.*', 'studentprofiles.name as student_name', 'subjects.name as subject')
+    $slots = SlotBooking::select('slot_bookings.*', 'studentprofiles.name as student_name', 'subjects.name as subject')
     ->leftJoin('studentprofiles', 'studentprofiles.student_id', '=', 'slot_bookings.student_id')
     ->leftJoin('subjects', 'subjects.id', '=', 'slot_bookings.subject_id')
     ->where('slot_bookings.tutor_id', session('userid')->id)
     ->where(function($query) {
-        $query->whereDate('slot_bookings.date', '>=', Carbon::today())
+        // Convert today's date to UTC for comparison
+        $query->whereDate('slot_bookings.date', '>=', Carbon::now('UTC')->toDateString())
               ->orWhere(function($query) {
-                  $query->whereDate('slot_bookings.date', '=', Carbon::today())
-                        ->whereTime('slot_bookings.date', '>=', Carbon::now());
+                  $query->whereDate('slot_bookings.date', '=', Carbon::now('UTC')->toDateString())
+                        ->whereTime('slot_bookings.date', '>=', Carbon::now('UTC')->toTimeString());
               });
     })
     ->orderby('slot_bookings.date','asc')
@@ -45,6 +46,15 @@ class SlotBookingController extends Controller
     ->where('studentregistrations.is_active',1)
     ->get();
 
+        // Convert slot dates and times from UTC to PKT for display
+        $slots->each(function ($slot) {
+            $slot->date = Carbon::parse($slot->date)->setTimezone('Asia/Karachi')->toDateString();
+            $slot->slot = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+            if ($slot->booked_at) {
+                $slot->booked_at = Carbon::parse($slot->booked_at, 'UTC')->setTimezone('Asia/Karachi');
+            }
+        });
+
         // dd($students);
         return view('tutor.slotcreate',compact('slots','subjects','students'));
     }
@@ -56,14 +66,18 @@ class SlotBookingController extends Controller
         'classtime' => 'required',
     ]);
 
-    $requestedDateTime = Carbon::parse($request->classdate . ' ' . $request->classtime);
+    // Parse the PKT time from the request
+    $requestedDateTime = Carbon::parse($request->classdate . ' ' . $request->classtime, 'Asia/Karachi');
+    
+    // Convert to UTC for storage
+    $utcDateTime = $requestedDateTime->setTimezone('UTC');
 
-    // Check for existing slots within the 1-hour gap
+    // Check for existing slots within the 1-hour gap (check in UTC)
     $existingSlots = SlotBooking::where('tutor_id', session('userid')->id)
-        ->where('date', $requestedDateTime->format('Y-m-d'))
+        ->where('date', $utcDateTime->format('Y-m-d'))
         ->whereBetween('slot', [
-            $requestedDateTime->subHour()->format('H:i:s'),
-            $requestedDateTime->addHour()->format('H:i:s'),
+            $utcDateTime->copy()->subHour()->format('H:i:s'),
+            $utcDateTime->copy()->addHour()->format('H:i:s'),
         ])
         ->get();
 
@@ -74,8 +88,9 @@ class SlotBookingController extends Controller
 
         // Create or update the slot for the requested day
         $slotbooking = ($request->slotid) ? SlotBooking::find($request->slotid) : new SlotBooking();
-        $slotbooking->date = $requestedDateTime->format('Y-m-d');
-        $slotbooking->slot = $requestedDateTime->format('H:i:s');
+        // Store date and slot in UTC
+        $slotbooking->date = $utcDateTime->format('Y-m-d');
+        $slotbooking->slot = $utcDateTime->format('H:i:s');
         $slotbooking->status = 0;
         $slotbooking->tutor_id = session('userid')->id;
         $res = $slotbooking->save();
@@ -105,7 +120,8 @@ class SlotBookingController extends Controller
     } else {
         // Conflicting slots found
         $conflictingTimes = $existingSlots->pluck('slot')->map(function ($time) {
-            return Carbon::parse($time)->format('h:i A');
+            // Convert UTC time back to PKT for display
+            return Carbon::parse($time, 'UTC')->setTimezone('Asia/Karachi')->format('h:i A');
         })->implode(', ');
 
         return back()->with('fail', 'Slot creation failed. There is a conflicting slot within the 1-hour gap. Conflicting times: ' . $conflictingTimes);
@@ -117,7 +133,7 @@ public function reschedule(Request $request){
     $updatedata = SlotBooking::find($request->changedslottime);
     $updatedata->status = $getdata->status;
     $updatedata->student_id = $getdata->student_id;
-    $updatedata->booked_at = Carbon::now();
+    $updatedata->booked_at = Carbon::now('UTC');
     $updatedata->transaction_id = $getdata->transaction_id;
     $updatedata->class_schedule_id = $getdata->class_schedule_id;
     $updatedata->contact_admin = $getdata->contact_admin;
@@ -178,21 +194,23 @@ private function replicateSlotsForPeriod($sourceDateTime, $days)
     $conflictMessage = null;
 
     for ($dayOffset = 1; $dayOffset <= $days; $dayOffset++) {
-        $currentDate = now()->addDays($dayOffset)->toDateString();
+        // Get current date in UTC (since sourceDateTime is already in UTC)
+        $currentDate = Carbon::now('UTC')->addDays($dayOffset)->toDateString();
 
         // Check for existing slots within the 1-hour gap for the target day
         $existingSlots = SlotBooking::where('tutor_id', session('userid')->id)
             ->where('date', $currentDate)
             ->whereBetween('slot', [
-                $sourceDateTime->subHour()->format('H:i:s'),
-                $sourceDateTime->addHour()->format('H:i:s'),
+                $sourceDateTime->copy()->subHour()->format('H:i:s'),
+                $sourceDateTime->copy()->addHour()->format('H:i:s'),
             ])
             ->get();
 
         if ($existingSlots->isNotEmpty()) {
             // Conflicting slots found for the current day
             $conflictingTimes = $existingSlots->pluck('slot')->map(function ($time) {
-                return Carbon::parse($time)->format('h:i A');
+                // Convert UTC time back to PKT for display
+                return Carbon::parse($time, 'UTC')->setTimezone('Asia/Karachi')->format('h:i A');
             })->implode(', ');
 
             $conflictMessage = ($conflictMessage) ?
@@ -201,6 +219,7 @@ private function replicateSlotsForPeriod($sourceDateTime, $days)
         } else {
             // No conflicting slots, proceed to replicate the slot
             $slotbooking = new SlotBooking();
+            // Store in UTC
             $slotbooking->date = $currentDate;
             $slotbooking->slot = $sourceDateTime->format('H:i:s');
             $slotbooking->status = 0;
@@ -259,7 +278,9 @@ public function tutorslotsearch(Request $request) {
     }
 
     if ($searchDate) {
-        $slotsQuery->where('slot_bookings.date', $searchDate); // Filter by the selected date if available
+        // Convert PKT date to UTC for database query
+        $utcDate = Carbon::createFromFormat('Y-m-d', $searchDate, 'Asia/Karachi')->setTimezone('UTC')->toDateString();
+        $slotsQuery->where('slot_bookings.date', $utcDate); // Filter by the selected date if available
     }
     if($bookingStatus){
 
@@ -278,6 +299,14 @@ public function tutorslotsearch(Request $request) {
 
     $slots = $slotsQuery->get();
 
+    // Convert slot dates and times from UTC to PKT for display
+    $slots->each(function ($slot) {
+        $slot->date = Carbon::parse($slot->date, 'UTC')->setTimezone('Asia/Karachi')->toDateString();
+        $slot->slot = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+        if ($slot->booked_at) {
+            $slot->booked_at = Carbon::parse($slot->booked_at, 'UTC')->setTimezone('Asia/Karachi');
+        }
+    });
 
     $subjects = subjects::select('subjects.*',)
     ->join('tutorsubjectmappings','tutorsubjectmappings.subject_id','subjects.id')
@@ -303,11 +332,20 @@ public function indexslotsearch(Request $request) {
     $selectedDate = $request->input('date');
     $tutorid = $request->input('tutorid');
 
+    // Convert PKT date to UTC for database query
+    $utcDate = Carbon::createFromFormat('Y-m-d', $selectedDate, 'Asia/Karachi')->setTimezone('UTC')->toDateString();
+
     // Assuming 'date' is the column in your 'slot_bookings' table where the date is stored
     $slots = SlotBooking::select('*')
     ->where('slot_bookings.tutor_id', $tutorid)
-        ->where('slot_bookings.date', $selectedDate) // Assuming there is a 'status' column for the slot status
+        ->where('slot_bookings.date', $utcDate) // Assuming there is a 'status' column for the slot status
         ->get();
+
+    // Convert slot dates and times from UTC to PKT for display
+    $slots->each(function ($slot) {
+        $slot->date = Carbon::parse($slot->date, 'UTC')->setTimezone('Asia/Karachi')->toDateString();
+        $slot->slot = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+    });
 
     // Return the filtered slots as JSON
     return response()->json($slots);
@@ -376,8 +414,18 @@ public function admintutorslots(){
         ->leftJoin('subjects','subjects.id','=','slot_bookings.subject_id')
         ->leftJoin('tutorregistrations','tutorregistrations.id','slot_bookings.tutor_id')
         ->orderby('slot_bookings.created_at','desc')
-        ->whereDate('slot_bookings.date', '>=', now()->toDateString())
+        ->whereDate('slot_bookings.date', '>=', Carbon::now('UTC')->toDateString())
         ->paginate(100);
+    
+    // Convert slot dates and times from UTC to PKT for display
+    $slots->getCollection()->each(function ($slot) {
+        $slot->date = Carbon::parse($slot->date, 'UTC')->setTimezone('Asia/Karachi')->toDateString();
+        $slot->slot = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+        if ($slot->booked_at) {
+            $slot->booked_at = Carbon::parse($slot->booked_at, 'UTC')->setTimezone('Asia/Karachi');
+        }
+    });
+    
     return view('admin.tutorslotslist', get_defined_vars());
 }
 
@@ -409,11 +457,16 @@ public function admintutorslotssearch(Request $request){
         }
 
         if ($request->start_date && $request->end_date) {
-            $query->whereBetween('slot_bookings.date', [$request->start_date, $request->end_date]);
+            // Convert PKT dates to UTC for database query
+            $utcStartDate = Carbon::createFromFormat('Y-m-d', $request->start_date, 'Asia/Karachi')->setTimezone('UTC')->toDateString();
+            $utcEndDate = Carbon::createFromFormat('Y-m-d', $request->end_date, 'Asia/Karachi')->setTimezone('UTC')->toDateString();
+            $query->whereBetween('slot_bookings.date', [$utcStartDate, $utcEndDate]);
         } elseif ($request->start_date) {
-            $query->where('slot_bookings.date', '>=', $request->start_date);
+            $utcStartDate = Carbon::createFromFormat('Y-m-d', $request->start_date, 'Asia/Karachi')->setTimezone('UTC')->toDateString();
+            $query->where('slot_bookings.date', '>=', $utcStartDate);
         } elseif ($request->end_date) {
-            $query->where('slot_bookings.date', '<=', $request->end_date);
+            $utcEndDate = Carbon::createFromFormat('Y-m-d', $request->end_date, 'Asia/Karachi')->setTimezone('UTC')->toDateString();
+            $query->where('slot_bookings.date', '<=', $utcEndDate);
         }
 
 
@@ -424,6 +477,15 @@ public function admintutorslotssearch(Request $request){
 
 
             $slots=  $query->get();
+            
+            // Convert slot dates and times from UTC to PKT for display
+            $slots->each(function ($slot) {
+                $slot->date = Carbon::parse($slot->date, 'UTC')->setTimezone('Asia/Karachi')->toDateString();
+                $slot->slot = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+                if ($slot->booked_at) {
+                    $slot->booked_at = Carbon::parse($slot->booked_at, 'UTC')->setTimezone('Asia/Karachi');
+                }
+            });
             // ->get();
         // ->get();
     return view('admin.tutorslotslist', get_defined_vars());

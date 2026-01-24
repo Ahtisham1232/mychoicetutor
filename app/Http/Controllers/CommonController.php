@@ -12,6 +12,7 @@ use App\Models\subjects;
 use App\Models\topics;
 use App\Models\SlotBooking;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class CommonController extends Controller
 {
@@ -52,8 +53,18 @@ class CommonController extends Controller
     public function fetchslottime(Request $request)
     {
         // Fetch Slot Times Based On Date -> Using jQuerry
-        $data['times'] = SlotBooking::where("date", $request->date)
+        // Convert PKT date to UTC for database query
+        $utcDate = Carbon::createFromFormat('Y-m-d', $request->date, 'Asia/Karachi')->setTimezone('UTC')->toDateString();
+        
+        $slots = SlotBooking::where("date", $utcDate)
             ->where('status', 0)->get();
+        
+        // Convert slot times from UTC to PKT for display
+        $slots->each(function ($slot) {
+            $slot->slot = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+        });
+        
+        $data['times'] = $slots;
         return response()->json($data);
     }
 

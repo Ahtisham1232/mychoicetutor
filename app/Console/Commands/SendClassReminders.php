@@ -140,112 +140,115 @@ class SendClassReminders extends Command
         }
         // ================= REGULAR CLASSES (SlotBooking) =================
 
-        // $slotBookings = SlotBooking::where('status', 1) // confirmed
-        //     ->whereNotNull('student_id')
-        //     ->whereNotNull('meeting_id')
-        //     ->whereNull('reminder_sent_at')
-        //     ->whereRaw(
-        //         'TIMESTAMPDIFF(MINUTE, UTC_TIMESTAMP(), slot_confirmed) BETWEEN 25 AND 35'
-        //     )
-        //     ->get();
-        //     // dd($slotBookings);
 
-        // Log::info('Regular classes fetched', [
-        //     'count' => $slotBookings->count()
-        // ]);
+            $slotBookings = SlotBooking::where('status', 2) 
+             ->whereNotNull('student_id')
+             ->whereNotNull('tutor_id')
+             ->whereNotNull('meeting_id')
+             ->whereNull('reminder_sent_at')
+             ->where('is_class_schedule',1)
+             ->whereRaw(
+                 'TIMESTAMPDIFF(MINUTE, UTC_TIMESTAMP(), slot) BETWEEN 25 AND 35'
+             )
+             ->get();
+            // dd($slotBookings);
 
-        // $templateIdRegularStudent = 1643;
-        // $templateIdRegularTutor   = 1641;
+        Log::info('Regular classes fetched', [
+            'count' => $slotBookings->count()
+        ]);
 
-        // foreach ($slotBookings as $booking) {
+        $templateIdRegularStudent = 1643;
+        $templateIdRegularTutor   = 1641;
 
-        //     Log::info('Processing regular class', [
-        //         'booking_id' => $booking->id,
-        //         'slot_time'  => $booking->date . ' ' . $booking->slot,
-        //     ]);
+        foreach ($slotBookings as $booking) {
 
-        //     $studentProfile = studentprofile::where('student_id', $booking->student_id)->first();
-        //     $tutorReg       = tutorregistration::find($booking->tutor_id);
-        //     $subject        = subjects::find($booking->subject_id);
-        //     $zoomClass      = zoom_classes::find($booking->meeting_id);
+            Log::info('Processing regular class', [
+                'booking_id' => $booking->id,
+                'slot_time'  => $booking->date . ' ' . $booking->slot,
+            ]);
 
-        //     if (!$studentProfile || !$tutorReg) {
-        //         Log::warning('Regular class skipped - missing student or tutor', [
-        //             'booking_id' => $booking->id
-        //         ]);
-        //         continue;
-        //     }
+            $studentProfile = studentprofile::where('student_id', $booking->student_id)->first();
+            $tutorReg       = tutorregistration::find($booking->tutor_id);
+            $subject        = subjects::find($booking->subject_id);
+            $zoomClass      = zoom_classes::find($booking->meeting_id);
 
-        //     //  Atomic claim (VERY IMPORTANT)
-        //     $claimed = SlotBooking::where('id', $booking->id)
-        //         ->whereNull('reminder_sent_at')
-        //         ->update([
-        //             'reminder_sent_at' => Carbon::now('UTC')
-        //         ]);
+            if (!$studentProfile || !$tutorReg) {
+                Log::warning('Regular class skipped - missing student or tutor', [
+                    'booking_id' => $booking->id
+                ]);
+                continue;
+            }
 
-        //     if ($claimed === 0) {
-        //         Log::warning('Regular reminder already sent', [
-        //             'booking_id' => $booking->id
-        //         ]);
-        //         continue;
-        //     }
+            //  Atomic claim (VERY IMPORTANT)
+            $claimed = SlotBooking::where('id', $booking->id)
+                ->whereNull('reminder_sent_at')
+                ->update([
+                    'reminder_sent_at' => Carbon::now('UTC')
+                ]);
 
-        //     $meetingLink = $zoomClass->join_url
-        //         ?? $zoomClass->start_url
-        //         ?? "https://mychoicetutor.com/waiting-room";
+            if ($claimed === 0) {
+                Log::warning('Regular reminder already sent', [
+                    'booking_id' => $booking->id
+                ]);
+                continue;
+            }
 
-        //     $classDateTime = Carbon::parse(
-        //         $booking->date . ' ' . $booking->slot,
-        //         'UTC'
-        //     )->setTimezone(config('app.timezone'));
+            $meetingLink = $zoomClass->join_url
+                ?? $zoomClass->start_url
+                ?? "https://mychoicetutor.com/waiting-room";
 
-        //     $formattedDateTime = $classDateTime->format('d M Y h:i A');
+            $classDateTime = Carbon::parse(
+                $booking->date . ' ' . $booking->slot,
+                'UTC'
+            )->setTimezone(config('app.timezone'));
+
+            $formattedDateTime = $classDateTime->format('d M Y h:i A');
 
 
-        //     // ================= SEND TO STUDENT =================
-        //     if (!empty($studentProfile->mobile)) {
-        //         try {
-        //             $this->whatsApp->sendMessage(
-        //                 "+92" . ltrim($studentProfile->mobile, "0"),
-        //                 [
-        //                     $studentProfile->name ?? 'Student',
-        //                     $subject->name ?? 'Class',
-        //                     $formattedDateTime,
-        //                     $tutorReg->name ?? 'Tutor',
-        //                     $meetingLink,
-        //                 ],
-        //                 $templateIdRegularStudent
-        //             );
-        //         } catch (\Exception $e) {
-        //             Log::error('Student regular reminder failed', [
-        //                 'booking_id' => $booking->id,
-        //                 'error' => $e->getMessage()
-        //             ]);
-        //         }
-        //     }
+            // ================= SEND TO STUDENT =================
+            if (!empty($studentProfile->mobile)) {
+                try {
+                    $this->whatsApp->sendMessage(
+                        "+92" . ltrim($studentProfile->mobile, "0"),
+                        [
+                            $studentProfile->name ?? 'Student',
+                            $subject->name ?? 'Class',
+                            $formattedDateTime,
+                            $tutorReg->name ?? 'Tutor',
+                            $meetingLink,
+                        ],
+                        $templateIdRegularStudent
+                    );
+                } catch (\Exception $e) {
+                    Log::error('Student regular reminder failed', [
+                        'booking_id' => $booking->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
 
-        //     // ================= SEND TO TUTOR =================
-        //     if (!empty($tutorReg->mobile)) {
-        //         try {
-        //             $this->whatsApp->sendMessage(
-        //                 "+92" . ltrim($tutorReg->mobile, "0"),
-        //                 [
-        //                     $tutorReg->name ?? 'Tutor',
-        //                     $subject->name ?? 'Class',
-        //                     $formattedDateTime,
-        //                     $studentProfile->name ?? 'Student',
-        //                     $meetingLink,
-        //                 ],
-        //                 $templateIdRegularTutor
-        //             );
-        //         } catch (\Exception $e) {
-        //             Log::error('Tutor regular reminder failed', [
-        //                 'booking_id' => $booking->id,
-        //                 'error' => $e->getMessage()
-        //             ]);
-        //         }
-        //     }
-        // }
+            // ================= SEND TO TUTOR =================
+            if (!empty($tutorReg->mobile)) {
+                try {
+                    $this->whatsApp->sendMessage(
+                        "+92" . ltrim($tutorReg->mobile, "0"),
+                        [
+                            $tutorReg->name ?? 'Tutor',
+                            $subject->name ?? 'Class',
+                            $formattedDateTime,
+                            $studentProfile->name ?? 'Student',
+                            $meetingLink,
+                        ],
+                        $templateIdRegularTutor
+                    );
+                } catch (\Exception $e) {
+                    Log::error('Tutor regular reminder failed', [
+                        'booking_id' => $booking->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+        }
 
         Log::info('SendClassReminders command finished'); // LOG
 
