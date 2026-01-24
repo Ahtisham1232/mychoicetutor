@@ -132,7 +132,7 @@
                             {{-- <td>{{ $class->batch }}</td> --}}
                             <td>{{ $class->topics }}</td>
                             <td>{{ $class->tutor_name }}</td>
-                           <td>{{$class->slotdate ? Carbon\Carbon::parse($class->slotdate)->format('d/m/Y') :''}} {{$class->slottime ? Carbon\Carbon::parse($class->slottime)->format('h:i A') :''}}</td>
+                           <td>{{$class->slotdate ? $class->slotdate :''}} {{$class->slottime ? \Carbon\Carbon::parse($class->slottime)->format('h:i A') :''}}</td>
 
                             {{-- <td>{{ $class->duration }} min</td> --}}
                             <td>

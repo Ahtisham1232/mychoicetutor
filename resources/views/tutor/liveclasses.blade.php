@@ -75,7 +75,7 @@
                             <td>{{ $liveclass->studentname }}</td>
                             <td>{{ $liveclass->classname }}</td>
                             <td>{{ $liveclass->subjectname }}</td>
-                            <td>{{ \Carbon\Carbon::parse($liveclass->slotdate)->format('d/m/Y') }}</td>
+                            <td>{{ $liveclass->slotdate }}</td>
                             <td>{{ \Carbon\Carbon::parse($liveclass->slottime)->format('h:i A') }}</td>
                             <td>{{ $liveclass->duration }} min</td>
 

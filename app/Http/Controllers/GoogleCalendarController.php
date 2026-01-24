@@ -72,11 +72,17 @@ class GoogleCalendarController extends Controller
                 ->where('slot_bookings.tutor_id', session('userid')->id)
                 ->where('slot_bookings.status', 1) // Confirmed bookings
                 ->whereNull('slot_bookings.meeting_id') // Not yet scheduled
-                ->whereDate('slot_bookings.date', '>=', Carbon::today()) // Upcoming slots
+                ->whereDate('slot_bookings.date', '>=', Carbon::now('UTC')->toDateString()) // Upcoming slots
                 ->get();
 
             // Merge both collections
             $liveclasses = $scheduledClasses->concat($bookedSlots)->sortByDesc('slotdate')->values();
+
+            // Convert slot dates and times from UTC to PKT for display
+            $liveclasses->each(function ($class) {
+                $class->slotdate = Carbon::parse($class->slotdate, 'UTC')->setTimezone('Asia/Karachi')->toDateString();
+                $class->slottime = Carbon::parse($class->slottime, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+            });
 
             $classes = (new CommonController)->classes();
             return view('tutor.liveclasses', compact('liveclasses', 'classes'));

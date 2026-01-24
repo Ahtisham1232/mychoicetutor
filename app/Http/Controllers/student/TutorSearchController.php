@@ -1289,7 +1289,7 @@ class TutorSearchController extends Controller
             ->where('tutorsubjectmappings.tutor_id', $id)->get();
 
 
-        $currentDate = Carbon::now()->toDateString();
+        $currentDate = Carbon::now('UTC')->toDateString();
         $enrollment = TutorSubjectMapping::select('tutorsubjectmappings.*', 'subjects.name as subject_name', 'tutorprofiles.name as tutor_name', DB::raw('(tutorprofiles.rateperhour * tutorprofiles.admin_commission / 100) + tutorprofiles.rateperhour as rate'))
             ->join('tutorprofiles', 'tutorprofiles.tutor_id', '=', 'tutorsubjectmappings.tutor_id')
             ->join('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
@@ -1306,8 +1306,9 @@ class TutorSearchController extends Controller
         // dd($slotsAvailability);
         $groupedSlots = [];
         foreach ($slotsAvailability as $slot) {
-            $date = Carbon::parse($slot->date)->isoFormat('DD-MM-YYYY (dddd)');
-            $time = $slot->slot;
+            // Convert UTC date and time to PKT for display
+            $date = Carbon::parse($slot->date, 'UTC')->setTimezone('Asia/Karachi')->isoFormat('DD-MM-YYYY (dddd)');
+            $time = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
             $id = $slot->id;
             $isAvailable = $slot->status == 0; // Adjust this based on your actual logic
             // dd($slotsAvailability);
@@ -1343,10 +1344,11 @@ class TutorSearchController extends Controller
             ->leftJoin('studentregistrations', 'studentregistrations.id', '=', 'slot_bookings.student_id')
             ->where('slot_bookings.tutor_id', $id)
             ->where(function ($query) {
-                $query->whereDate('slot_bookings.date', '>', Carbon::today())
+                // Use UTC for comparison
+                $query->whereDate('slot_bookings.date', '>', Carbon::now('UTC')->toDateString())
                     ->orWhere(function ($q) {
-                        $q->whereDate('slot_bookings.date', Carbon::today())
-                            ->whereTime('slot_bookings.slot', '>=', Carbon::now()->format('H:i:s'));
+                        $q->whereDate('slot_bookings.date', Carbon::now('UTC')->toDateString())
+                            ->whereTime('slot_bookings.slot', '>=', Carbon::now('UTC')->format('H:i:s'));
                     });
             })
             ->orderBy('slot_bookings.date')
@@ -1357,8 +1359,9 @@ class TutorSearchController extends Controller
         $bookedSlotsCount = 0; // Initialize the count variable
 
         foreach ($slotsAvailability as $slot) {
-            $date = $slot->date;
-            $time = $slot->slot;
+            // Convert UTC date and time to PKT for display
+            $date = Carbon::parse($slot->date, 'UTC')->setTimezone('Asia/Karachi')->toDateString();
+            $time = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
 
             $id = $slot->id;
             $isAvailable = $slot->status == 0; // Adjust this based on your actual logic
@@ -1410,7 +1413,7 @@ class TutorSearchController extends Controller
             if ($slotbooking) {
                 // Update the fields as needed
                 $slotbooking->student_id = session('userid')->id;
-                $slotbooking->booked_at = Carbon::now();
+                $slotbooking->booked_at = Carbon::now('UTC');
                 $slotbooking->transaction_id = $studentpayment->transaction_id;
                 $slotbooking->subject_id = $request->subjectenrollid;
                 $slotbooking->status = 1;
