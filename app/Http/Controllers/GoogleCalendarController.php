@@ -91,22 +91,22 @@ class GoogleCalendarController extends Controller
             return back()->with('fail', 'Error loading scheduled classes. Please try again.');
         }
     }
-   
+
     public function scheduleclass(Request $request, TwilioWhatsAppService $whatsApp)
     {
-        
+
         try {
             if (session('userid')->is_active == 0) {
                 return back()->with('fail', 'Sorry! your Account is not verified. Please contact administrator');
             }
-            
+
             $request->validate([
                 'classpassword' => 'required',
                 'classslotid' => 'required|exists:slot_bookings,id',
             ]);
 
             $classdata = SlotBooking::select('*')->where('id', $request->classslotid)->first();
-          
+
             if (!$classdata) {
                 return back()->with('fail', 'Slot booking not found.');
             }
@@ -203,28 +203,41 @@ class GoogleCalendarController extends Controller
                             }
 
                             // =======================
-                            // WhatsApp Message (Non-blocking)
+                            // WhatsApp Message (Non-blocking) Student
                             // =======================
                             if (!empty($student->mobile)) {
                                 try {
-                                    $templateIdClassConfirm = 1630; 
+                                    $templateIdClassConfirm = 1630;
 
                                     $studentNumber = '+92' . ltrim($student->mobile, '0');
 
                                     $bodyVariablesStudent = [
-                                        $student->name,                            
-                                        $subjectName,                             
-                                        $tutor->name,                              
-                                        $classstarttime->format('d M Y'),         
-                                        $classstarttime->format('h:i A'),        
+                                        $student->name,
+                                        $subjectName,
+                                        $tutor->name,
+                                        $classstarttime->format('d M Y'),
+                                        $classstarttime->format('h:i A'),
                                     ];
 
-                                    $whatsApp->sendMessage(
+                                    $sent = $whatsApp->sendMessage(
                                         $studentNumber,
                                         $bodyVariablesStudent,
                                         $templateIdClassConfirm
                                     );
+                                    if ($sent) {
+                                        Log::info('WHATSAPP SENT SUCCESSFULLY for democlass in google calender controller', [
+                                            'subject_name' => $subjectName,
+                                            'student_mobile' => $studentNumber,
+                                            'student_name' => $student->name,
+                                        ]);
+                                    } else {
+                                        Log::warning('WHATSAPP FAILED Google Calender Controller', [
+                                            'subject_name' => $subjectName,
+                                            'student_mobile' => $studentNumber,
+                                             'student_name' => $student->name,
 
+                                        ]);
+                                    }
                                 } catch (\Exception $e) {
                                     // IMPORTANT: Do NOT stop execution
                                     Log::error(
@@ -240,17 +253,16 @@ class GoogleCalendarController extends Controller
 
                             return redirect()->to('/tutor/getclasslist')->with('success', 'Class scheduled successfully!');
                         } catch (\Exception $e) {
-                        Log::error('Error updating slot booking: ' . $e->getMessage());
-                        return back()->with('fail', 'Class created but failed to update slot. Please contact support.');
+                            Log::error('Error updating slot booking: ' . $e->getMessage());
+                            return back()->with('fail', 'Class created but failed to update slot. Please contact support.');
+                        }
+                    } else {
+                        return back()->with('fail', 'Failed to save class. Please try again.');
                     }
-                } else {
-                    return back()->with('fail', 'Failed to save class. Please try again.');
-                }
                 } catch (\Exception $e) {
                     Log::error('Error saving zoom class: ' . $e->getMessage());
                     return back()->with('fail', 'Failed to save class. Please try again.');
                 }
-            
             } else {
                 Log::error('Jitsi Meet creation failed: ' . ($meeting['error'] ?? 'Unknown error'));
                 return back()->with('fail', 'Failed to create meeting. Please try again.');
@@ -284,7 +296,7 @@ class GoogleCalendarController extends Controller
 
         return redirect()->route('error')->with('message', 'Authentication failed.');
     }
-    
+
     public function democonfirm(Request $request, TwilioWhatsAppService $whatsApp)
     {
         try {
@@ -313,7 +325,7 @@ class GoogleCalendarController extends Controller
             $jitsiService = app(JitsiMeetService::class);
             $tutorId = session('userid')->id;
             $studentId = $demodata->student_id;
-            
+
             $meeting = $jitsiService->createClassMeeting(
                 $tutorId,
                 $studentId,
@@ -332,59 +344,66 @@ class GoogleCalendarController extends Controller
                 $dcnf->status = 3;
                 $res = $dcnf->save();
 
-            try {
-            $details = [
-                'name' => $demostudent->name,
-                'confirmed_slot' => $request->slot,
-                'tutor_name' => session('userid')->name,
-                'mailtype' => 3,
-            ];
-            
-            try {
-                Mail::to($demostudent->email)->send(new SendMail($details));
-            } catch (\Exception $e) {
-                
-            }
-          
-        } catch (\Throwable $e) {
-            Log::error('Mail failed: ' . $e->getMessage());
-        }
+                try {
+                    $details = [
+                        'name' => $demostudent->name,
+                        'confirmed_slot' => $request->slot,
+                        'tutor_name' => session('userid')->name,
+                        'mailtype' => 3,
+                    ];
 
-            if ($res) {
-                $notificationdata = new Notification();
-                $notificationdata->alert_type = 2;
-                $notificationdata->notification = 'Trial Class Confirmed By ' . session('userid')->name;
-                $notificationdata->initiator_id = session('userid')->id;
-                $notificationdata->initiator_role = session('userid')->role_id;
-                $notificationdata->event_id = $dcnf->id;
-                $notificationdata->show_to_admin = 1;
-                $notificationdata->show_to_all_admin = 1;
-                $notificationdata->show_to_student = 1;
-                $notificationdata->show_to_student_id = $demodata->student_id;
-                $notificationdata->read_status = 0;
-                $notified = $notificationdata->save();
-
-                broadcast(new RealTimeMessage('$notification'));
-                if (!empty($demostudent->mobile)) {
                     try {
-                        $templateIdDemoConfirm = 1645; 
-                        $studentNumber = '+92' . ltrim($demostudent->mobile, '0');
-                        $bodyVariablesStudent = [
-                            $demostudent->name,
-                            $subjectName,
-                            Carbon::parse($request->slot)->format('d M Y h:i A'),
-                            session('userid')->name,
-                            $meeting['meeting_url'],
-                        ];
-                        $whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdDemoConfirm);
+                        Mail::to($demostudent->email)->send(new SendMail($details));
                     } catch (\Exception $e) {
-                        Log::error('WhatsApp send failed for demo confirmation: ' . $e->getMessage());
                     }
+                } catch (\Throwable $e) {
+                    Log::error('Mail failed: ' . $e->getMessage());
                 }
-                
 
+                if ($res) {
+                    $notificationdata = new Notification();
+                    $notificationdata->alert_type = 2;
+                    $notificationdata->notification = 'Trial Class Confirmed By ' . session('userid')->name;
+                    $notificationdata->initiator_id = session('userid')->id;
+                    $notificationdata->initiator_role = session('userid')->role_id;
+                    $notificationdata->event_id = $dcnf->id;
+                    $notificationdata->show_to_admin = 1;
+                    $notificationdata->show_to_all_admin = 1;
+                    $notificationdata->show_to_student = 1;
+                    $notificationdata->show_to_student_id = $demodata->student_id;
+                    $notificationdata->read_status = 0;
+                    $notified = $notificationdata->save();
 
-                return redirect()->to('/tutor/demolist')->with('success', 'Trial confirmed successfully');
+                    broadcast(new RealTimeMessage('$notification'));
+                    if (!empty($demostudent->mobile)) {
+                        try {
+                            $templateIdDemoConfirm = 1645;
+                            $studentNumber = '+92' . ltrim($demostudent->mobile, '0');
+                            $bodyVariablesStudent = [
+                                $demostudent->name,
+                                $subjectName,
+                                Carbon::parse($request->slot)->format('d M Y h:i A'),
+                                session('userid')->name,
+                                $meeting['meeting_url'],
+                            ];
+                            $sent = $whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdDemoConfirm);
+                            if ($sent) {
+                                Log::info('WHATSAPP SENT SUCCESSFULLY for democlass in google calender controller', [
+                                    'demo_id' => $dcnf->id,
+                                    'mobile' => $studentNumber,
+                                ]);
+                            } else {
+                                Log::warning('WHATSAPP FAILED', [
+                                    'demo_id' => $dcnf->id,
+                                    'mobile' => $studentNumber,
+                                ]);
+                            }
+                        } catch (\Exception $e) {
+                            Log::error('WhatsApp send failed for demo confirmation: ' . $e->getMessage());
+                        }
+                    }
+
+                    return redirect()->to('/tutor/demolist')->with('success', 'Trial confirmed successfully');
                 } else {
                     return back()->with('fail', 'Something went wrong. Please try again later');
                 }
@@ -454,7 +473,6 @@ class GoogleCalendarController extends Controller
         } else {
             return back()->with('fail', 'Something went wrong. Please try again later');
         }
-
     }
     public function oauth2callbackdemo(Request $request)
     {

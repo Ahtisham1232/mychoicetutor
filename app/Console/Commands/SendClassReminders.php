@@ -12,7 +12,7 @@ use App\Models\zoom_classes;
 use App\Models\subjects;
 use App\Services\TwilioWhatsAppService;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log; 
+use Illuminate\Support\Facades\Log;
 
 class SendClassReminders extends Command
 {
@@ -29,10 +29,10 @@ class SendClassReminders extends Command
 
     public function handle()
     {
-        Log::info('SendClassReminders command started'); 
+        Log::info('SendClassReminders command started');
 
         $now = Carbon::now('UTC');
-    
+
         // ================= DEMO CLASSES =================
         $classes = democlasses::where('status', 3)
             ->whereNotNull('slot_confirmed')
@@ -47,7 +47,7 @@ class SendClassReminders extends Command
 
         foreach ($classes as $class) {
 
-            Log::info('Processing demo class', [ 
+            Log::info('Processing demo class', [
                 'class_id' => $class->id,
                 'slot_confirmed' => $class->slot_confirmed,
             ]);
@@ -72,20 +72,10 @@ class SendClassReminders extends Command
 
             $formattedDateTime = $classDateTime->format('d M Y h:i A');
 
-
-            $claimed = democlasses::where('id', $class->id)
-                ->whereNull('reminder_sent_at')
-                ->update(['reminder_sent_at' => $now->copy()->setTimezone('UTC')]);
-
-            if ($claimed === 0) {
-                Log::warning('Demo reminder already sent or claim failed', [ // LOG
-                    'class_id' => $class->id,
-                ]);
-                continue;
-            }
-
             Log::info('Demo reminder claimed', ['class_id' => $class->id]); // LOG
 
+            $sentStudent = false;
+            $sentTutor   = false;
             if (!empty($student->mobile)) {
                 try {
                     Log::info('Sending demo reminder to student', [ // LOG
@@ -93,7 +83,7 @@ class SendClassReminders extends Command
                         'mobile' => $student->mobile,
                     ]);
 
-                    $this->whatsApp->sendMessage(
+                    $sentStudent = $this->whatsApp->sendMessage(
                         "+92" . ltrim($student->mobile, "0"),
                         [
                             $student->name ?? 'Student',
@@ -119,7 +109,7 @@ class SendClassReminders extends Command
                         'mobile' => $tutor->mobile,
                     ]);
 
-                    $this->whatsApp->sendMessage(
+                    $sentTutor = $this->whatsApp->sendMessage(
                         "+92" . ltrim($tutor->mobile, "0"),
                         [
                             $tutor->name ?? 'Tutor',
@@ -137,21 +127,36 @@ class SendClassReminders extends Command
                     ]);
                 }
             }
+            if ($sentStudent || $sentTutor) {
+                democlasses::where('id', $class->id)
+                    ->update(['reminder_sent_at' => now('UTC')]);
+
+                Log::info('Demo reminder marked as sent', [
+                    'class_id' => $class->id,
+                ]);
+            } else {
+                Log::warning('Demo reminder NOT marked (WhatsApp failed)', [
+                    'class_id' => $class->id,
+                ]);
+            }
         }
         // ================= REGULAR CLASSES (SlotBooking) =================
 
 
-            $slotBookings = SlotBooking::where('status', 2) 
-             ->whereNotNull('student_id')
-             ->whereNotNull('tutor_id')
-             ->whereNotNull('meeting_id')
-             ->whereNull('reminder_sent_at')
-             ->where('is_class_scheduled',1)
-             ->whereRaw(
-                 'TIMESTAMPDIFF(MINUTE, UTC_TIMESTAMP(), slot) BETWEEN 25 AND 35'
-             )
-             ->get();
-            // dd($slotBookings);
+        $slotBookings = SlotBooking::where('status', 2)
+            ->whereNotNull('student_id')
+            ->whereNotNull('tutor_id')
+            ->whereNotNull('meeting_id')
+            ->whereNull('reminder_sent_at')
+            ->where('is_class_scheduled', 1)
+            ->whereRaw(
+                'TIMESTAMPDIFF(
+                MINUTE,
+                UTC_TIMESTAMP(),
+                STR_TO_DATE(CONCAT(date, " ", slot), "%Y-%m-%d %H:%i:%s")
+            ) BETWEEN 25 AND 35'
+            )->get();
+        // dd($slotBookings);
 
         Log::info('Regular classes fetched', [
             'count' => $slotBookings->count()
@@ -179,20 +184,6 @@ class SendClassReminders extends Command
                 continue;
             }
 
-            //  Atomic claim (VERY IMPORTANT)
-            $claimed = SlotBooking::where('id', $booking->id)
-                ->whereNull('reminder_sent_at')
-                ->update([
-                    'reminder_sent_at' => Carbon::now('UTC')
-                ]);
-
-            if ($claimed === 0) {
-                Log::warning('Regular reminder already sent', [
-                    'booking_id' => $booking->id
-                ]);
-                continue;
-            }
-
             $meetingLink = $zoomClass->join_url
                 ?? $zoomClass->start_url
                 ?? "https://mychoicetutor.com/waiting-room";
@@ -204,11 +195,12 @@ class SendClassReminders extends Command
 
             $formattedDateTime = $classDateTime->format('d M Y h:i A');
 
-
+            $sentStudent = false;
+            $sentTutor   = false;
             // ================= SEND TO STUDENT =================
             if (!empty($studentProfile->mobile)) {
                 try {
-                    $this->whatsApp->sendMessage(
+                    $sentStudent = $this->whatsApp->sendMessage(
                         "+92" . ltrim($studentProfile->mobile, "0"),
                         [
                             $studentProfile->name ?? 'Student',
@@ -230,7 +222,7 @@ class SendClassReminders extends Command
             // ================= SEND TO TUTOR =================
             if (!empty($tutorReg->mobile)) {
                 try {
-                    $this->whatsApp->sendMessage(
+                    $sentTutor = $this->whatsApp->sendMessage(
                         "+92" . ltrim($tutorReg->mobile, "0"),
                         [
                             $tutorReg->name ?? 'Tutor',
@@ -247,6 +239,19 @@ class SendClassReminders extends Command
                         'error' => $e->getMessage()
                     ]);
                 }
+            }
+
+            if ($sentStudent || $sentTutor) {
+                SlotBooking::where('id', $booking->id)
+                    ->update(['reminder_sent_at' => now('UTC')]);
+
+                Log::info('Regular reminder marked as sent', [
+                    'booking_id' => $booking->id,
+                ]);
+            } else {
+                Log::warning('Regular reminder NOT marked (WhatsApp failed)', [
+                    'booking_id' => $booking->id,
+                ]);
             }
         }
 

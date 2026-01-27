@@ -42,5 +42,8 @@ return [
         'password' => env('JIBRI_RECORDER_PASSWORD', '4fe715d8f2c70cc8fd8bfb0511896567'),
     ],
 
+    'veevotech' =>[
+        'hash' => env('VEETOTECH_HASH')
+    ]
 
 ];
