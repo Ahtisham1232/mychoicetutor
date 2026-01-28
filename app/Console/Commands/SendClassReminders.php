@@ -191,7 +191,7 @@ class SendClassReminders extends Command
             $classDateTime = Carbon::parse(
                 $booking->date . ' ' . $booking->slot,
                 'UTC'
-            )->setTimezone(config('app.timezone'));
+            )->setTimezone('Asia/Karachi');
 
             $formattedDateTime = $classDateTime->format('d M Y h:i A');
 
