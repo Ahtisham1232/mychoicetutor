@@ -674,8 +674,13 @@ class TutorSearchController extends Controller
                     $tutorNumber = '+92' . ltrim($tutor->mobile, '0');
 
                     // Format date & time nicely for WhatsApp message
-                    $slotDate = \Carbon\Carbon::parse($firstSlot->date)->format('d M Y');
-                    $slotTime = \Carbon\Carbon::parse($firstSlot->slot)->format('h:i A');
+                    $slotDate = Carbon::parse($firstSlot->date, 'UTC')
+                        ->setTimezone('Asia/Karachi')
+                        ->format('d M Y');
+
+                    $slotTime = Carbon::parse($firstSlot->slot, 'UTC')
+                        ->setTimezone('Asia/Karachi')
+                        ->format('h:i A');
 
                     // Variables must match your template placeholders exactly
                     $bodyVariablesTutor = [

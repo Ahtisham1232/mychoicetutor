@@ -212,7 +212,7 @@ class GoogleCalendarController extends Controller
                                     $classDateTime = Carbon::parse(
                                         $classdata->date . ' ' . $classdata->slot,
                                         'UTC'
-                                    )->setTimezone(config('app.timezone'));
+                                    )->setTimezone('Asia/Karachi');
                                     
                                     $studentNumber = '+92' . ltrim($student->mobile, '0');
 
