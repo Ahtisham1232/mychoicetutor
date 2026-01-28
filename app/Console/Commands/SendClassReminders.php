@@ -206,7 +206,7 @@ class SendClassReminders extends Command
                             $studentProfile->name ?? 'Student',
                             $subject->name ?? 'Class',
                             $formattedDateTime,
-                            $tutorReg->name ?? 'Tutor',
+                            // $tutorReg->name ?? 'Tutor',
                             $meetingLink,
                         ],
                         $templateIdRegularStudent

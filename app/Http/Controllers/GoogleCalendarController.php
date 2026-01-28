@@ -209,14 +209,19 @@ class GoogleCalendarController extends Controller
                                 try {
                                     $templateIdClassConfirm = 1630;
 
+                                    $classDateTime = Carbon::parse(
+                                        $classdata->date . ' ' . $classdata->slot,
+                                        'UTC'
+                                    )->setTimezone(config('app.timezone'));
+                                    
                                     $studentNumber = '+92' . ltrim($student->mobile, '0');
 
                                     $bodyVariablesStudent = [
                                         $student->name,
                                         $subjectName,
                                         $tutor->name,
-                                        $classstarttime->format('d M Y'),
-                                        $classstarttime->format('h:i A'),
+                                        $classDateTime->format('d M Y'),
+                                        $classDateTime->format('h:i A'),
                                     ];
 
                                     $sent = $whatsApp->sendMessage(
@@ -234,7 +239,7 @@ class GoogleCalendarController extends Controller
                                         Log::warning('WHATSAPP FAILED Google Calender Controller', [
                                             'subject_name' => $subjectName,
                                             'student_mobile' => $studentNumber,
-                                             'student_name' => $student->name,
+                                            'student_name' => $student->name,
 
                                         ]);
                                     }
