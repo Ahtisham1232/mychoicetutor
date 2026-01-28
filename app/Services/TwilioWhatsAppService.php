@@ -42,7 +42,9 @@ class TwilioWhatsAppService
                 'priority' => 1,
             ]);
 
-            if ($response->successful() && ($response->json('STATUS') === 'SUCCESS')) {
+            $data = $response->json();
+            
+            if (isset($data['STATUS']) && strtoupper($data['STATUS']) === 'SUCCESSFUL') {
                 Log::info('WhatsApp sent', [
                     'to' => $to,
                     'template_id' => $templateId,
