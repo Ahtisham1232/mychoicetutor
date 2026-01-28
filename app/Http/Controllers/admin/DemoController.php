@@ -12,6 +12,10 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\Notification;
 use App\Events\RealTimeMessage;
+use App\Models\studentregistration;
+use App\Models\tutorregistration;
+use App\Services\TwilioWhatsAppService;
+use Illuminate\Support\Facades\Log;
 
 class DemoController extends Controller
 {
@@ -245,7 +249,7 @@ else{
 }
 
 }
-public function demostatusupdate(Request $request)
+public function demostatusupdate(Request $request, TwilioWhatsAppService $whatsApp)
 {
     $data = democlasses::find($request->id);
     $data->status = '8';
@@ -286,6 +290,58 @@ public function demostatusupdate(Request $request)
 
         $notified = $notificationdata->save();
         broadcast(new RealTimeMessage('$notification'));
+
+        // Send WhatsApp notification to the student (Demo Class) using template 1939
+        try {
+            $student = studentregistration::find($data->student_id);
+            $tutor   = tutorregistration::find($data->tutor_id);
+
+            if ($student && $tutor && !empty($student->mobile)) {
+                $templateIdClassConfirm = 1939;
+
+                // Determine class type label
+                $classType = 'Demo Class';
+
+                // Format phone number
+                $studentNumber = '+92' . ltrim($student->mobile, '0');
+
+                $bodyVariablesStudent = [
+                    $student->name,
+                    $classType,
+                    $tutor->name,
+                    $data->demo_link ?? 'Link not available',
+                ];
+
+                $sent = $whatsApp->sendMessage(
+                    $studentNumber,
+                    $bodyVariablesStudent,
+                    $templateIdClassConfirm
+                );
+
+                if ($sent) {
+                    Log::info("WHATSAPP SENT: {$classType} started", [
+                        'student_name'   => $student->name,
+                        'student_mobile' => $studentNumber,
+                        'class_type'     => $classType,
+                    ]);
+                } else {
+                    Log::warning("WHATSAPP FAILED: {$classType}", [
+                        'student_mobile' => $studentNumber,
+                        'class_type'     => $classType,
+                    ]);
+                }
+            } else {
+                Log::warning('Class start WhatsApp skipped (demo): missing student/tutor or mobile', [
+                    'demo_id'    => $data->id ?? null,
+                    'student_id' => $data->student_id ?? null,
+                    'tutor_id'   => $data->tutor_id ?? null,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Failed to send WhatsApp for demo class start: ' . $e->getMessage(), [
+                'demo_id' => $data->id ?? null,
+            ]);
+        }
 
         return json_encode(array('statusCode' => 200));
     } else {

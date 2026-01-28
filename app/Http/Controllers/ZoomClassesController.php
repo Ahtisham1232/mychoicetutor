@@ -11,12 +11,16 @@ use App\Models\SlotBooking;
 use App\Models\students\studentattendance;
 use App\Models\subjects;
 use App\Models\topics;
+use App\Models\studentregistration;
+use App\Models\tutorregistration;
 use App\Models\zoom_classes;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Events\RealTimeMessage;
+use App\Services\TwilioWhatsAppService;
+use Illuminate\Support\Facades\Log;
 
 class ZoomClassesController extends Controller
 {
@@ -443,8 +447,9 @@ class ZoomClassesController extends Controller
         // }
     }
 
-    public function liveclassstatusupdate(Request $request)
+    public function liveclassstatusupdate(Request $request, TwilioWhatsAppService $whatsApp)
     {
+        die('yes i am here');
         $data = zoom_classes::find($request->id);
         $data->status = 'Started';
         $data->started_at = Carbon::Now();
@@ -485,6 +490,58 @@ class ZoomClassesController extends Controller
 
             $notified = $notificationdata->save();
             broadcast(new RealTimeMessage('$notification'));
+
+            // WhatsApp notification to the student (Regular Class) using template 1939
+            try {
+                $student = studentregistration::find($data->student_id);
+                $tutor   = tutorregistration::find($data->tutor_id);
+
+                if ($student && $tutor && !empty($student->mobile)) {
+                    $templateIdClassConfirm = 1939;
+
+                    // Determine class type label
+                    $classType = 'Regular Class';
+
+                    // Format phone number
+                    $studentNumber = '+92' . ltrim($student->mobile, '0');
+
+                    $bodyVariablesStudent = [
+                        $student->name,
+                        $classType,
+                        $tutor->name,
+                        $data->join_url ?? 'Link not available',
+                    ];
+
+                    $sent = $whatsApp->sendMessage(
+                        $studentNumber,
+                        $bodyVariablesStudent,
+                        $templateIdClassConfirm
+                    );
+
+                    if ($sent) {
+                        Log::info("WHATSAPP SENT: {$classType} started", [
+                            'student_name'   => $student->name,
+                            'student_mobile' => $studentNumber,
+                            'class_type'     => $classType,
+                        ]);
+                    } else {
+                        Log::warning("WHATSAPP FAILED: {$classType}", [
+                            'student_mobile' => $studentNumber,
+                            'class_type'     => $classType,
+                        ]);
+                    }
+                } else {
+                    Log::warning('Class start WhatsApp skipped (regular): missing student/tutor or mobile', [
+                        'class_id'    => $data->id ?? null,
+                        'student_id'  => $data->student_id ?? null,
+                        'tutor_id'    => $data->tutor_id ?? null,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                Log::error('Failed to send WhatsApp for regular class start: ' . $e->getMessage(), [
+                    'class_id' => $data->id ?? null,
+                ]);
+            }
 
             // return redirect()->to('student/trialsuccess')->with('success', 'Class Started Successfully. Please login to class using your registered Email Id.');
             return json_encode(array('statusCode' => 200));
