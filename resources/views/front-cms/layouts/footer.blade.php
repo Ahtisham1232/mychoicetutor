@@ -67,7 +67,8 @@
                     <label for="password">Password</label>
                     <input type="password" class="form-control" id="password" name="password" aria-describedby=""
                         placeholder="Password" required>
-                    <i class="fa fa-eye toggle-password mt-2" data-target="password"></i>
+                    <i class="fa fa-eye-slash toggle-password mt-2" data-target="password"></i>
+
                 </div>
                 <span class="text-danger login-errorMessage">
                     @error('password')
@@ -295,22 +296,21 @@
 </script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const toggleIcons = document.querySelectorAll('.toggle-password');
 
-        toggleIcons.forEach(function(icon) {
-            icon.addEventListener('click', function() {
-                const inputId = icon.getAttribute('data-target');
-                const input = document.getElementById(inputId);
+        toggleIcons.forEach(function (icon) {
+            icon.addEventListener('click', function () {
+                const input = document.getElementById(icon.dataset.target);
 
                 if (input.type === 'password') {
                     input.type = 'text';
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
-                } else {
-                    input.type = 'password';
                     icon.classList.remove('fa-eye-slash');
                     icon.classList.add('fa-eye');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
                 }
             });
         });

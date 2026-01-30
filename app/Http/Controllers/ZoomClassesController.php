@@ -449,7 +449,6 @@ class ZoomClassesController extends Controller
 
     public function liveclassstatusupdate(Request $request, TwilioWhatsAppService $whatsApp)
     {
-        die('yes i am here');
         $data = zoom_classes::find($request->id);
         $data->status = 'Started';
         $data->started_at = Carbon::Now();
