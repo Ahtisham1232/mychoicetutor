@@ -37,7 +37,7 @@ class HomeController extends Controller
     // }
     public function index()
     {
-       
+
 
         // return 'Email has been sent!';
 
@@ -65,30 +65,45 @@ class HomeController extends Controller
             DB::raw('COUNT(DISTINCT topics.name) as total_topics'),
             DB::raw('COUNT(DISTINCT zoom_classes.id) as total_classes_done')
         )
-        ->leftJoin('teacherclassmappings', 'teacherclassmappings.teacher_id', '=', 'tutorprofiles.tutor_id')
-        ->leftJoin('tutorsubjectmappings', 'tutorsubjectmappings.tutor_id', '=', 'tutorprofiles.tutor_id')
-        ->leftJoin('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
-        ->leftJoin('classes', 'classes.id', '=', 'tutorsubjectmappings.class_id')
-        ->leftJoin('topics', 'topics.subject_id', '=', 'subjects.id')
-        ->join('tutorregistrations', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
-        ->leftJoin('zoom_classes', 'zoom_classes.tutor_id', '=', 'tutorprofiles.tutor_id') // Adding join for zoom_classes
-      ->where('tutorregistrations.is_active', 1)
-    //    ->orderby('tutorregistrations.created_at','desc')
-        ->groupBy(
+            ->leftJoin('teacherclassmappings', 'teacherclassmappings.teacher_id', '=', 'tutorprofiles.tutor_id')
+            ->leftJoin('tutorsubjectmappings', 'tutorsubjectmappings.tutor_id', '=', 'tutorprofiles.tutor_id')
+            ->leftJoin('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
+            ->leftJoin('classes', 'classes.id', '=', 'tutorsubjectmappings.class_id')
+            ->leftJoin('topics', 'topics.subject_id', '=', 'subjects.id')
+            ->join('tutorregistrations', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
+            ->leftJoin('zoom_classes', 'zoom_classes.tutor_id', '=', 'tutorprofiles.tutor_id') // Adding join for zoom_classes
+            ->where('tutorregistrations.is_active', 1)
+            //    ->orderby('tutorregistrations.created_at','desc')
+            ->groupBy(
+                'tutorprofiles.tutor_id',
+                'tutorprofiles.name',
+                'tutorprofiles.headline',
+                'tutorprofiles.qualification',
+                'tutorprofiles.intro_video_link',
+                'tutorprofiles.experience',
+                'tutorprofiles.rateperhour',
+                'tutorprofiles.admin_commission',
+                'tutorprofiles.profile_pic'
+            )
+            ->orderByRaw('profile_pic IS NOT NULL DESC, tutorregistrations.created_at DESC')
+            ->get();
+        //   dd($tutors->toArray());
+        $tutorlists = tutorprofile::select(
+            'tutorprofiles.id',
             'tutorprofiles.tutor_id',
+            'classes.name as class_name',
             'tutorprofiles.name',
             'tutorprofiles.headline',
-            'tutorprofiles.qualification',
+            'tutorprofiles.qualification as tutor_qualification',
             'tutorprofiles.intro_video_link',
             'tutorprofiles.experience',
-            'tutorprofiles.rateperhour',
-            'tutorprofiles.admin_commission',
-            'tutorprofiles.profile_pic'
-        )
-       ->orderByRaw('profile_pic IS NOT NULL DESC, tutorregistrations.created_at DESC')
-       ->get();
-//   dd($tutors->toArray());
-        $tutorlists = tutorprofile::select('tutorprofiles.id', 'tutorprofiles.tutor_id', 'classes.name as class_name', 'tutorprofiles.name', 'tutorprofiles.headline', 'tutorprofiles.qualification as tutor_qualification', 'tutorprofiles.intro_video_link', 'tutorprofiles.experience', 'tutorprofiles.rate as rateperhour', DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'), 'tutorprofiles.profile_pic', 'subjects.id as subjectid', 'subjects.name as subject', DB::raw('SUM(ratings) / COUNT(ratings) AS starrating, COUNT(DISTINCT topics.name) as total_topics'), 'tutorsubjectmappings.id as sub_map_id',
+            'tutorprofiles.rate as rateperhour',
+            DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'),
+            'tutorprofiles.profile_pic',
+            'subjects.id as subjectid',
+            'subjects.name as subject',
+            DB::raw('SUM(ratings) / COUNT(ratings) AS starrating, COUNT(DISTINCT topics.name) as total_topics'),
+            'tutorsubjectmappings.id as sub_map_id',
             DB::raw('(SELECT COUNT(*) FROM classschedules WHERE classschedules.tutor_id = tutorprofiles.id) AS total_classes_done')
         )
             ->leftJoin('teacherclassmappings', 'teacherclassmappings.teacher_id', '=', 'tutorprofiles.tutor_id')
@@ -189,7 +204,7 @@ class HomeController extends Controller
                 'tutorprofiles.admin_commission',
                 'tutorprofiles.profile_pic'
             )
-               ->orderByRaw('profile_pic IS NOT NULL DESC, tutorregistrations.created_at DESC')
+            ->orderByRaw('profile_pic IS NOT NULL DESC, tutorregistrations.created_at DESC')
             ->get();
 
         $subjectlists = DB::table('subjects')
@@ -214,7 +229,6 @@ class HomeController extends Controller
 
         // dd( ($tutors));
         return view('front-cms.findatutor', get_defined_vars());
-
     }
     public function advancesearch(Request $request)
     {
@@ -253,7 +267,7 @@ class HomeController extends Controller
             ->where('classes.id', 'like', '%' . $classid . '%') // LIKE search for class
             ->where('tutorprofiles.name', 'like', '%' . $tutorname . '%'); // LIKE search for tutor
 
-// Apply the price range conditions only if the min or max price is provided
+        // Apply the price range conditions only if the min or max price is provided
         if (!is_null($minPrice)) {
             $tutors->where(DB::raw('(tutorprofiles.rateperhour + (tutorprofiles.rateperhour * tutorprofiles.admin_commission / 100))'), '>=', $minPrice);
         }
@@ -273,8 +287,8 @@ class HomeController extends Controller
             'tutorprofiles.admin_commission',
             'tutorprofiles.profile_pic'
         )
-           ->orderByRaw('profile_pic IS NOT NULL DESC, tutorregistrations.created_at DESC')
-        ->get();
+            ->orderByRaw('profile_pic IS NOT NULL DESC, tutorregistrations.created_at DESC')
+            ->get();
 
         $subjectlists = DB::table('subjects')
             ->join('subjectcategories', 'subjects.category', '=', 'subjectcategories.id')
@@ -361,14 +375,15 @@ class HomeController extends Controller
 
         // dd( ($tutors));
         return view('front-cms.findatutor', get_defined_vars());
-
     }
     public function allsubjects()
     {
         $classes = classes::all('id', 'name');
 
         $tutors = tutorprofile::select(
-            'tutorsubjectmappings.id as submapid', 'tutorprofiles.name', 'tutorprofiles.profile_pic',
+            'tutorsubjectmappings.id as submapid',
+            'tutorprofiles.name',
+            'tutorprofiles.profile_pic',
             'subjects.name as subject',
             'classes.name as className',
             DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'),
@@ -386,7 +401,20 @@ class HomeController extends Controller
             ->get();
 
         // Tutors List
-        $tutorlists = tutorprofile::select('tutorprofiles.id', 'classes.name as class_name', 'tutorprofiles.name', 'tutorprofiles.headline', 'tutorprofiles.qualification as tutor_qualification', 'tutorprofiles.intro_video_link', 'tutorprofiles.experience', DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'), 'tutorprofiles.profile_pic', 'subjects.id as subjectid', 'subjects.name as subject', DB::raw('SUM(ratings) / COUNT(ratings) AS starrating, COUNT(DISTINCT topics.name) as total_topics'), 'tutorsubjectmappings.id as sub_map_id',
+        $tutorlists = tutorprofile::select(
+            'tutorprofiles.id',
+            'classes.name as class_name',
+            'tutorprofiles.name',
+            'tutorprofiles.headline',
+            'tutorprofiles.qualification as tutor_qualification',
+            'tutorprofiles.intro_video_link',
+            'tutorprofiles.experience',
+            DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'),
+            'tutorprofiles.profile_pic',
+            'subjects.id as subjectid',
+            'subjects.name as subject',
+            DB::raw('SUM(ratings) / COUNT(ratings) AS starrating, COUNT(DISTINCT topics.name) as total_topics'),
+            'tutorsubjectmappings.id as sub_map_id',
             DB::raw('(SELECT COUNT(*) FROM classschedules WHERE classschedules.tutor_id = tutorprofiles.id) AS total_classes_done')
         )
             ->join('teacherclassmappings', 'teacherclassmappings.teacher_id', '=', 'tutorprofiles.tutor_id')
@@ -441,28 +469,28 @@ class HomeController extends Controller
             DB::raw('COUNT(DISTINCT topics.name) as total_topics'),
             DB::raw('COUNT(DISTINCT zoom_classes.id) as total_classes_done')
         )
-        ->leftJoin('teacherclassmappings', 'teacherclassmappings.teacher_id', '=', 'tutorprofiles.tutor_id')
-        ->leftJoin('tutorsubjectmappings', 'tutorsubjectmappings.tutor_id', '=', 'tutorprofiles.tutor_id')
-        ->leftJoin('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
-        ->leftJoin('classes', 'classes.id', '=', 'tutorsubjectmappings.class_id')
-        ->leftJoin('topics', 'topics.subject_id', '=', 'subjects.id')
-        ->join('tutorregistrations', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
-        ->leftJoin('zoom_classes', 'zoom_classes.tutor_id', '=', 'tutorprofiles.tutor_id') // Adding join for zoom_classes
-        ->where('tutorregistrations.is_active', 1)
-        // ->orderby('tutorregistrations.created_at','desc')
-        ->groupBy(
-            'tutorprofiles.tutor_id',
-            'tutorprofiles.name',
-            'tutorprofiles.headline',
-            'tutorprofiles.qualification',
-            'tutorprofiles.intro_video_link',
-            'tutorprofiles.experience',
-            'tutorprofiles.rateperhour',
-            'tutorprofiles.admin_commission',
-            'tutorprofiles.profile_pic'
-        )
-           ->orderByRaw('profile_pic IS NOT NULL DESC, tutorregistrations.created_at DESC')
-        ->get();
+            ->leftJoin('teacherclassmappings', 'teacherclassmappings.teacher_id', '=', 'tutorprofiles.tutor_id')
+            ->leftJoin('tutorsubjectmappings', 'tutorsubjectmappings.tutor_id', '=', 'tutorprofiles.tutor_id')
+            ->leftJoin('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
+            ->leftJoin('classes', 'classes.id', '=', 'tutorsubjectmappings.class_id')
+            ->leftJoin('topics', 'topics.subject_id', '=', 'subjects.id')
+            ->join('tutorregistrations', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
+            ->leftJoin('zoom_classes', 'zoom_classes.tutor_id', '=', 'tutorprofiles.tutor_id') // Adding join for zoom_classes
+            ->where('tutorregistrations.is_active', 1)
+            // ->orderby('tutorregistrations.created_at','desc')
+            ->groupBy(
+                'tutorprofiles.tutor_id',
+                'tutorprofiles.name',
+                'tutorprofiles.headline',
+                'tutorprofiles.qualification',
+                'tutorprofiles.intro_video_link',
+                'tutorprofiles.experience',
+                'tutorprofiles.rateperhour',
+                'tutorprofiles.admin_commission',
+                'tutorprofiles.profile_pic'
+            )
+            ->orderByRaw('profile_pic IS NOT NULL DESC, tutorregistrations.created_at DESC')
+            ->get();
 
 
         $subjectlists = DB::table('subjects')
@@ -518,12 +546,12 @@ class HomeController extends Controller
                 'tutorreviews.tutor_id',
                 'subjects.name as subject'
             )
-            ->leftJoin('subjects', 'subjects.id', '=', 'tutorreviews.subject_id')
-            ->leftJoin('studentprofiles', 'studentprofiles.student_id', '=', 'tutorreviews.student_id')
-            ->where('tutorreviews.tutor_id', '=', $tutorpd->tutor_id)
-            ->get();
+                ->leftJoin('subjects', 'subjects.id', '=', 'tutorreviews.subject_id')
+                ->leftJoin('studentprofiles', 'studentprofiles.student_id', '=', 'tutorreviews.student_id')
+                ->where('tutorreviews.tutor_id', '=', $tutorpd->tutor_id)
+                ->get();
 
-                // dd($reviews);
+            // dd($reviews);
         }
 
         if (!$tutorpd) {
@@ -539,8 +567,8 @@ class HomeController extends Controller
         $averagereview = tutorreviews::select(
             DB::raw('ROUND(AVG(tutorreviews.ratings), 1) as avg_rating')
         )
-        ->where('tutorreviews.tutor_id', $id)
-        ->first();
+            ->where('tutorreviews.tutor_id', $id)
+            ->first();
 
 
         $averagecount = tutorreviews::where('tutorreviews.tutor_id', $id)->count();
@@ -554,23 +582,23 @@ class HomeController extends Controller
             ->where('tutor_id', $id)
             ->first();
 
-            $othertutors = tutorprofile::select(
-                'tutorprofiles.tutor_id as tutor_id',
-                'tutorprofiles.name',
-                'tutorprofiles.headline',
-                'tutorprofiles.qualification as tutor_qualification',
-                'tutorprofiles.intro_video_link',
-                'tutorprofiles.experience',
-                DB::raw('(tutorprofiles.rateperhour + (tutorprofiles.rateperhour * tutorprofiles.admin_commission / 100)) as rateperhour'),
-                'tutorprofiles.profile_pic',
-                // Limit subjects to a maximum of two
-                DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT subjects.name ORDER BY subjects.name SEPARATOR ", "), ",", 2) as subject'),
-                // Round avg_rating to one decimal place
-                DB::raw('ROUND((SELECT AVG(tutorreviews.ratings) FROM tutorreviews WHERE tutorreviews.tutor_id = tutorprofiles.tutor_id), 1) AS avg_rating'),
-                DB::raw('(SELECT COUNT(tutorreviews.id) FROM tutorreviews WHERE tutorreviews.tutor_id = tutorprofiles.tutor_id) AS total_reviews'),
-                DB::raw('COUNT(DISTINCT topics.name) as total_topics'),
-                DB::raw('COUNT(DISTINCT zoom_classes.id) as total_classes_done')
-            )
+        $othertutors = tutorprofile::select(
+            'tutorprofiles.tutor_id as tutor_id',
+            'tutorprofiles.name',
+            'tutorprofiles.headline',
+            'tutorprofiles.qualification as tutor_qualification',
+            'tutorprofiles.intro_video_link',
+            'tutorprofiles.experience',
+            DB::raw('(tutorprofiles.rateperhour + (tutorprofiles.rateperhour * tutorprofiles.admin_commission / 100)) as rateperhour'),
+            'tutorprofiles.profile_pic',
+            // Limit subjects to a maximum of two
+            DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT subjects.name ORDER BY subjects.name SEPARATOR ", "), ",", 2) as subject'),
+            // Round avg_rating to one decimal place
+            DB::raw('ROUND((SELECT AVG(tutorreviews.ratings) FROM tutorreviews WHERE tutorreviews.tutor_id = tutorprofiles.tutor_id), 1) AS avg_rating'),
+            DB::raw('(SELECT COUNT(tutorreviews.id) FROM tutorreviews WHERE tutorreviews.tutor_id = tutorprofiles.tutor_id) AS total_reviews'),
+            DB::raw('COUNT(DISTINCT topics.name) as total_topics'),
+            DB::raw('COUNT(DISTINCT zoom_classes.id) as total_classes_done')
+        )
             ->leftJoin('teacherclassmappings', 'teacherclassmappings.teacher_id', '=', 'tutorprofiles.tutor_id')
             ->leftJoin('tutorsubjectmappings', 'tutorsubjectmappings.tutor_id', '=', 'tutorprofiles.tutor_id')
             ->leftJoin('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
@@ -591,10 +619,8 @@ class HomeController extends Controller
                 'tutorprofiles.admin_commission',
                 'tutorprofiles.profile_pic'
             )
-               ->orderByRaw('profile_pic IS NOT NULL DESC, tutorregistrations.created_at DESC')
+            ->orderByRaw('profile_pic IS NOT NULL DESC, tutorregistrations.created_at DESC')
             ->get();
-
-
 
         // dd($othertutors);
 
@@ -606,50 +632,50 @@ class HomeController extends Controller
         try {
             DB::beginTransaction();
 
-        if ($request->id == "1") {
+            if ($request->id == "1") {
+                $request->validate([
+                    'studentmobile' => 'required|min:4|max:11',
+                    'class' => 'required',
+                ]);
+
+                $user = new studentregistration();
+                $user->mobile = $request->studentmobile;
+                $user->role_id = "3";
+                $user->class_id = $request->class;
+                $user->parent_password = Hash::make($request->studentmobile);
+                // $user->is_active = "1";
+            } else {
+                $request->validate([
+                    'tutormobile' => 'required|min:4|max:11',
+                ]);
+
+                $user = new tutorregistration();
+                $user->mobile = $request->tutormobile;
+                $user->role_id = "2";
+                $user->is_active = "0";
+            }
             $request->validate([
-                'studentmobile' => 'required|min:4|max:11',
-                'class' => 'required',
+                'name' => 'required',
+                'email' => 'email|required',
+                'password' => 'min:4|required_with:confirmpassword|same:confirmpassword',
+                'confirmpassword' => 'min:4',
+
             ]);
 
-            $user = new studentregistration();
-            $user->mobile = $request->studentmobile;
-            $user->role_id = "3";
-            $user->class_id = $request->class;
-            $user->parent_password = Hash::make($request->studentmobile);
-            // $user->is_active = "1";
-        } else {
-            $request->validate([
-                'tutormobile' => 'required|min:4|max:11',
-            ]);
-
-            $user = new tutorregistration();
-            $user->mobile = $request->tutormobile;
-            $user->role_id = "2";
+            $user->name = $request->name;
+            $user->email = $request->email;
             $user->is_active = "0";
-        }
-        $request->validate([
-            'name' => 'required',
-            'email' => 'email|required',
-            'password' => 'min:4|required_with:confirmpassword|same:confirmpassword',
-            'confirmpassword' => 'min:4',
+            $user->password = Hash::make($request->password);
 
-        ]);
+            $res = $user->save();
 
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->is_active = "0";
-        $user->password = Hash::make($request->password);
-
-        $res = $user->save();
-            
-        if ($res) {
+            if ($res) {
                 DB::commit();
-            return back()->with('success', 'Registration successfull');
-            // return redirect('student/dashboard');
-        } else {
+                return back()->with('success', 'Registration successfull');
+                // return redirect('student/dashboard');
+            } else {
                 DB::rollBack();
-            return back()->with('fail', 'Registration failed');
+                return back()->with('fail', 'Registration failed');
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
@@ -690,7 +716,8 @@ class HomeController extends Controller
             'password' => 'required',
             'loginAs' => 'required',
         ]);
-        if ($request->loginAs == 'student') {$user = studentregistration::where('mobile', '=', $request->username)->first();
+        if ($request->loginAs == 'student') {
+            $user = studentregistration::where('mobile', '=', $request->username)->first();
             if ($user) {
                 if (Hash::check($request->password, $user->password)) {
                     //  event(new Registered($user));
@@ -724,7 +751,8 @@ class HomeController extends Controller
                 return back()->with('fail', 'Password does not match');
             } else {
                 return back()->with('fail', 'Mobile No. Not Registered');
-            }}
+            }
+        }
         if ($request->loginAs == 'parent') {
             $user = studentregistration::where('mobile', '=', $request->username)->first();
 
@@ -776,7 +804,6 @@ class HomeController extends Controller
                 return back()->with('fail', 'Mobile No. Not Registered');
             }
         }
-
     }
 
     public function enroll_class_student_login_form($id)
@@ -792,7 +819,8 @@ class HomeController extends Controller
             'password' => 'required',
             'loginAs' => 'required',
         ]);
-        if ($request->loginAs == 'student') {$user = studentregistration::where('mobile', '=', $request->username)->first();
+        if ($request->loginAs == 'student') {
+            $user = studentregistration::where('mobile', '=', $request->username)->first();
             if ($user) {
                 if (Hash::check($request->password, $user->password)) {
                     //  event(new Registered($user));
@@ -826,7 +854,8 @@ class HomeController extends Controller
                 return back()->with('fail', 'Password does not match');
             } else {
                 return back()->with('fail', 'Mobile No. Not Registered');
-            }}
+            }
+        }
         if ($request->loginAs == 'parent') {
             $user = studentregistration::where('mobile', '=', $request->username)->first();
 
@@ -873,7 +902,6 @@ class HomeController extends Controller
                 return back()->with('fail', 'Mobile No. Not Registered');
             }
         }
-
     }
 
     // Logout Controller
@@ -897,7 +925,8 @@ class HomeController extends Controller
             'password' => 'required',
             'loginAs' => 'required',
         ]);
-        if ($request->loginAs == 'student') {$user = studentregistration::where('mobile', '=', $request->username)->first();
+        if ($request->loginAs == 'student') {
+            $user = studentregistration::where('mobile', '=', $request->username)->first();
             if ($user) {
                 if (Hash::check($request->password, $user->password)) {
                     //  event(new Registered($user));
@@ -926,7 +955,8 @@ class HomeController extends Controller
                 return back()->with('fail', 'Password does not match');
             } else {
                 return back()->with('fail', 'Mobile No. Not Registered');
-            }}
+            }
+        }
         if ($request->loginAs == 'parent') {
             $user = studentregistration::where('mobile', '=', $request->username)->first();
 
@@ -973,93 +1003,86 @@ class HomeController extends Controller
                 return back()->with('fail', 'Mobile No. Not Registered');
             }
         }
-
     }
 
-    public function forget_password(Request $request){
-       
+    public function forget_password(Request $request)
+    {
+
         if ($request->requestAs == 'student') {
-            $user = studentregistration::where('email', '=', $request->email, )->first();
-        }
-
-        else if ($request->requestAs == 'tutor') {
-            $user = tutorregistration::where('email', '=', $request->email, )->first();
-        }
-
-        else if ($request->requestAs == 'parent') {
+            $user = studentregistration::where('email', '=', $request->email,)->first();
+        } else if ($request->requestAs == 'tutor') {
+            $user = tutorregistration::where('email', '=', $request->email,)->first();
+        } else if ($request->requestAs == 'parent') {
             $user = studentregistration::where('email', '=', $request->email)->first();
+        } else {
+            return back()->with('fail', 'No User Found!');
         }
-        else{
-            return back()->with('fail', 'No User Found!');   
-        }
-      
-             $token = Str::random(64);
+
+        $token = Str::random(64);
 
         $email = $request->email;
 
-          DB::table('password_resets')->insert([
+        DB::table('password_resets')->insert([
 
-              'email' => $request->email, 
+            'email' => $request->email,
 
-              'token' => $token, 
+            'token' => $token,
 
-              'created_at' => Carbon::now()
+            'created_at' => Carbon::now()
 
-            ]);
+        ]);
 
-  
 
-          Mail::send('emails.forgetPassword', ['token' => $token], function($message) use($email){
 
-              $message->to($email);
+        Mail::send('emails.forgetPassword', ['token' => $token], function ($message) use ($email) {
 
-              $message->subject('Reset Password');
+            $message->to($email);
 
-          });
-               return redirect()->route('home')->with('success', 'Token send successfully!');
-
+            $message->subject('Reset Password');
+        });
+        return redirect()->route('home')->with('success', 'Token send successfully!');
     }
 
     public function reset_password_form($token)
     {
         return view('front-cms.forgetpassword', ['token' => $token]);
     }
-   public function reset_password_submit(Request $request)
-{
-    // Validate new password
-    $request->validate([
-        'password' => 'required|min:6|confirmed', // expects password_confirmation
-        'token'    => 'required',
-    ]);
+    public function reset_password_submit(Request $request)
+    {
+        // Validate new password
+        $request->validate([
+            'password' => 'required|min:6|confirmed', // expects password_confirmation
+            'token'    => 'required',
+        ]);
 
-    // Check if token exists in password_resets table
-    $updatePassword = DB::table('password_resets')
-        ->where('token', $request->token)
-        ->first();
+        // Check if token exists in password_resets table
+        $updatePassword = DB::table('password_resets')
+            ->where('token', $request->token)
+            ->first();
 
-    if (!$updatePassword) {
-        return back()->with('fail', 'Invalid or expired token!');
+        if (!$updatePassword) {
+            return back()->with('fail', 'Invalid or expired token!');
+        }
+
+        // Try to find the user in students or tutors
+        $user = studentregistration::where('email', $updatePassword->email)->first()
+            ?? tutorregistration::where('email', $updatePassword->email)->first();
+
+        if (!$user) {
+            return back()->with('fail', 'User not found!');
+        }
+
+        // Update password
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Delete the reset token so it can't be reused
+        DB::table('password_resets')
+            ->where('email', $updatePassword->email)
+            ->delete();
+
+        return redirect()->route('home')->with('success', 'Password updated successfully!');
     }
-
-    // Try to find the user in students or tutors
-    $user = studentregistration::where('email', $updatePassword->email)->first()
-         ?? tutorregistration::where('email', $updatePassword->email)->first();
-
-    if (!$user) {
-        return back()->with('fail', 'User not found!');
-    }
-
-    // Update password
-    $user->password = Hash::make($request->password);
-    $user->save();
-
-    // Delete the reset token so it can't be reused
-    DB::table('password_resets')
-        ->where('email', $updatePassword->email)
-        ->delete();
-
-    return redirect()->route('home')->with('success', 'Password updated successfully!');
-}
 
     public function std_registration()
     {
@@ -1070,78 +1093,78 @@ class HomeController extends Controller
     public function student_registration_form(Request $request)
     {
         try {
-        // if ($request->id == "1") {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email',
-            'mobile' => 'required|min:4|max:13',
-            'password' => 'required|min:8|max:50',
-            'confpassword' => 'required|min:8|max:50|same:password',
-            'expcheck' => 'required|accepted',
-        ], [
-            'name.required' => 'Name is required.',
-            'email.required' => 'Email is required.',
-            'email.email' => 'Email must be a valid email address.',
-            'mobile.required' => 'Mobile number is required.',
-            'mobile.min' => 'Mobile number must be at least 4 digits.',
-            'mobile.max' => 'Mobile number must not exceed 13 digits.',
-            'password.required' => 'Password is required.',
-            'password.min' => 'Password must be at least 8 characters.',
-            'password.max' => 'Password must not exceed 50 characters.',
-            'confpassword.required' => 'Confirmation password is required.',
-            'confpassword.min' => 'Confirmation password must be at least 8 characters.',
-            'confpassword.max' => 'Confirmation password must not exceed 50 characters.',
-            'confpassword.same' => 'Password and confirmation password must match.',
-            'expcheck.required' => 'You must accept the terms.',
-            'expcheck.accepted' => 'The terms must be accepted.',
-        ]);
+            // if ($request->id == "1") {
+            $request->validate([
+                'name' => 'required',
+                'email' => 'required|email',
+                'mobile' => 'required|min:4|max:13',
+                'password' => 'required|min:8|max:50',
+                'confpassword' => 'required|min:8|max:50|same:password',
+                'expcheck' => 'required|accepted',
+            ], [
+                'name.required' => 'Name is required.',
+                'email.required' => 'Email is required.',
+                'email.email' => 'Email must be a valid email address.',
+                'mobile.required' => 'Mobile number is required.',
+                'mobile.min' => 'Mobile number must be at least 4 digits.',
+                'mobile.max' => 'Mobile number must not exceed 13 digits.',
+                'password.required' => 'Password is required.',
+                'password.min' => 'Password must be at least 8 characters.',
+                'password.max' => 'Password must not exceed 50 characters.',
+                'confpassword.required' => 'Confirmation password is required.',
+                'confpassword.min' => 'Confirmation password must be at least 8 characters.',
+                'confpassword.max' => 'Confirmation password must not exceed 50 characters.',
+                'confpassword.same' => 'Password and confirmation password must match.',
+                'expcheck.required' => 'You must accept the terms.',
+                'expcheck.accepted' => 'The terms must be accepted.',
+            ]);
 
-        if ($request->registerAs == 'student') {
+            if ($request->registerAs == 'student') {
                 DB::beginTransaction();
 
                 try {
-            $user = studentregistration::where('mobile', '=', $request->mobile, )->first();
-            // echo $user;
-            // dd();
-            if ($user) {
+                    $user = studentregistration::where('mobile', '=', $request->mobile,)->first();
+                    // echo $user;
+                    // dd();
+                    if ($user) {
                         DB::rollBack();
-                return back()->with('fail', 'Mobile Already Registered');
-            }
+                        return back()->with('fail', 'Mobile Already Registered');
+                    }
 
-            $user = studentregistration::where('email', '=', $request->email, )->first();
-            if ($user) {
+                    $user = studentregistration::where('email', '=', $request->email,)->first();
+                    if ($user) {
                         DB::rollBack();
-                return back()->with('fail', 'Email Already Registered');
-            }
-            $user = new studentregistration();
-            $user->mobile = $request->mobile;
-            $user->role_id = "3";
-            $user->class_id = '0';
-            $user->name = $request->name;
-            $user->email = $request->email;
-            $user->is_active = "1";
-            $user->password = Hash::make($request->password);
-            $user->parent_password = Hash::make($request->mobile);
-            $res = $user->save();
+                        return back()->with('fail', 'Email Already Registered');
+                    }
+                    $user = new studentregistration();
+                    $user->mobile = $request->mobile;
+                    $user->role_id = "3";
+                    $user->class_id = '0';
+                    $user->name = $request->name;
+                    $user->email = $request->email;
+                    $user->is_active = "1";
+                    $user->password = Hash::make($request->password);
+                    $user->parent_password = Hash::make($request->mobile);
+                    $res = $user->save();
 
                     if (!$res) {
                         DB::rollBack();
                         return back()->with('fail', 'Failed to save student registration.');
                     }
 
-            $finduser = studentregistration::select('*')->where('mobile', $request->mobile)->first();
+                    $finduser = studentregistration::select('*')->where('mobile', $request->mobile)->first();
                     if (!$finduser) {
                         DB::rollBack();
                         return back()->with('fail', 'Failed to retrieve student registration.');
                     }
 
-            $studentprofile = new studentprofile();
-            $studentprofile->name = $request->name;
-            $studentprofile->mobile = $request->mobile;
-            $studentprofile->email = $request->email;
-            $studentprofile->student_id = $finduser->id;
-            // $studentprofile->profile_pic =
-            $studentprofile->grade = 1;
+                    $studentprofile = new studentprofile();
+                    $studentprofile->name = $request->name;
+                    $studentprofile->mobile = $request->mobile;
+                    $studentprofile->email = $request->email;
+                    $studentprofile->student_id = $finduser->id;
+                    // $studentprofile->profile_pic =
+                    $studentprofile->grade = 1;
                     $profileRes = $studentprofile->save();
 
                     if (!$profileRes) {
@@ -1149,132 +1172,132 @@ class HomeController extends Controller
                         return back()->with('fail', 'Failed to save student profile.');
                     }
 
-            // Send welcome mail
+                    // Send welcome mail
                     try {
-            $details = [
-                'name' => $request->name,
-                'mobile' => $request->mobile,
-                'password' => $request->password,
-                'mailtype' => 1,
-            ];
+                        $details = [
+                            'name' => $request->name,
+                            'mobile' => $request->mobile,
+                            'password' => $request->password,
+                            'mailtype' => 1,
+                        ];
 
-            Mail::to($request->email)->send(new SendMail($details));
+                        Mail::to($request->email)->send(new SendMail($details));
                     } catch (\Exception $e) {
                         Log::error('Failed to send welcome email: ' . $e->getMessage());
                         // Don't fail registration if email fails
                     }
 
-            $mobile = $request->mobile;
-            $formattedDate = Carbon::now()->format('Y-m-d');
-            // Generate a random 4-digit OTP
-            $otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
-            $username = 'BhashWAPAI';
-            $pass = '123456';
-            $sender = 'BUZWAP';
-            // $phone = '+917004920897';
-            $phone = $mobile;
-            // $phone = $res->mobile;
-            $text = 'delivery';
-            $priority = 'wa';
-            $stype = 'normal';
-            $params = $otp . ',' . $formattedDate;
+                    $mobile = $request->mobile;
+                    $formattedDate = Carbon::now()->format('Y-m-d');
+                    // Generate a random 4-digit OTP
+                    $otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+                    $username = 'BhashWAPAI';
+                    $pass = '123456';
+                    $sender = 'BUZWAP';
+                    // $phone = '+917004920897';
+                    $phone = $mobile;
+                    // $phone = $res->mobile;
+                    $text = 'delivery';
+                    $priority = 'wa';
+                    $stype = 'normal';
+                    $params = $otp . ',' . $formattedDate;
 
-            $url = "https://bhashsms.com/api/sendmsg.php?user=$username&pass=$pass&sender=$sender&phone=$phone&text=$text&priority=$priority&stype=$stype&params=$params";
+                    $url = "https://bhashsms.com/api/sendmsg.php?user=$username&pass=$pass&sender=$sender&phone=$phone&text=$text&priority=$priority&stype=$stype&params=$params";
 
-            // Initialize Guzzle client
-            $client = new Client();
+                    // Initialize Guzzle client
+                    $client = new Client();
 
-            try {
-                // Send GET request to the URL
-                $response = $client->get($url);
+                    try {
+                        // Send GET request to the URL
+                        $response = $client->get($url);
 
-                // Get the response body
-                $responseBody = $response->getBody();
+                        // Get the response body
+                        $responseBody = $response->getBody();
 
-                // You can process the response here
-                // For example, you can log the response or return it to the view
-                response()->json(['message' => 'OTP sent successfully', 'response' => $responseBody]);
-                // return view('common.tutor-mobile-verify');
-            } catch (\Exception $e) {
-                // Handle any exceptions that occur during the request
+                        // You can process the response here
+                        // For example, you can log the response or return it to the view
+                        response()->json(['message' => 'OTP sent successfully', 'response' => $responseBody]);
+                        // return view('common.tutor-mobile-verify');
+                    } catch (\Exception $e) {
+                        // Handle any exceptions that occur during the request
                         Log::error('OTP sending failed: ' . $e->getMessage());
                         // Don't fail registration if OTP sending fails
-            }
+                    }
 
-                $studentRegistration = studentregistration::where('mobile', $mobile)->first();
+                    $studentRegistration = studentregistration::where('mobile', $mobile)->first();
                     if ($studentRegistration) {
-                $studentRegistration->mobile_otp = '1234';
-                // $studentRegistration->mobile_otp = $otp;
-                $studentRegistration->save();
+                        $studentRegistration->mobile_otp = '1234';
+                        // $studentRegistration->mobile_otp = $otp;
+                        $studentRegistration->save();
                     }
 
                     DB::commit();
 
-                $user = studentregistration::where('mobile', '=', $mobile)->first();
+                    $user = studentregistration::where('mobile', '=', $mobile)->first();
                     if ($user) {
-                $request->session()->put('userid', $user);
-                return redirect('student/dashboard')->with('success','Registration successful. Explore tutors and book classes. Best Wishes!!');
-            } else {
+                        $request->session()->put('userid', $user);
+                        return redirect('student/dashboard')->with('success', 'Registration successful. Explore tutors and book classes. Best Wishes!!');
+                    } else {
                         return back()->with('fail', 'Registration completed but session failed. Please login.');
                     }
                 } catch (\Exception $e) {
                     DB::rollBack();
                     Log::error('Student registration failed: ' . $e->getMessage());
                     return back()->with('fail', 'Registration failed. Please try again later.');
+                }
             }
-        }
-        if ($request->registerAs == 'tutor') {
+            if ($request->registerAs == 'tutor') {
                 DB::beginTransaction();
 
                 try {
-            $request->validate([
-                'name' => 'required',
-                'email' => 'required',
-                'mobile' => 'required|min:4|max:11',
-                'password' => 'required|min:8|max:50',
-            ]);
+                    $request->validate([
+                        'name' => 'required',
+                        'email' => 'required',
+                        'mobile' => 'required|min:4|max:11',
+                        'password' => 'required|min:8|max:50',
+                    ]);
 
-            $user = tutorregistration::where('email', '=', $request->email, )->first();
-            if ($user) {
+                    $user = tutorregistration::where('email', '=', $request->email,)->first();
+                    if ($user) {
                         DB::rollBack();
-                return back()->with('fail', 'Email Already Registered');
-            }
+                        return back()->with('fail', 'Email Already Registered');
+                    }
 
-            $user = tutorregistration::where('mobile', '=', $request->mobile, )->first();
-            if ($user) {
+                    $user = tutorregistration::where('mobile', '=', $request->mobile,)->first();
+                    if ($user) {
                         DB::rollBack();
-                return back()->with('fail', 'Mobile Already Registered');
-            }
+                        return back()->with('fail', 'Mobile Already Registered');
+                    }
 
-            $user = new tutorregistration();
-            $user->mobile = $request->mobile;
-            $user->role_id = "2";
-            $user->name = $request->name;
-            $user->email = $request->email;
-            $user->is_active = "0";
-            $user->password = Hash::make($request->password);
+                    $user = new tutorregistration();
+                    $user->mobile = $request->mobile;
+                    $user->role_id = "2";
+                    $user->name = $request->name;
+                    $user->email = $request->email;
+                    $user->is_active = "0";
+                    $user->password = Hash::make($request->password);
 
-            $res = $user->save();
+                    $res = $user->save();
 
                     if (!$res) {
                         DB::rollBack();
                         return back()->with('fail', 'Failed to save tutor registration.');
                     }
 
-            $checktutorid = tutorregistration::select('*')->where('mobile', $request->mobile)->first();
+                    $checktutorid = tutorregistration::select('*')->where('mobile', $request->mobile)->first();
                     if (!$checktutorid) {
                         DB::rollBack();
                         return back()->with('fail', 'Failed to retrieve tutor registration.');
                     }
 
-            $tprofile = new tutorprofile();
-            $tprofile->name = $request->name;
-            $tprofile->mobile = $request->mobile;
-            $tprofile->email = $request->email;
-            $tprofile->tutor_id = $checktutorid->id;
-            $tprofile->qualification = " ";
-            $tprofile->rateperhour = 0;
-            $tprofile->admin_commission = 0;
+                    $tprofile = new tutorprofile();
+                    $tprofile->name = $request->name;
+                    $tprofile->mobile = $request->mobile;
+                    $tprofile->email = $request->email;
+                    $tprofile->tutor_id = $checktutorid->id;
+                    $tprofile->qualification = " ";
+                    $tprofile->rateperhour = 0;
+                    $tprofile->admin_commission = 0;
                     $profileRes = $tprofile->save();
 
                     if (!$profileRes) {
@@ -1282,37 +1305,37 @@ class HomeController extends Controller
                         return back()->with('fail', 'Failed to save tutor profile.');
                     }
 
-            // Send welcome mail
+                    // Send welcome mail
                     try {
-            $details = [
-                'name' => $request->name,
-                'mobile' => $request->mobile,
-                'password' => $request->password,
-                'mailtype' => 1,
-            ];
+                        $details = [
+                            'name' => $request->name,
+                            'mobile' => $request->mobile,
+                            'password' => $request->password,
+                            'mailtype' => 1,
+                        ];
 
-            Mail::to($request->email)->send(new SendMail($details));
+                        Mail::to($request->email)->send(new SendMail($details));
                     } catch (\Exception $e) {
                         Log::error('Failed to send welcome email: ' . $e->getMessage());
                         // Don't fail registration if email fails
                     }
 
-            $mobile = $request->mobile;
+                    $mobile = $request->mobile;
 
-            $user = 'BhashWAPAI';
-            $pass = '123456';
-            $sender = 'BUZWAP';
-            // $phone = '7004920897';
-            $phone = $request->mobile;
-            $text = 'delivery';
-            $priority = 'wa';
-            $stype = 'normal';
-            $params = '1195,23aug2023';
+                    $user = 'BhashWAPAI';
+                    $pass = '123456';
+                    $sender = 'BUZWAP';
+                    // $phone = '7004920897';
+                    $phone = $request->mobile;
+                    $text = 'delivery';
+                    $priority = 'wa';
+                    $stype = 'normal';
+                    $params = '1195,23aug2023';
 
-            $url = "https://bhashsms.com/api/sendmsg.php?user=$user&pass=$pass&sender=$sender&phone=$phone&text=$text&priority=$priority&stype=$stype&params=$params";
+                    $url = "https://bhashsms.com/api/sendmsg.php?user=$user&pass=$pass&sender=$sender&phone=$phone&text=$text&priority=$priority&stype=$stype&params=$params";
 
-            // Initialize Guzzle client
-            $client = new Client();
+                    // Initialize Guzzle client
+                    $client = new Client();
 
                     // OTP sending is non-critical, so we'll try but not fail registration
                     try {
@@ -1322,25 +1345,25 @@ class HomeController extends Controller
                         // Don't fail registration if OTP sending fails
                     }
 
-                $user = tutorregistration::where('mobile', '=', $mobile)->first();
+                    $user = tutorregistration::where('mobile', '=', $mobile)->first();
                     if (!$user) {
                         DB::rollBack();
                         return back()->with('fail', 'Failed to retrieve tutor after registration.');
                     }
 
-                // Notification Starts here
+                    // Notification Starts here
                     try {
-                $notificationdata = new Notification();
-                $notificationdata->alert_type = 8;
-                $notificationdata->notification = $request->name . " Registered as tutor and pending for approval";
+                        $notificationdata = new Notification();
+                        $notificationdata->alert_type = 8;
+                        $notificationdata->notification = $request->name . " Registered as tutor and pending for approval";
                         $notificationdata->initiator_id = $user->id;
-                $notificationdata->initiator_role = "2";
-                $notificationdata->event_id = $user->id;
-                // Sending to admin
-                $notificationdata->show_to_admin = 1;
-                $notificationdata->show_to_admin_id = 1;
-                $notificationdata->show_to_all_admin = 1;
-                $notificationdata->read_status = 0;
+                        $notificationdata->initiator_role = "2";
+                        $notificationdata->event_id = $user->id;
+                        // Sending to admin
+                        $notificationdata->show_to_admin = 1;
+                        $notificationdata->show_to_admin_id = 1;
+                        $notificationdata->show_to_all_admin = 1;
+                        $notificationdata->read_status = 0;
                         $notificationdata->save();
                         broadcast(new RealTimeMessage($notificationdata));
                     } catch (\Exception $e) {
@@ -1450,12 +1473,12 @@ class HomeController extends Controller
         try {
             DB::beginTransaction();
 
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required',
-            'mobile' => 'required|min:4|max:11',
-            'password' => 'required|min:8|max:50',
-        ]);
+            $request->validate([
+                'name' => 'required',
+                'email' => 'required',
+                'mobile' => 'required|min:4|max:11',
+                'password' => 'required|min:8|max:50',
+            ]);
 
             // Check for existing email
             $existingEmail = tutorregistration::where('email', '=', $request->email)->first();
@@ -1471,15 +1494,15 @@ class HomeController extends Controller
                 return back()->with('fail', 'Mobile Already Registered');
             }
 
-        $user = new tutorregistration();
-        $user->mobile = $request->mobile;
-        $user->role_id = "2";
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->is_active = "0";
-        $user->password = Hash::make($request->password);
+            $user = new tutorregistration();
+            $user->mobile = $request->mobile;
+            $user->role_id = "2";
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->is_active = "0";
+            $user->password = Hash::make($request->password);
 
-        $res = $user->save();
+            $res = $user->save();
 
             if (!$res) {
                 DB::rollBack();
@@ -1508,7 +1531,7 @@ class HomeController extends Controller
 
             DB::commit();
 
-        $mobile = $request->mobile;
+            $mobile = $request->mobile;
             return view('common.tutor-mobile-verify', compact('mobile'))->with('success', 'Registration successful. Please Login Now To Access More Features.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
@@ -1873,7 +1896,6 @@ class HomeController extends Controller
                 if (session('userid')->role_id == 2) {
                     return redirect()->to('tutor/studentmessages/' . $notificationData->initiator_id);
                 }
-
             }
             // Initiated by parent
             if ($notificationData->initiator_role == 4) {
@@ -1915,7 +1937,6 @@ class HomeController extends Controller
                 if (session('userid')->role_id == 2) {
                     return redirect()->to('tutor/demolist');
                 }
-
             }
             // Initiated by parent
             // if($notificationData->initiator_role == 4){
@@ -1957,7 +1978,6 @@ class HomeController extends Controller
                 if (session('userid')->role_id == 2) {
                     return redirect()->to('tutor/assignments');
                 }
-
             }
             // Initiated by parent
             // if($notificationData->initiator_role == 4){
@@ -1998,7 +2018,6 @@ class HomeController extends Controller
                 if (session('userid')->role_id == 2) {
                     return redirect()->to('tutor/onlinetestresponseslist');
                 }
-
             }
             // Initiated by parent
             // if($notificationData->initiator_role == 4){
@@ -2040,7 +2059,6 @@ class HomeController extends Controller
                 if (session('userid')->role_id == 2) {
                     return redirect()->to('tutor/feedback');
                 }
-
             }
             // Initiated by parent
             // if($notificationData->initiator_role == 4){
@@ -2083,7 +2101,6 @@ class HomeController extends Controller
                 if (session('userid')->role_id == 2) {
                     return redirect()->to('tutor/students');
                 }
-
             }
             // Initiated by parent
             // if($notificationData->initiator_role == 4){
@@ -2111,7 +2128,6 @@ class HomeController extends Controller
                     // return redirect()->to('student/enrollupdate/' . $notificationData->initiator_id);
                     return redirect()->to('student/classes');
                 }
-
             }
             // Slot Booked By Student
             if ($notificationData->initiator_role == 2) {
@@ -2126,9 +2142,7 @@ class HomeController extends Controller
                     // return redirect()->to('student/enrollupdate/' . $notificationData->initiator_id);
                     return redirect()->to('student/classes');
                 }
-
             }
-
         }
         // dd($notificationData->alert_type);
         if ((int)$notificationData->alert_type === 9) {
@@ -2146,7 +2160,6 @@ class HomeController extends Controller
                     // return redirect()->to('student/enrollupdate/' . $notificationData->initiator_id);
                     return redirect()->to('student/classes');
                 }
-
             }
             // Slot Booked By Student
             if ($notificationData->initiator_role == 2) {
@@ -2161,9 +2174,7 @@ class HomeController extends Controller
                     // return redirect()->to('student/enrollupdate/' . $notificationData->initiator_id);
                     return redirect()->to('student/classes');
                 }
-
             }
-
         }
         // Notification Event On Tutor Registration
         if ($notificationData->alert_type == 8) {
@@ -2173,17 +2184,13 @@ class HomeController extends Controller
                 if (session('userid')->role_id == 1) {
                     return redirect()->to('admin/tutors');
                 }
-
             }
             if ($notificationData->initiator_role == 3) {
                 if (session('userid')->role_id == 1) {
                     return redirect()->to('admin/enrollment-requests');
                 }
-
             }
-
         }
-
     }
     public function reviewslist()
     {

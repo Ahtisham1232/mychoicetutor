@@ -16,7 +16,7 @@
                     <div class="sub-btns">
                         @if(isset($subjects))
                         @foreach ($subjects as $subject)
-                            <button>{{ $subject->subject_name }}</button>
+                            <button class="my-1">{{ $subject->subject_name }}</button>
                         @endforeach
                         @endif
                     </div>
