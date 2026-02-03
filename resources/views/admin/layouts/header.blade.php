@@ -735,6 +735,11 @@
                             </div>
                         </li>
 
+                        <li class="nav-item">
+                            <a class="nav-link menu-link {{ Request::is('admin/messages') ? 'active' : '' }}" href="/admin/messages" role="button" aria-expanded="false" aria-controls="sidebarDashboards">
+                                <i class="ri-message-3-line"></i> <span data-key="t-dashboards">Chat</span>
+                            </a>
+                        </li>
 
                     </ul>
                 </div>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Cache;
 use App\Models\User;
 use App\Models\admin\admin;
 use App\Models\tutorregistration;
@@ -17,6 +18,39 @@ use App\Events\MessageNotification;
 
 class MessagesController extends Controller
 {
+    /** Cache TTL in seconds for chat online presence (2 minutes) */
+    const CHAT_PRESENCE_TTL = 120;
+
+    /**
+     * Mark current user as online for chat (called when messages page is open).
+     */
+    public function chatPresence(Request $request)
+    {
+        $user = session('userid');
+        if (!$user) {
+            return response()->json(['ok' => false], 401);
+        }
+        $key = 'chat_online:' . $user->role_id . ':' . $user->id;
+        Cache::put($key, true, self::CHAT_PRESENCE_TTL);
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Add is_online flag to each user in the list based on cache presence.
+     *
+     * @param \Illuminate\Support\Collection $userlists
+     * @return \Illuminate\Support\Collection
+     */
+    protected function addOnlineStatusToUserList($userlists)
+    {
+        if ($userlists === null) {
+            return $userlists;
+        }
+        $userlists->each(function ($user) {
+            $user->is_online = Cache::has('chat_online:' . $user->role_id . ':' . $user->id);
+        });
+        return $userlists;
+    }
     /**
      * Student messages - placeholder method
      */
@@ -37,7 +71,8 @@ class MessagesController extends Controller
                                   ->distinct();
 
         $userlists = $admins->union($tutors)->get();
-
+        $this->addOnlineStatusToUserList($userlists);
+        // dd($userlists->toArray());
         // Get student's profile picture
         $studentProfile = studentprofile::where('student_id', session('userid')->id)->first();
 
@@ -56,6 +91,7 @@ class MessagesController extends Controller
                          ->where('id', '!=', session('userid')->id)
                          ->where('role_id', 1) // Get only admins
                          ->get();
+        $this->addOnlineStatusToUserList($userlists);
 
         // Get student's profile picture
         $studentProfile = studentprofile::where('student_id', session('userid')->id)->first();
@@ -85,6 +121,7 @@ class MessagesController extends Controller
                                   ->distinct();
 
         $userlists = $admins->union($tutors)->get();
+        $this->addOnlineStatusToUserList($userlists);
 
         // Get the specific admin for the header
         $header = admin::find($id);
@@ -146,6 +183,7 @@ class MessagesController extends Controller
                                     ->where('tutorregistrations.role_id', 2) // Get only tutors
                                     ->distinct()
                                     ->get();
+        $this->addOnlineStatusToUserList($userlists);
 
         // Get student's profile picture
         $studentProfile = studentprofile::where('student_id', session('userid')->id)->first();
@@ -175,6 +213,7 @@ class MessagesController extends Controller
                                   ->distinct();
 
         $userlists = $admins->union($tutors)->get();
+        $this->addOnlineStatusToUserList($userlists);
 
         // Get the specific tutor for the header with profile picture
         $header = tutorregistration::select('tutorregistrations.*', 'tutorprofiles.profile_pic')
@@ -263,11 +302,37 @@ class MessagesController extends Controller
     }
 
     /**
-     * Admin messages - placeholder method
+     * Admin messages - main chat page (list of admins, tutors, students)
      */
     public function messagesbyadmin()
     {
-        return view('admin.messages')->with('info', 'Messages feature is temporarily unavailable.');
+        // Other admins (role_id = 1)
+        $admins = admin::select('id', 'name', 'email', 'mobile', 'role_id', \DB::raw('NULL as profile_pic'))
+                      ->where('id', '!=', session('userid')->id)
+                      ->where('role_id', 1)
+                      ->get();
+
+        // All tutors (role_id = 2) with profile pic
+        $tutors = tutorregistration::select('tutorregistrations.id', 'tutorregistrations.name', 'tutorregistrations.email', 'tutorregistrations.mobile', 'tutorregistrations.role_id', 'tutorprofiles.profile_pic')
+                                    ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
+                                    ->where('tutorregistrations.id', '!=', session('userid')->id)
+                                    ->where('tutorregistrations.role_id', 2)
+                                    ->get();
+
+        // All students (role_id = 3) with profile pic
+        $students = studentregistration::select('studentregistrations.id', 'studentregistrations.name', 'studentregistrations.email', 'studentregistrations.mobile', 'studentregistrations.role_id', 'studentprofiles.profile_pic')
+                                        ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
+                                        ->where('studentregistrations.id', '!=', session('userid')->id)
+                                        ->where('studentregistrations.role_id', 3)
+                                        ->get();
+
+        $userlists = $admins->merge($tutors)->merge($students);
+        $this->addOnlineStatusToUserList($userlists);
+        // dd($userlists->toArray());
+        $messages = [];
+        $header = null;
+
+        return view('admin.messages', compact('userlists', 'messages', 'header'));
     }
 
     /**
@@ -280,11 +345,13 @@ class MessagesController extends Controller
                                       ->where('studentregistrations.id', '!=', session('userid')->id)
                                       ->where('studentregistrations.role_id', 3) // Get only students
                                       ->get();
+        $this->addOnlineStatusToUserList($userlists);
 
         // Empty messages array for initial view (no conversation selected yet)
         $messages = [];
+        $header = null;
 
-        return view('admin.messages', compact('userlists', 'messages'))->with('info', 'Student messages feature is temporarily unavailable.');
+        return view('admin.messages', compact('userlists', 'messages', 'header'))->with('info', 'Student messages feature is temporarily unavailable.');
     }
 
     /**
@@ -297,6 +364,7 @@ class MessagesController extends Controller
                                       ->where('id', '!=', session('userid')->id)
                                       ->where('role_id', 3) // Get only students
                                       ->get();
+        $this->addOnlineStatusToUserList($userlists);
 
         // Get the specific student for the header
         $header = studentregistration::find($id);
@@ -313,6 +381,7 @@ class MessagesController extends Controller
                   ->where('to_id', session('userid')->id)
                   ->where('to_role_id', session('userid')->role_id);
         })->orderBy('created_at', 'desc')->get();
+        // dd($messages->toArray());
 
         return view('admin.messages', compact('userlists', 'header', 'messages'))->with('info', 'Student messages feature is temporarily unavailable.');
     }
@@ -356,11 +425,13 @@ class MessagesController extends Controller
                                     ->where('tutorregistrations.id', '!=', session('userid')->id)
                                     ->where('tutorregistrations.role_id', 2) // Get only tutors
                                     ->get();
+        $this->addOnlineStatusToUserList($userlists);
 
         // Empty messages array for initial view (no conversation selected yet)
         $messages = [];
+        $header = null;
 
-        return view('admin.messages', compact('userlists', 'messages'))->with('info', 'Tutor messages feature is temporarily unavailable.');
+        return view('admin.messages', compact('userlists', 'messages', 'header'))->with('info', 'Tutor messages feature is temporarily unavailable.');
     }
 
     /**
@@ -370,9 +441,10 @@ class MessagesController extends Controller
     {
         // Get all tutors for the user list
         $userlists = tutorregistration::select('id', 'name', 'email', 'mobile', 'role_id')
-                                    ->where('id', '!=', session('userid')->id)
-                                    ->where('role_id', 2) // Get only tutors
-                                    ->get();
+                                      ->where('id', '!=', session('userid')->id)
+                                      ->where('role_id', 2) // Get only tutors
+                                      ->get();
+        $this->addOnlineStatusToUserList($userlists);
 
         // Get the specific tutor for the header
         $header = tutorregistration::find($id);
@@ -494,6 +566,7 @@ class MessagesController extends Controller
                                       ->distinct();
 
         $userlists = $admins->union($students)->get();
+        $this->addOnlineStatusToUserList($userlists);
 
         // Get tutor's profile picture
         $tutorProfile = tutorprofile::where('tutor_id', session('userid')->id)->first();
@@ -513,6 +586,7 @@ class MessagesController extends Controller
                          ->where('id', '!=', session('userid')->id)
                          ->where('role_id', 1) // Get only admins
                          ->get();
+        $this->addOnlineStatusToUserList($userlists);
 
         // Get tutor's profile picture
         $tutorProfile = tutorprofile::where('tutor_id', session('userid')->id)->first();
@@ -540,6 +614,7 @@ class MessagesController extends Controller
                                       ->distinct();
 
         $userlists = $admins->union($students)->get();
+        $this->addOnlineStatusToUserList($userlists);
 
         // Get the specific admin for the header
         $header = admin::find($id);
@@ -597,6 +672,7 @@ class MessagesController extends Controller
                                       ->where('studentregistrations.role_id', 3) // Get only students
                                       ->distinct()
                                       ->get();
+        $this->addOnlineStatusToUserList($userlists);
 
         // Get tutor's profile picture
         $tutorProfile = tutorprofile::where('tutor_id', session('userid')->id)->first();
@@ -624,6 +700,7 @@ class MessagesController extends Controller
                                       ->distinct();
 
         $userlists = $admins->union($students)->get();
+        $this->addOnlineStatusToUserList($userlists);
 
         // Get the specific student for the header with profile picture
         $header = studentregistration::select('studentregistrations.*', 'studentprofiles.profile_pic')

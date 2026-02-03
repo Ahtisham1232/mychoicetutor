@@ -70,7 +70,7 @@
 
 
 
-                        <div class="col-12 col-lg-5 col-xl-3 border-right {{ $header->name ?? '' ? 'd-none' : '' }}">
+                        <div class="col-12 col-lg-5 col-xl-3 border-right {{ optional($header)->name ? 'd-none' : '' }}">
 
                             <div class="m-4">
 
@@ -86,7 +86,7 @@
                                     <div class="px-4 d-none d-md-block">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-grow-1 position-relative">
-                                                <form action="{{route('admin.chat.tutor.search')}}" method="POST">
+                                                {{-- <form action="{{route('admin.chat.tutor.search')}}" method="POST">
                                                     @csrf
                                                 <input type="text" class="form-control my-3 pl-5" id="searchtext" name="searchtext"
                                                     placeholder="Search...">
@@ -95,19 +95,19 @@
                                                     style="right: 10px;" type="submit">
                                                     <i class="fa fa-search"></i>
                                                 </button>
-                                                </form>
+                                                </form> --}}
                                             </div>
                                         </div>
                                     </div>
                                 @break
                             @endif
-                        @endforeach
-                        @foreach ($userlists as $userlist)
+                            @endforeach
+                            @foreach ($userlists as $userlist)
                             @if ($userlist->role_id == 3)
                                 <div class="px-4 d-none d-md-block">
                                     <div class="d-flex align-items-center">
                                         <div class="flex-grow-1 position-relative">
-                                            <form action="{{route('admin.chat.student.search')}}" method="POST">
+                                            {{-- <form action="{{route('admin.chat.student.search')}}" method="POST">
                                                 @csrf
                                             <input type="text" class="form-control my-3 pl-5" id="searchtext" name="searchtext"
                                                 placeholder="Search...">
@@ -116,7 +116,7 @@
                                                 style="right: 10px;" type="submit">
                                                 <i class="fa fa-search"></i>
                                             </button>
-                                            </form>
+                                            </form> --}}
                                         </div>
                                     </div>
                                 </div>
@@ -124,7 +124,6 @@
                         @endif
                     @endforeach
 
-                    {{-- <div style=" display: flex; flex-direction: column;   max-height: 500px;overflow-y:scroll; "> --}}
                     {{-- Populating chat user list --}}
                     @foreach ($userlists as $userlist)
                         @if ($userlist->role_id == 1)
@@ -190,11 +189,12 @@
                                 {{ $userlist->name }}
 
 
-                                <div class="small"><span class="fa fa-circle chat-online"></span>
-                                    Online</div>
+                                <div class="small chat-status" data-chat-user="{{ $userlist->role_id }}_{{ $userlist->id }}">
+                                    <span class="fa fa-circle {{ ($userlist->is_online ?? false) ? 'chat-online' : 'chat-offline' }}"></span>
+                                    {{ ($userlist->is_online ?? false) ? 'Online' : 'Offline' }}
+                                </div>
 
                             </div>
-
 
 
                         </div>
@@ -205,9 +205,8 @@
                     <hr class="d-block d-lg-none mt-1 mb-0">
                 </div>
 
-                <div class="col-12 {{ $header->name ?? '' ? 'col-lg-12 col-xl-12' : 'col-lg-7 col-xl-9' }}">
-                    @if ($header->name ?? '')
-                    @if ($header->name ?? '')
+                <div class="col-12 {{ optional($header)->name ? 'col-lg-12 col-xl-12' : 'col-lg-7 col-xl-9' }}">
+                    @if (isset($header) && $header->name)
                         <div class="py-2 px-4 border-bottom d-none d-lg-block ">
                             <div class="d-flex align-items-center py-1 ">
                                 <div class="position-relative">
@@ -258,10 +257,6 @@
                             @else
                                 @foreach ($messages as $message)
                                     @if ($message->from_id === session('userid')->id && $message->from_role_id === 1)
-                                        {{-- <div class="my-message">
-                                            <p>{{ $message->content }}</p>
-                                <span>{{ $message->created_at->format('H:i') }}</span>
-                            </div> --}}
                                         <div class="chat-message-right pb-4">
                                             <div>
                                                 <img src="https://mychoicetutor.com/new-styles/assets/images/users/avatar-1.jpg"
@@ -276,10 +271,7 @@
                                             </div>
                                         </div>
                                     @else
-                                        {{-- <div class="their-message">
-                                            <p>{{ $message->content }}</p>
-                            <span>{{ $message->created_at->format('H:i') }}</span>
-                        </div> --}}
+
                                         <div class="chat-message-left pb-4">
                                             <div>
                                                 @if ($header->role_id == 3)
@@ -310,7 +302,7 @@
 
                         </div>
                     </div>
-                    @if ($header->name ?? '')
+                    @if (isset($header) && $header->name)
                         {{-- @else --}}
                         <div class="flex-grow-0 py-3 px-4 border-top">
                             @if (session('userid')->role_id == 1)
@@ -360,11 +352,27 @@
 
     </div>
     <script>
+        // Chat presence: mark current user as online when messages page is open
+        (function() {
+            var presenceUrl = '{{ url("admin/chat-presence") }}';
+            var csrfToken = document.querySelector('input[name="_token"]') && document.querySelector('input[name="_token"]').value;
+            function pingPresence() {
+                if (!csrfToken) return;
+                fetch(presenceUrl, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                }).catch(function() {});
+            }
+            pingPresence();
+            setInterval(pingPresence, 60000);
+        })();
+
         // Function to reload chat messages using AJAX
         function reloadChat() {
-            var RoleId = <?php echo isset($header->role_id) ? json_encode($header->role_id) : '""'; ?>;
+            var RoleId = <?php echo (isset($header) && $header !== null && isset($header->role_id)) ? json_encode($header->role_id) : '""'; ?>;
             console.log(RoleId);
-            var UrlId = <?php echo isset($header->id) ? json_encode($header->id) : '""'; ?>;
+            var UrlId = <?php echo (isset($header) && $header !== null && isset($header->id)) ? json_encode($header->id) : '""'; ?>;
             // AJAX request to fetch updated chat messages
             var url = "";
             @if (isset($header) && $header !== null)

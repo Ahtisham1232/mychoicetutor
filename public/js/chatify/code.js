@@ -699,23 +699,29 @@ clientListenChannel.bind("client-deleteConversation", function (data) {
 // presence channel [User Active Status]
 var activeStatusChannel = pusher.subscribe("presence-activeStatus");
 
-// Joined
-activeStatusChannel.bind("pusher:member_added", function (member) {
+// When we join the channel, mark ourselves as online and show green dots for already-online members
+activeStatusChannel.bind("pusher:subscription_succeeded", function () {
   setActiveStatus(1);
-  $(".messenger-list-item[data-contact=" + member.id + "]")
-    .find(".activeStatus")
-    .remove();
-  $(".messenger-list-item[data-contact=" + member.id + "]")
-    .find(".avatar")
-    .before(activeStatusCircle());
+  if (activeStatusChannel.members && activeStatusChannel.members.each) {
+    activeStatusChannel.members.each(function (member) {
+      var mid = member.id || (member.user && member.user.id);
+      if (mid && String(mid) !== String(auth_id)) {
+        $(".messenger-list-item[data-contact=" + mid + "]").find(".activeStatus").remove();
+        $(".messenger-list-item[data-contact=" + mid + "]").find(".avatar").before(activeStatusCircle());
+      }
+    });
+  }
 });
 
-// Leaved
+// When another user joins, show green dot for them only
+activeStatusChannel.bind("pusher:member_added", function (member) {
+  $(".messenger-list-item[data-contact=" + member.id + "]").find(".activeStatus").remove();
+  $(".messenger-list-item[data-contact=" + member.id + "]").find(".avatar").before(activeStatusCircle());
+});
+
+// When a user leaves, remove their green dot
 activeStatusChannel.bind("pusher:member_removed", function (member) {
-  setActiveStatus(0);
-  $(".messenger-list-item[data-contact=" + member.id + "]")
-    .find(".activeStatus")
-    .remove();
+  $(".messenger-list-item[data-contact=" + member.id + "]").find(".activeStatus").remove();
 });
 
 function handleVisibilityChange() {

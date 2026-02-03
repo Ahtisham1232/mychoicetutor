@@ -207,6 +207,7 @@ Route::group(['prefix' => 'student', 'middleware' => ['StudentAuthenticate']], f
     Route::get('tutormessages/{id}', [MessagesController::class, 'messagesbystudenttutormessages'])->name('student.messages.tutormessages');
     Route::get('tutormessagesload/{id}', [MessagesController::class, 'messagesbystudenttutormessagesload'])->name('student.messages.tutormessagesload');
     Route::post('sendmessage', [MessagesController::class, 'messagesentbystudent'])->name('student.messages.send');
+    Route::post('chat-presence', [MessagesController::class, 'chatPresence'])->name('student.chat.presence');
     // Assignments
     Route::get('assignments',[AssignmentsController::class,'studentassignmentslist'])->name('student.assignments.list');
     Route::post('assignments/upload',[AssignmentsController::class,'studentassignmentsupload'])->name('student.assignments.upload');
@@ -381,6 +382,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], funct
     Route::get('tutormessagesload/{id}', [MessagesController::class, 'messagesbyadmintutormessagesload'])->name('admin.messages.tutormessagesload');
     Route::get('chatClearAdmintutor/{id}', [MessagesController::class, 'chatClearAdmintutor'])->name('admin.messages.cleartutormessages');
     Route::post('sendmessage', [MessagesController::class, 'messagesentbyadmin'])->name('admin.messages.send');
+    Route::post('chat-presence', [MessagesController::class, 'chatPresence'])->name('admin.chat.presence');
     Route::post('messages/student/search', [MessagesController::class, 'chatstudentsearch'])->name('admin.chat.student.search');
     Route::post('messages/tutor/search', [MessagesController::class, 'chattutorsearch'])->name('admin.chat.tutor.search');
     // Admin Reports
@@ -484,6 +486,7 @@ Route::group(['prefix' => 'tutor', 'middleware' => ['TutorAuthenticate']], funct
     Route::get('studentmessages/{id}', [MessagesController::class, 'messagesbytutorstudentmessages'])->name('tutor.messages.studentmessages');
     Route::get('studentmessagesload/{id}', [MessagesController::class, 'messagesbytutorstudentmessagesload'])->name('tutor.messages.studentmessagesload');
     Route::post('sendmessage', [MessagesController::class, 'messagesentbytutor'])->name('tutor.messages.send');
+    Route::post('chat-presence', [MessagesController::class, 'chatPresence'])->name('tutor.chat.presence');
    //payments
    Route::get('payments', [PaymentsController::class, 'tutorStudentPayments'])->name('tutor.payments');
    Route::any('paymentsearch', [PaymentsController::class, 'paymentSearchTutor'])->name('tutor.paymentsearch');
