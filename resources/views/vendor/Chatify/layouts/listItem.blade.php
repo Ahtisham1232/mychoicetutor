@@ -27,9 +27,7 @@ $lastMessageBody = strlen($lastMessageBody) > 30 ? mb_substr($lastMessageBody, 0
     <tr data-action="0">
         {{-- Avatar side --}}
         <td style="position: relative">
-            @if($user->active_status)
-                <span class="activeStatus"></span>
-            @endif
+            {{-- Online dot is added by JS from Pusher presence only (avoids enrollees always showing as online) --}}
         <div class="avatar av-m"
         style="background-image: url('{{ $user->avatar }}');">
         </div>

@@ -135,8 +135,10 @@
 
                                     <div class="userlists" style="margin-left:10px">
                                         <div class=""> {{ $userlist->name }}</div>
-                                        <div class="small"><span class="fa fa-circle chat-online"></span>
-                                            Online</div>
+                                        <div class="small chat-status" data-chat-user="{{ $userlist->role_id }}_{{ $userlist->id }}">
+                                            <span class="fa fa-circle {{ ($userlist->is_online ?? false) ? 'chat-online' : 'chat-offline' }}"></span>
+                                            {{ ($userlist->is_online ?? false) ? 'Online' : 'Offline' }}
+                                        </div>
                                     </div>
 
 
@@ -233,6 +235,22 @@
 
             </div>
             <script>
+                // Chat presence: mark current user as online when messages page is open
+                (function() {
+                    var presenceUrl = '{{ url("student/chat-presence") }}';
+                    var csrfToken = document.querySelector('input[name="_token"]') && document.querySelector('input[name="_token"]').value;
+                    function pingPresence() {
+                        if (!csrfToken) return;
+                        fetch(presenceUrl, {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                            body: JSON.stringify({})
+                        }).catch(function() {});
+                    }
+                    pingPresence();
+                    setInterval(pingPresence, 60000);
+                })();
+
                 // Function to reload chat messages using AJAX
                 function reloadChat() {
                     var RoleId = <?php echo isset($header->role_id) ? json_encode($header->role_id) : '""'; ?>;
