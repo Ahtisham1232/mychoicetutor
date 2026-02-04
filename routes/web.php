@@ -705,3 +705,15 @@ Route::get('/.well-known/pki-validation/{filename}', function ($filename) {
 
     abort(404);
 });
+
+Route::get('/stripe/test', function () {
+    \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+
+    $paymentIntent = \Stripe\PaymentIntent::create([
+        'amount' => 1000,
+        'currency' => 'usd',
+    ]);
+
+    return 'Stripe working! PaymentIntent ID: ' . $paymentIntent->id;
+});
+
