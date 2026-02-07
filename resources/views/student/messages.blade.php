@@ -137,7 +137,6 @@
                                         <div class=""> {{ $userlist->name }}</div>
                                         <div class="small chat-status" data-chat-user="{{ $userlist->role_id }}_{{ $userlist->id }}">
                                             <span class="fa fa-circle {{ ($userlist->is_online ?? false) ? 'chat-online' : 'chat-offline' }}"></span>
-                                            @dump($userlist->is_online)
                                             {{ ($userlist->is_online ?? false) ? 'Online' : 'Offline' }}
                                         </div>
                                     </div>

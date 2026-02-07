@@ -13,6 +13,7 @@ use App\Models\tutorprofile;
 use App\Models\studentregistration;
 use App\Models\studentprofile;
 use App\Models\ChMessage;
+use App\Models\Notification;
 use App\Events\NewMessage;
 use App\Events\MessageNotification;
 
@@ -293,6 +294,8 @@ class MessagesController extends Controller
         $senderName = session('userid')->name;
         broadcast(new MessageNotification($message, $senderName, session('userid')->role_id));
 
+        $this->createMessageNotification($message, $senderName);
+
         // Check if this is an AJAX request
         if (request()->ajax()) {
             return response()->json(['success' => true, 'message' => 'Message sent successfully!']);
@@ -521,6 +524,8 @@ class MessagesController extends Controller
         // Send notification to receiver
         $senderName = session('userid')->name;
         broadcast(new MessageNotification($message, $senderName, session('userid')->role_id));
+
+        $this->createMessageNotification($message, $senderName);
 
         // Check if this is an AJAX request
         if (request()->ajax()) {
@@ -776,11 +781,57 @@ class MessagesController extends Controller
         $senderName = session('userid')->name;
         broadcast(new MessageNotification($message, $senderName, session('userid')->role_id));
 
+        $this->createMessageNotification($message, $senderName);
+
         // Check if this is an AJAX request
         if (request()->ajax()) {
             return response()->json(['success' => true, 'message' => 'Message sent successfully!']);
         }
 
         return redirect()->back()->with('success', 'Message sent successfully!');
+    }
+
+    /**
+     * Create and persist a notification for a sent message (alert_type 12).
+     * Triggered when tutor, student, or admin sends a message to the recipient.
+     */
+    protected function createMessageNotification(ChMessage $message, string $senderName): void
+    {
+        try {
+            $notificationdata = new Notification();
+            $notificationdata->alert_type = 12;
+            $notificationdata->notification = 'New message from ' . $senderName;
+            $notificationdata->initiator_id = $message->from_id;
+            $notificationdata->initiator_role = $message->from_role_id;
+            $notificationdata->event_id = $message->id;
+            $notificationdata->read_status = 0;
+
+            $toId = $message->to_id;
+            $toRoleId = (int) $message->to_role_id;
+
+            $notificationdata->show_to_admin = 0;
+            $notificationdata->show_to_admin_id = 0;
+            $notificationdata->show_to_all_admin = 0;
+            $notificationdata->show_to_tutor = 0;
+            $notificationdata->show_to_tutor_id = 0;
+            $notificationdata->show_to_student = 0;
+            $notificationdata->show_to_student_id = 0;
+
+            if ($toRoleId === 1) {
+                $notificationdata->show_to_admin = 1;
+                $notificationdata->show_to_admin_id = $toId;
+                $notificationdata->show_to_all_admin = 0;
+            } elseif ($toRoleId === 2) {
+                $notificationdata->show_to_tutor = 1;
+                $notificationdata->show_to_tutor_id = $toId;
+            } elseif ($toRoleId === 3) {
+                $notificationdata->show_to_student = 1;
+                $notificationdata->show_to_student_id = $toId;
+            }
+
+            $notificationdata->save();
+        } catch (\Exception $e) {
+            \Log::error('Failed to create message notification: ' . $e->getMessage());
+        }
     }
 }
