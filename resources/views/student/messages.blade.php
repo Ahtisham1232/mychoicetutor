@@ -162,7 +162,7 @@
                                                     height="40">
                                             @else
                                                 <img src="{{ url('images/tutors/profilepics') }}/{{ $header->profile_pic }}"
-                                                        class="rounded-circle mr-1" alt="{{ $header->name }}" width="40"
+                                                    class="rounded-circle mr-1" alt="{{ $header->name }}" width="40"
                                                     height="40">
                                             @endif
 
@@ -238,7 +238,6 @@
                 // Chat presence: mark current user as online when messages page is open
                 (function() {
                     var presenceUrl = '{{ url("student/chat-presence") }}';
-                    console.log('Setting up chat presence ping to:', presenceUrl);
                     var csrfToken = document.querySelector('input[name="_token"]') && document.querySelector('input[name="_token"]').value;
                     function pingPresence() {
                         if (!csrfToken) return;
