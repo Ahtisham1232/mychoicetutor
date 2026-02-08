@@ -267,20 +267,42 @@
     </div>
 
     <script>
-        // Chat presence: mark current user as online when messages page is open
-        (function() {
-            var presenceUrl = '{{ url("tutor/chat-presence") }}';
-            var csrfToken = document.querySelector('input[name="_token"]') && document.querySelector('input[name="_token"]').value;
-            function pingPresence() {
-                if (!csrfToken) return;
-                fetch(presenceUrl, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                    body: JSON.stringify({})
-                }).catch(function() {});
+        // Pusher instance (used for presence and, when in a conversation, for chat/notifications)
+        var pusher = new Pusher('{{ config("chatify.pusher.key") }}', {
+            cluster: '{{ config("chatify.pusher.options.cluster") }}',
+            encrypted: true,
+            authEndpoint: '{{ url("tutor/chat-presence-auth") }}',
+            auth: {
+                headers: {
+                    'X-CSRF-TOKEN': (document.querySelector('input[name="_token"]') && document.querySelector('input[name="_token"]').value) || (document.querySelector('meta[name="csrf-token"]') && document.querySelector('meta[name="csrf-token"]').getAttribute('content')) || '',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
             }
-            pingPresence();
-            setInterval(pingPresence, 60000);
+        });
+
+        // Presence channel: online/offline status (Pusher Presence Channels)
+        (function() {
+            function setUserOnlineStatus(userId, isOnline) {
+                var el = document.querySelector('.chat-status[data-chat-user="' + userId + '"]');
+                if (el) {
+                    el.innerHTML = '<span class="fa fa-circle ' + (isOnline ? 'chat-online' : 'chat-offline') + '"></span> ' + (isOnline ? 'Online' : 'Offline');
+                }
+            }
+            var presenceChannel = pusher.subscribe('presence-chat');
+            presenceChannel.bind('pusher:subscription_succeeded', function() {
+                var members = presenceChannel.members.members;
+                document.querySelectorAll('.chat-status[data-chat-user]').forEach(function(el) {
+                    var key = el.getAttribute('data-chat-user');
+                    setUserOnlineStatus(key, !!members[key]);
+                });
+            });
+            presenceChannel.bind('pusher:member_added', function(member) {
+                setUserOnlineStatus(member.id, true);
+            });
+            presenceChannel.bind('pusher:member_removed', function(member) {
+                setUserOnlineStatus(member.id, false);
+            });
         })();
 
         // Function to reload chat messages using AJAX
@@ -310,28 +332,18 @@
         }
 
         @if(isset($header) && $header !== null)
-        // Pusher real-time messaging
-        var pusher = new Pusher('{{ config("chatify.pusher.key") }}', {
-            cluster: '{{ config("chatify.pusher.options.cluster") }}',
-            encrypted: true
+        // Real-time chat and notifications (same Pusher instance as presence)
+        var channel = pusher.subscribe('chat.{{ session("userid")->id }}');
+        channel.bind('new-message', function(data) {
+            console.log('New message received:', data);
+            reloadChat();
         });
-
-                var channel = pusher.subscribe('chat.{{ session("userid")->id }}');
-                channel.bind('new-message', function(data) {
-                    console.log('New message received:', data);
-                    // Reload chat when new message arrives
-                    reloadChat();
-                });
-
-                var notificationChannel = pusher.subscribe('notifications.{{ session("userid")->id }}');
-                notificationChannel.bind('message.notification', function(data) {
-                    console.log('Notification received:', data);
-                    // Show notification
-                    showNotification(data.message);
-
-                    // Reload chat to show new message
-                    reloadChat();
-                });
+        var notificationChannel = pusher.subscribe('notifications.{{ session("userid")->id }}');
+        notificationChannel.bind('message.notification', function(data) {
+            console.log('Notification received:', data);
+            showNotification(data.message);
+            reloadChat();
+        });
         @endif
 
         // Function to show notifications
