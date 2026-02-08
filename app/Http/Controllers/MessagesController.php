@@ -19,21 +19,59 @@ use App\Events\MessageNotification;
 
 class MessagesController extends Controller
 {
-    /** Cache TTL in seconds for chat online presence (2 minutes) */
-    const CHAT_PRESENCE_TTL = 120;
+    /** Cache TTL in seconds for chat online presence (2.5 minutes for reliable display) */
+    // const CHAT_PRESENCE_TTL = 150;
+
+    // /**
+    //  * Mark current user as online for chat (called when messages page is open).
+    //  * Kept for backwards compatibility; presence channel is the source of truth for UI.
+    //  */
+    // public function chatPresence(Request $request)
+    // {
+    //     $user = session('userid');
+    //     if (!$user) {
+    //         return response()->json(['ok' => false], 401);
+    //     }
+    //     $key = 'chat_online:' . $user->role_id . ':' . $user->id;
+    //     Cache::put($key, true, self::CHAT_PRESENCE_TTL);
+    //     return response()->json(['ok' => true]);
+    // }
 
     /**
-     * Mark current user as online for chat (called when messages page is open).
+     * Auth endpoint for Pusher presence channel 'presence-chat'.
+     * Returns auth + channel_data so the current user joins the presence channel.
+     * user_id in channel_data is "role_id_id" to match data-chat-user in the UI.
      */
-    public function chatPresence(Request $request)
+    public function chatPresenceAuth(Request $request)
     {
         $user = session('userid');
         if (!$user) {
-            return response()->json(['ok' => false], 401);
+            return response()->json(['error' => 'Unauthorized'], 403);
         }
-        $key = 'chat_online:' . $user->role_id . ':' . $user->id;
-        Cache::put($key, true, self::CHAT_PRESENCE_TTL);
-        return response()->json(['ok' => true]);
+        $channelName = $request->input('channel_name');
+        $socketId = $request->input('socket_id');
+        if ($channelName !== 'presence-chat' || !$socketId) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+        $key = config('chatify.pusher.key');
+        $secret = config('chatify.pusher.secret');
+        if (!$key || !$secret) {
+            return response()->json(['error' => 'Server config error'], 500);
+        }
+        $userId = $user->role_id . '_' . $user->id;
+        $channelData = json_encode([
+            'user_id' => $userId,
+            'user_info' => [
+                'name' => $user->name ?? '',
+                'role_id' => $user->role_id,
+            ],
+        ]);
+        $stringToSign = $socketId . ':' . $channelName . ':' . $channelData;
+        $signature = hash_hmac('sha256', $stringToSign, $secret, false);
+        return response()->json([
+            'auth' => $key . ':' . $signature,
+            'channel_data' => $channelData,
+        ]);
     }
 
     /**
@@ -52,11 +90,104 @@ class MessagesController extends Controller
         });
         return $userlists;
     }
+
+    /**
+     * Build a status map (role_id + '_' + id => is_online) from a user list.
+     *
+     * @param \Illuminate\Support\Collection $userlists
+     * @return array<string, bool>
+     */
+    protected function userListToStatusMap($userlists)
+    {
+        $status = [];
+        if ($userlists === null) {
+            return $status;
+        }
+        foreach ($userlists as $user) {
+            $key = $user->role_id . '_' . $user->id;
+            $status[$key] = (bool) ($user->is_online ?? false);
+        }
+        return $status;
+    }
+
+    /**
+     * JSON endpoint: online status for student's chat list (admins + assigned tutors).
+     */
+    public function chatPresenceStatusStudent(Request $request)
+    {
+        $user = session('userid');
+        if (!$user || $user->role_id != 3) {
+            return response()->json(['status' => []], 401);
+        }
+        $admins = admin::select('id', 'name', 'role_id')
+            ->where('id', '!=', $user->id)
+            ->where('role_id', 1);
+        $tutors = tutorregistration::select('tutorregistrations.id', 'tutorregistrations.name', 'tutorregistrations.role_id')
+            ->join('paymentstudents', 'paymentstudents.tutor_id', '=', 'tutorregistrations.id')
+            ->where('paymentstudents.student_id', $user->id)
+            ->where('tutorregistrations.id', '!=', $user->id)
+            ->where('tutorregistrations.role_id', 2)
+            ->distinct();
+        $userlists = $admins->union($tutors)->get();
+        $this->addOnlineStatusToUserList($userlists);
+        return response()->json(['status' => $this->userListToStatusMap($userlists)]);
+    }
+
+    /**
+     * JSON endpoint: online status for admin's chat list (admins + tutors + students).
+     */
+    public function chatPresenceStatusAdmin(Request $request)
+    {
+        $user = session('userid');
+        if (!$user || $user->role_id != 1) {
+            return response()->json(['status' => []], 401);
+        }
+        $admins = admin::select('id', 'name', 'role_id')
+            ->where('id', '!=', $user->id)
+            ->where('role_id', 1)
+            ->get();
+        $tutors = tutorregistration::select('tutorregistrations.id', 'tutorregistrations.name', 'tutorregistrations.role_id')
+            ->where('tutorregistrations.id', '!=', $user->id)
+            ->where('tutorregistrations.role_id', 2)
+            ->get();
+        $students = studentregistration::select('studentregistrations.id', 'studentregistrations.name', 'studentregistrations.role_id')
+            ->where('studentregistrations.id', '!=', $user->id)
+            ->where('studentregistrations.role_id', 3)
+            ->get();
+        $userlists = $admins->merge($tutors)->merge($students);
+        $this->addOnlineStatusToUserList($userlists);
+        return response()->json(['status' => $this->userListToStatusMap($userlists)]);
+    }
+
+    /**
+     * JSON endpoint: online status for tutor's chat list (admins + assigned students).
+     */
+    public function chatPresenceStatusTutor(Request $request)
+    {
+        $user = session('userid');
+        if (!$user || $user->role_id != 2) {
+            return response()->json(['status' => []], 401);
+        }
+        $admins = admin::select('id', 'name', 'role_id')
+            ->where('id', '!=', $user->id)
+            ->where('role_id', 1);
+        $students = studentregistration::select('studentregistrations.id', 'studentregistrations.name', 'studentregistrations.role_id')
+            ->join('paymentstudents', 'paymentstudents.student_id', '=', 'studentregistrations.id')
+            ->where('paymentstudents.tutor_id', $user->id)
+            ->where('studentregistrations.id', '!=', $user->id)
+            ->where('studentregistrations.role_id', 3)
+            ->distinct();
+        $userlists = $admins->union($students)->get();
+        $this->addOnlineStatusToUserList($userlists);
+        return response()->json(['status' => $this->userListToStatusMap($userlists)]);
+    }
     /**
      * Student messages - placeholder method
      */
     public function messagesbystudent()
     {
+        // $user = (session('userid'));
+        // dd($user->role_id);
         // Get admins (role_id = 1) - admins don't have profile pics, so we'll handle this in the view
         $admins = admin::select('id', 'name', 'email', 'mobile', 'role_id', \DB::raw('NULL as profile_pic'))
                       ->where('id', '!=', session('userid')->id)
