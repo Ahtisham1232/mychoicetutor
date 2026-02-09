@@ -1,9 +1,5 @@
 <div class="chat-messages p-4">
-    @if (empty($messages))
-        <div class="chat-message-center pb-4">
-            Please select anyone from the list to start chat
-        </div>
-    @else
+    @if (isset($messages))
         @foreach ($messages as $message)
             @if ($message->from_id === session('userid')->id && $message->from_role_id === session('userid')->role_id)
                 {{-- Outgoing message --}}

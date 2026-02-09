@@ -19,12 +19,6 @@
                 color: #e4606d;
             }
 
-            /* .chat-messages {
-                display: flex;
-                flex-direction: column;
-                max-height: 500px;
-                overflow-y: scroll;
-            } */
             .chat-messages {
             display: flex;
             max-height: 300px;
@@ -81,6 +75,24 @@
                 display: flex;
                 justify-content: start
             }
+              .list-group-item {
+                transition: all 0.2s ease;
+            }
+
+            .list-group-item:hover {
+                background-color: #f8f9fa;
+                transform: translateX(4px);
+            }
+
+            .list-group-item.active {
+                background-color: #e9ecef;
+            }
+
+            .buttons {
+                padding: 10px;
+                border: none;
+                font-size: 12px;
+            }
         </style>
 
         <div class="page-content">
@@ -89,12 +101,12 @@
 
 
                     <div class="row g-0">
-                        <div class="col-12 col-lg-5 col-xl-3 border-right {{ $header->name ?? '' ? 'd-none' : '' }}">
+                        <div class="col-12 col-lg-5 col-xl-4 border-right {{ $header->name ?? '' ? 'd-none' : '' }}">
                             <div class="m-4 adminTutorBtn">
                                 <a href="{{ route('student.messages.tutor') }}"> <button
-                                        class="badge bg-primary">Tutors</button></a>
+                                        class="badge bg-primary buttons">Tutors</button></a>
                                 <a href="{{ route('student.messages.admins') }}"> <button
-                                        class="badge bg-primary">Admin</button></a>
+                                        class="badge bg-primary buttons">Admin</button></a>
                             </div>
                             <hr>
                             {{-- <div class="px-4 d-none d-md-block">
@@ -151,7 +163,7 @@
                             <hr class="d-block d-lg-none mt-1 mb-0">
                         </div>
 
-                        <div class="col-12 {{ $header->name ?? '' ? 'col-lg-12 col-xl-12' : 'col-lg-7 col-xl-9' }}">
+                        <div class="col-12 {{ $header->name ?? '' ? 'col-lg-12 col-xl-12' : 'col-lg-7 col-xl-8' }}">
                             @if ($header->name ?? '')
                                 <div class="py-2 px-4 border-bottom d-none d-lg-block">
                                     <div class="d-flex align-items-center py-1">

@@ -19,29 +19,7 @@ use App\Events\MessageNotification;
 
 class MessagesController extends Controller
 {
-    /** Cache TTL in seconds for chat online presence (2.5 minutes for reliable display) */
-    // const CHAT_PRESENCE_TTL = 150;
 
-    // /**
-    //  * Mark current user as online for chat (called when messages page is open).
-    //  * Kept for backwards compatibility; presence channel is the source of truth for UI.
-    //  */
-    // public function chatPresence(Request $request)
-    // {
-    //     $user = session('userid');
-    //     if (!$user) {
-    //         return response()->json(['ok' => false], 401);
-    //     }
-    //     $key = 'chat_online:' . $user->role_id . ':' . $user->id;
-    //     Cache::put($key, true, self::CHAT_PRESENCE_TTL);
-    //     return response()->json(['ok' => true]);
-    // }
-
-    /**
-     * Auth endpoint for Pusher presence channel 'presence-chat'.
-     * Returns auth + channel_data so the current user joins the presence channel.
-     * user_id in channel_data is "role_id_id" to match data-chat-user in the UI.
-     */
     public function chatPresenceAuth(Request $request)
     {
         $user = session('userid');
@@ -186,8 +164,6 @@ class MessagesController extends Controller
      */
     public function messagesbystudent()
     {
-        // $user = (session('userid'));
-        // dd($user->role_id);
         // Get admins (role_id = 1) - admins don't have profile pics, so we'll handle this in the view
         $admins = admin::select('id', 'name', 'email', 'mobile', 'role_id', \DB::raw('NULL as profile_pic'))
                       ->where('id', '!=', session('userid')->id)
@@ -204,7 +180,6 @@ class MessagesController extends Controller
 
         $userlists = $admins->union($tutors)->get();
         $this->addOnlineStatusToUserList($userlists);
-        // dd($userlists->toArray());
         // Get student's profile picture
         $studentProfile = studentprofile::where('student_id', session('userid')->id)->first();
 
@@ -462,11 +437,13 @@ class MessagesController extends Controller
 
         $userlists = $admins->merge($tutors)->merge($students);
         $this->addOnlineStatusToUserList($userlists);
-        // dd($userlists->toArray());
         $messages = [];
         $header = null;
+        $activeTab = 'all';
+        // $hasStudents = $userlists->contains('role_id', 3);
 
-        return view('admin.messages', compact('userlists', 'messages', 'header'));
+
+        return view('admin.messages', compact('userlists', 'messages', 'header','activeTab'));
     }
 
     /**
@@ -484,8 +461,61 @@ class MessagesController extends Controller
         // Empty messages array for initial view (no conversation selected yet)
         $messages = [];
         $header = null;
+        $activeTab = 'student';
 
-        return view('admin.messages', compact('userlists', 'messages', 'header'))->with('info', 'Student messages feature is temporarily unavailable.');
+        return view('admin.messages', compact('userlists', 'messages', 'header','activeTab'))->with('info', 'Student messages feature is temporarily unavailable.');
+    }
+
+        /**
+     * Admin tutor messages - placeholder method
+     */
+    public function messagesbyadmintutor()
+    {
+        $userlists = tutorregistration::select('tutorregistrations.id', 'tutorregistrations.name', 'tutorregistrations.email', 'tutorregistrations.mobile', 'tutorregistrations.role_id', 'tutorprofiles.profile_pic')
+                                    ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
+                                    ->where('tutorregistrations.id', '!=', session('userid')->id)
+                                    ->where('tutorregistrations.role_id', 2) // Get only tutors
+                                    ->get();
+        $this->addOnlineStatusToUserList($userlists);
+
+        // Empty messages array for initial view (no conversation selected yet)
+        $messages = [];
+        $header = null;
+        $activeTab = 'tutor';
+        return view('admin.messages', compact('userlists', 'messages', 'header','activeTab'))->with('info', 'Tutor messages feature is temporarily unavailable.');
+    }
+
+       /**
+     * Admin tutor messages by ID - placeholder method
+     * When admin message to the specific tutor
+     */
+    public function messagesbyadmintutormessages($id)
+    {
+        // Get all tutors for the user list
+        $userlists = tutorregistration::select('id', 'name', 'email', 'mobile', 'role_id')
+                                      ->where('id', '!=', session('userid')->id)
+                                      ->where('role_id', 2) // Get only tutors
+                                      ->get();
+        $this->addOnlineStatusToUserList($userlists);
+
+        // Get the specific tutor for the header
+        $header = tutorregistration::find($id);
+
+        // Get messages between admin and this tutor
+        $messages = ChMessage::where(function($query) use ($id) {
+            $query->where('from_id', session('userid')->id)
+                  ->where('from_role_id', session('userid')->role_id)
+                  ->where('to_id', $id)
+                  ->where('to_role_id', 2); // Tutor role
+        })->orWhere(function($query) use ($id) {
+            $query->where('from_id', $id)
+                  ->where('from_role_id', 2) // Tutor role
+                  ->where('to_id', session('userid')->id)
+                  ->where('to_role_id', session('userid')->role_id);
+        })->orderBy('created_at', 'desc')->get();
+        $activeTab = null;
+
+        return view('admin.messages', compact('userlists', 'header', 'messages','activeTab'))->with('info', 'Tutor messages feature is temporarily unavailable.');
     }
 
     /**
@@ -516,12 +546,14 @@ class MessagesController extends Controller
                   ->where('to_role_id', session('userid')->role_id);
         })->orderBy('created_at', 'desc')->get();
         // dd($messages->toArray());
+        $activeTab = null;
 
-        return view('admin.messages', compact('userlists', 'header', 'messages'))->with('info', 'Student messages feature is temporarily unavailable.');
+        return view('admin.messages', compact('userlists', 'header', 'messages','activeTab'))->with('info', 'Student messages feature is temporarily unavailable.');
     }
 
     /**
      * Admin student messages load by ID
+     * When the tutor click on the specific student this method hit and it load the messages
      */
     public function messagesbyadminstudentmessagesload($id)
     {
@@ -549,55 +581,6 @@ class MessagesController extends Controller
         return redirect()->back()->with('info', 'Message clearing is temporarily unavailable.');
     }
 
-    /**
-     * Admin tutor messages - placeholder method
-     */
-    public function messagesbyadmintutor()
-    {
-        $userlists = tutorregistration::select('tutorregistrations.id', 'tutorregistrations.name', 'tutorregistrations.email', 'tutorregistrations.mobile', 'tutorregistrations.role_id', 'tutorprofiles.profile_pic')
-                                    ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
-                                    ->where('tutorregistrations.id', '!=', session('userid')->id)
-                                    ->where('tutorregistrations.role_id', 2) // Get only tutors
-                                    ->get();
-        $this->addOnlineStatusToUserList($userlists);
-
-        // Empty messages array for initial view (no conversation selected yet)
-        $messages = [];
-        $header = null;
-
-        return view('admin.messages', compact('userlists', 'messages', 'header'))->with('info', 'Tutor messages feature is temporarily unavailable.');
-    }
-
-    /**
-     * Admin tutor messages by ID - placeholder method
-     */
-    public function messagesbyadmintutormessages($id)
-    {
-        // Get all tutors for the user list
-        $userlists = tutorregistration::select('id', 'name', 'email', 'mobile', 'role_id')
-                                      ->where('id', '!=', session('userid')->id)
-                                      ->where('role_id', 2) // Get only tutors
-                                      ->get();
-        $this->addOnlineStatusToUserList($userlists);
-
-        // Get the specific tutor for the header
-        $header = tutorregistration::find($id);
-
-        // Get messages between admin and this tutor
-        $messages = ChMessage::where(function($query) use ($id) {
-            $query->where('from_id', session('userid')->id)
-                  ->where('from_role_id', session('userid')->role_id)
-                  ->where('to_id', $id)
-                  ->where('to_role_id', 2); // Tutor role
-        })->orWhere(function($query) use ($id) {
-            $query->where('from_id', $id)
-                  ->where('from_role_id', 2) // Tutor role
-                  ->where('to_id', session('userid')->id)
-                  ->where('to_role_id', session('userid')->role_id);
-        })->orderBy('created_at', 'desc')->get();
-
-        return view('admin.messages', compact('userlists', 'header', 'messages'))->with('info', 'Tutor messages feature is temporarily unavailable.');
-    }
 
     /**
      * Admin tutor messages load by ID
@@ -671,7 +654,33 @@ class MessagesController extends Controller
      */
     public function chatstudentsearch(Request $request)
     {
-        return response()->json(['results' => []]);
+        $search = $request->searchtext;
+
+        $userlists = studentregistration::select(
+                'studentregistrations.id',
+                'studentregistrations.name',
+                'studentregistrations.email',
+                'studentregistrations.mobile',
+                'studentregistrations.role_id',
+                'studentprofiles.profile_pic'
+            )
+            ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
+            ->where('studentregistrations.id', '!=', session('userid')->id)
+            ->where('studentregistrations.role_id', 3)
+            ->where(function ($query) use ($search) {
+                $query->where('studentregistrations.name', 'LIKE', "%{$search}%")
+                    ->orWhere('studentregistrations.email', 'LIKE', "%{$search}%")
+                    ->orWhere('studentregistrations.mobile', 'LIKE', "%{$search}%");
+            })
+            ->get();
+
+        $this->addOnlineStatusToUserList($userlists);
+
+        $messages = [];
+        $header = null;
+        $activeTab = 'student';
+
+        return view('admin.messages', compact('userlists', 'messages', 'header', 'activeTab'))->with('searchtext', $search);
     }
 
     /**
@@ -679,7 +688,33 @@ class MessagesController extends Controller
      */
     public function chattutorsearch(Request $request)
     {
-        return response()->json(['results' => []]);
+        $search = $request->searchtext;
+
+        $userlists = tutorregistration::select(
+                'tutorregistrations.id',
+                'tutorregistrations.name',
+                'tutorregistrations.email',
+                'tutorregistrations.mobile',
+                'tutorregistrations.role_id',
+                'tutorprofiles.profile_pic'
+            )
+            ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
+            ->where('tutorregistrations.id', '!=', session('userid')->id)
+            ->where('tutorregistrations.role_id', 2)
+            ->where(function ($query) use ($search) {
+                $query->where('tutorregistrations.name', 'LIKE', "%{$search}%")
+                    ->orWhere('tutorregistrations.email', 'LIKE', "%{$search}%")
+                    ->orWhere('tutorregistrations.mobile', 'LIKE', "%{$search}%");
+            })
+            ->get();
+
+        $this->addOnlineStatusToUserList($userlists);
+
+        $messages = [];
+        $header = null;
+        $activeTab = 'tutor';
+
+        return view('admin.messages', compact('userlists', 'messages', 'header', 'activeTab'))->with('searchtext', $search);
     }
 
     /**
