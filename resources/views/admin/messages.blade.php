@@ -123,8 +123,8 @@
                                 <a href="{{ route('admin.messages.tutors') }}"> <button
                                         class="badge bg-primary buttons">Tutors</button></a>
                                 @if(!empty($searchtext))
-                                 <a href="{{ route('admin.messages buttons') }}"> <button
-                                        class="badge bg-primary">✖ Remove Filter</button></a>
+                                 <a href="{{ route('admin.messages') }}"> <button
+                                        class="badge bg-primary buttons">✖ Remove Filter</button></a>
                                 @endif
 
                             </div>
