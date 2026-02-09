@@ -27,11 +27,11 @@
     }
 
     .chat-messages {
-            display: flex;
-            max-height: 300px;
-            flex-direction: column-reverse; /* Reverse message order */
-            overflow-y: scroll; /* Enable scrolling */
-            }
+        display: flex;
+        max-height: 300px;
+        flex-direction: column-reverse; /* Reverse message order */
+        overflow-y: scroll; /* Enable scrolling */
+    }
 
     .chat-message-left,
     .chat-message-right {
@@ -72,8 +72,27 @@
 
     .userlists div{
         display:flex;
-        justify-content: start
+        justify-content: start;
 
+    }
+
+    .list-group-item {
+    transition: all 0.2s ease;
+    }
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(4px);
+    }
+
+    .list-group-item.active {
+        background-color: #e9ecef;
+    }
+
+    .buttons {
+        padding: 10px;
+        border: none;
+        font-size: 12px;
     }
     </style>
 
@@ -81,12 +100,12 @@
         <div class="container-fluid">
             <div class="card chatPannel">
                 <div class="row g-0">
-                    <div class="col-12 col-lg-5 col-xl-3 border-right {{ $header->name ?? '' ? 'd-none' : '' }}">
+                    <div class="col-12 col-lg-5 col-xl-4 border-right {{ $header->name ?? '' ? 'd-none' : '' }}">
                         <div class="m-4 adminTutorBtn">
                             <a href="{{ route('tutor.messages.students') }}"> <button
-                                    class="badge bg-primary">Students</button></a>
+                                    class="badge bg-primary buttons">Students</button></a>
                             <a href="{{ route('tutor.messages.admins') }}"> <button
-                                    class="badge bg-primary">Admin</button></a>
+                                    class="badge bg-primary buttons">Admin</button></a>
                         </div>
                         <hr>
                         {{-- Populating chat user list --}}
@@ -125,7 +144,7 @@
                             <hr class="d-block d-lg-none mt-1 mb-0">
                     </div>
 
-                    <div class="col-12 {{ $header->name ?? '' ? 'col-lg-12 col-xl-12' : 'col-lg-7 col-xl-9' }}">
+                    <div class="col-12 {{ $header->name ?? '' ? 'col-lg-12 col-xl-12' : 'col-lg-7 col-xl-8' }}">
                         @if ($header->name ?? '')
                         <div class="py-2 px-4 border-bottom d-none d-lg-block">
                             <div class="d-flex align-items-center py-1">
@@ -160,12 +179,7 @@
                         <div class="position-relative" id="chatbox">
                             <div class="chat-messages p-4">
 
-                                @if (empty($messages))
-                                <div class="chat-message-center pb-4">
-
-                                    Please select anyone from the list to start chat
-                                </div>
-                                @else
+                                @if (isset($messages))
                                 @foreach ($messages as $message)
                                 @if ($message->from_id === session('userid')->id && $message->from_role_id === 2)
                                 {{-- <div class="my-message">
