@@ -45,6 +45,31 @@
                 padding-left: 10px;
             }
         </style>
+        
+        <style>
+            .active-slot {
+                outline: 2px solid #000;
+                box-shadow: 0 0 5px #000;
+            }
+            
+            #requestEnrollmentBtn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+            
+            #requestEnrollmentBtn:not(:disabled) {
+                opacity: 1;
+                cursor: pointer;
+            }
+            
+            .contact-admin-section {
+                background-color: #f8f9fa;
+                padding: 15px;
+                border-radius: 5px;
+                border: 1px solid #dee2e6;
+                margin-top: 10px;
+            }
+        </style>
 
         <div class="page-content">
             <div class="container-fluid">
@@ -137,6 +162,7 @@
                     <hr>
 
                     <div class="full-width-table-responsive">
+                        @if(count($groupedSlots) > 0)
                         <table class="table table-hover table-striped align-middle table-nowrap mb-0 users-table"
                             style="height: 260px;">
                             <thead class="thead-dark">
@@ -174,77 +200,76 @@
                             </tbody>
 
                         </table>
+                        @else
+                            <div class="alert alert-danger mt-3">
+                                <i class="fa fa-lock"></i> 
+                                <strong>Booking Unavailable:</strong> This tutor has not set their availability slots yet. Enrollment is disabled until slots are created.
+                            </div>
+                         @endif
                     </div>
 
 
 
                     </table>
                      </div>
-                    <div style="display: flex; justify-content:space-between" class="my-3">
-                    <div class="contact-admin-section">
-                        <input type="hidden" id="slotids" name="slotids">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="contactadmin" name="contactadmin">
-                            <label class="form-check-label" for="contactadmin">
-                                <strong>Contact Admin</strong> - Please select this option if you are not able to select slots and need admin assistance.
-                            </label>
-                        </div>
-                    </div>
-                    <button id="requestEnrollmentBtn" class="btn btn-sm btn-success" disabled>Request Enrollment</button>
 
+                        <div style="display: flex; justify-content:space-between" class="my-3">
+                            <div class="contact-admin-section">
+                                <input type="hidden" id="slotids" name="slotids">
+                                <div class="form-check">
+                                    {{-- Disable checkbox if no slots --}}
+                                    <input type="checkbox" class="form-check-input" id="contactadmin" name="contactadmin" {{ count($groupedSlots) == 0 ? 'disabled' : '' }}>
+                                    <label class="form-check-label" for="contactadmin">
+                                        <strong>Checked this checkbox for the enrollment</strong>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            {{-- Ensure button is strictly disabled if count is 0 --}}
+                            <button id="requestEnrollmentBtn" class="btn btn-sm btn-success" 
+                                {{ count($groupedSlots) == 0 ? 'disabled' : '' }}>
+                                Request Enrollment
+                            </button>
+                        </div>
                 </form>
-            </div>
-            <div class="">
+            <div>
                 <p style="color: #99A7AE">Subject selection is a formality—you can take any subject by mutual agreement with
                     your tutor.</p>
             </div>
         </div>
     </div>
 
-    </div>
     <!-- content-wrapper ends -->
-
-    <!-- ... Existing HTML code ... -->
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
-
-<style>
-    .active-slot {
-        outline: 2px solid #000;
-        box-shadow: 0 0 5px #000;
-    }
-    
-    #requestEnrollmentBtn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-    
-    #requestEnrollmentBtn:not(:disabled) {
-        opacity: 1;
-        cursor: pointer;
-    }
-    
-    .contact-admin-section {
-        background-color: #f8f9fa;
-        padding: 15px;
-        border-radius: 5px;
-        border: 1px solid #dee2e6;
-        margin-top: 10px;
-    }
-</style>
     <script>
         $(document).ready(function() {
+            var slotCount = {{ count($groupedSlots) }};
             // Initialize an array to store selected slots
             var selectedSlots = [];
-            
             // Function to check if button should be enabled
             function checkButtonState() {
-                const hasSelectedSlots = selectedSlots.length > 0;
-                const isContactAdminChecked = $('#contactadmin').is(':checked');
-                
-                // Enable button if either slots are selected OR contact admin is checked
-                $('#requestEnrollmentBtn').prop('disabled', !(hasSelectedSlots || isContactAdminChecked));
+                // 1. If no slots exist for this tutor at all, keep button disabled
+                if (slotCount === 0) {
+                    $('#requestEnrollmentBtn').prop('disabled', true);
+                    return;
+                }
+
+                // 2. Get the value of required classes
+                var requiredClassValue = parseInt($('#requiredclassenroll').val());
+                var hasRequiredClasses = !isNaN(requiredClassValue) && requiredClassValue > 0;
+
+                // 3. Check selection criteria
+                var hasSelectedSlots = selectedSlots.length > 0;
+                var isContactAdminChecked = $('#contactadmin').is(':checked');
+
+                // CONDITION: Must have Required Classes AND (Selected Slots OR Contact Admin)
+                if (hasRequiredClasses && (hasSelectedSlots || isContactAdminChecked)) {
+                    $('#requestEnrollmentBtn').prop('disabled', false);
+                } else {
+                    $('#requestEnrollmentBtn').prop('disabled', true);
+                }
             }
             
             // Add event listener to checkbox

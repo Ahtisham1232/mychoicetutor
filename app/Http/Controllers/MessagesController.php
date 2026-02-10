@@ -169,16 +169,34 @@ class MessagesController extends Controller
                       ->where('id', '!=', session('userid')->id)
                       ->where('role_id', 1);
 
-        // Get only tutors assigned to this student via paymentstudents table with profile pics
-        $tutors = tutorregistration::select('tutorregistrations.id', 'tutorregistrations.name', 'tutorregistrations.email', 'tutorregistrations.mobile', 'tutorregistrations.role_id', 'tutorprofiles.profile_pic')
-                                  ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
-                                  ->join('paymentstudents', 'paymentstudents.tutor_id', '=', 'tutorregistrations.id')
-                                  ->where('paymentstudents.student_id', session('userid')->id)
-                                  ->where('tutorregistrations.id', '!=', session('userid')->id)
-                                  ->where('tutorregistrations.role_id', 2)
-                                  ->distinct();
+        // Get tutors assigned to this student via paymentstudents table and democlasses with profile pics
+        $allTutors = tutorregistration::select(
+                'tutorregistrations.id',
+                'tutorregistrations.name',
+                'tutorregistrations.email',
+                'tutorregistrations.mobile',
+                'tutorregistrations.role_id',
+                'tutorprofiles.profile_pic'
+            )
+            ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
+            ->leftJoin('paymentstudents', function ($join) {
+                $join->on('paymentstudents.tutor_id', '=', 'tutorregistrations.id')
+                    ->where('paymentstudents.student_id', session('userid')->id);
+            })
+            ->leftJoin('democlasses', function ($join) {
+                $join->on('democlasses.tutor_id', '=', 'tutorregistrations.id')
+                    ->where('democlasses.student_id', session('userid')->id);
+            })
+            ->where(function ($query) {
+                $query->whereNotNull('paymentstudents.id')
+                    ->orWhereNotNull('democlasses.id');
+            })
+            ->where('tutorregistrations.role_id', 2)
+            ->distinct();
 
-        $userlists = $admins->union($tutors)->get();
+        // $userlists = $admins->union($tutors)->get();
+        $userlists = $admins->union($allTutors)->get();
+
         $this->addOnlineStatusToUserList($userlists);
         // Get student's profile picture
         $studentProfile = studentprofile::where('student_id', session('userid')->id)->first();
@@ -727,16 +745,34 @@ class MessagesController extends Controller
                       ->where('id', '!=', session('userid')->id)
                       ->where('role_id', 1);
 
-        // Get only students assigned to this tutor via paymentstudents table with profile pics
-        $students = studentregistration::select('studentregistrations.id', 'studentregistrations.name', 'studentregistrations.email', 'studentregistrations.mobile', 'studentregistrations.role_id', 'studentprofiles.profile_pic')
-                                      ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
-                                      ->join('paymentstudents', 'paymentstudents.student_id', '=', 'studentregistrations.id')
-                                      ->where('paymentstudents.tutor_id', session('userid')->id)
-                                      ->where('studentregistrations.id', '!=', session('userid')->id)
-                                      ->where('studentregistrations.role_id', 3)
-                                      ->distinct();
+        // Get students assigned to this tutor via paymentstudents table and the demo class table with profile pics
+        $allStudents = studentregistration::select(
+            'studentregistrations.id',
+            'studentregistrations.name',
+            'studentregistrations.email',
+            'studentregistrations.mobile',
+            'studentregistrations.role_id',
+            'studentprofiles.profile_pic'
+        )
+        ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
+        ->leftJoin('paymentstudents', function ($join) {
+            $join->on('paymentstudents.student_id', '=', 'studentregistrations.id')
+                ->where('paymentstudents.tutor_id', session('userid')->id);
+        })
+        ->leftJoin('democlasses', function ($join) {
+            $join->on('democlasses.student_id', '=', 'studentregistrations.id')
+                ->where('democlasses.tutor_id', session('userid')->id);
+        })
+        ->where(function ($query) {
+            $query->whereNotNull('paymentstudents.id')
+                ->orWhereNotNull('democlasses.id');
+        })
+        ->where('studentregistrations.role_id', 3)
+        ->where('studentregistrations.id', '!=', session('userid')->id)
+        ->distinct();
 
-        $userlists = $admins->union($students)->get();
+
+        $userlists = $admins->union($allStudents)->get();
         $this->addOnlineStatusToUserList($userlists);
 
         // Get tutor's profile picture

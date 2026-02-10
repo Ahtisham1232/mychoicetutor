@@ -597,6 +597,16 @@ class TutorSearchController extends Controller
                 'totalamountenroll' => 'required',
             ]);
 
+            // 1. Validate 'Required Classes' is present and greater than 0
+            if (empty($request->requiredclassenroll) || $request->requiredclassenroll < 1) {
+                return redirect()->back()->with('fail', 'Please enter the number of required classes.');
+            }
+
+            // 2. Validate scheduling (Must have slots OR Contact Admin checked)
+            if (empty($request->slotids) && $request->contactadmin !== 'on') {
+                return redirect()->back()->with('fail', 'Please select your preferred slots or check "Contact Admin" if no slots suit you.');
+            }
+
             $order_id = substr(uniqid(date('YmdHis')), 0, 20);
             $classId = subjects::find($request->subjectenrollid);
             $tutorname = tutorprofile::where('tutor_id', $request->tutorenrollid)->first();
