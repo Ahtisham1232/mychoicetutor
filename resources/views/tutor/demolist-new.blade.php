@@ -229,16 +229,6 @@
                             </span>
 
 
-                            {{-- <div class="col-12 col-md-12 col-ms-12">
-                                    <label>Demo Link<i style="color: red;">*</i></label>
-                                    <input type="text" class="form-control" id="demolink" name="demolink"
-                                        placeholder="Paste Demo Link Here">
-                                    <span class="text-danger">
-                                        @error('demolink')
-                                            {{ $message }}
-                                        @enderror
-                                    </span>
-                                </div> --}}
                             <div class="col-12 col-md-12 col-ms-12">
                                 <label>Remarks</label>
                                 <textarea type="text" class="form-control" id="demoremarks" name="demoremarks" value=""
@@ -251,9 +241,8 @@
                         <div style="float:right">
                             <button type="button" class="btn btn-danger" data-dismiss="modal"
                                 onclick="closeModal2();">Close</button>
-                            <button type="submit" id="" class="btn btn-sm btn-success"><span
+                            <button type="submit" id="confirmBtn" class="btn btn-sm btn-success"><span
                                     class="fa fa-check"></span> Confirm</button>
-
 
                         </div>
 
@@ -394,7 +383,33 @@
             </div>
         </div>
     </div>
-    <script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>   
+        $(document).ready(function () {
+
+            let isSubmitting = false;
+
+            $('#confirmModal form').on('submit', function (e) {
+
+                if (isSubmitting) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                isSubmitting = true;
+
+                $('#confirmBtn')
+                    .prop('disabled', true)
+                    .html('Please wait...');
+
+                // allow submission once
+                return true;
+            });
+
+        });
+
+
         function closeModal() {
             $('#editModal').modal('hide');
         }
@@ -404,75 +419,75 @@
         }
 
         function openconfirmmodal(id) {
-    $.ajax({
-        url: "{{ url('tutor/demodetails') }}/" + id,
-        type: "GET",
-        data: {
-            _token: '{{ csrf_token() }}'
-        },
-        dataType: 'json',
-        success: function(result) {
-            console.log(result);
-            result = result[0];
+            $.ajax({
+                url: "{{ url('tutor/demodetails') }}/" + id,
+                type: "GET",
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                dataType: 'json',
+                success: function(result) {
+                    console.log(result);
+                    result = result[0];
 
-            // Set the confirm ID
-            $('#confirmid').val(id);
+                    // Set the confirm ID
+                    $('#confirmid').val(id);
 
-            // Format and display the slots
-            if (result.slot_1) {
-                $('#slot_1').html(formatDate(result.slot_1)); // Format date
-                $('#slot1').val(result.slot_1);
-                document.getElementById('slot1Div').style.display = 'block'; // Ensure visibility
-            } else {
-                document.getElementById('slot1Div').style.display = 'none'; // Hide if no data
-            }
+                    // Format and display the slots
+                    if (result.slot_1) {
+                        $('#slot_1').html(formatDate(result.slot_1)); // Format date
+                        $('#slot1').val(result.slot_1);
+                        document.getElementById('slot1Div').style.display = 'block'; // Ensure visibility
+                    } else {
+                        document.getElementById('slot1Div').style.display = 'none'; // Hide if no data
+                    }
 
-            if (result.slot_2) {
-                $('#slot_2').html(formatDate(result.slot_2)); // Format date
-                $('#slot2').val(result.slot_2);
-                document.getElementById('slot2Div').style.display = 'block'; // Ensure visibility
-            } else {
-                document.getElementById('slot2Div').style.display = 'none'; // Hide if no data
-            }
+                    if (result.slot_2) {
+                        $('#slot_2').html(formatDate(result.slot_2)); // Format date
+                        $('#slot2').val(result.slot_2);
+                        document.getElementById('slot2Div').style.display = 'block'; // Ensure visibility
+                    } else {
+                        document.getElementById('slot2Div').style.display = 'none'; // Hide if no data
+                    }
 
-            if (result.slot_3) {
-                $('#slot_3').html(formatDate(result.slot_3)); // Format date
-                $('#slot3').val(result.slot_3);
-                document.getElementById('slot3Div').style.display = 'block'; // Ensure visibility
-            } else {
-                document.getElementById('slot3Div').style.display = 'none'; // Hide if no data
-            }
+                    if (result.slot_3) {
+                        $('#slot_3').html(formatDate(result.slot_3)); // Format date
+                        $('#slot3').val(result.slot_3);
+                        document.getElementById('slot3Div').style.display = 'block'; // Ensure visibility
+                    } else {
+                        document.getElementById('slot3Div').style.display = 'none'; // Hide if no data
+                    }
 
-            // Set demo link and remarks
-            $('#demolink').val(result.demo_link);
-            $('#demoremarks').val(result.remarks);
+                    // Set demo link and remarks
+                    $('#demolink').val(result.demo_link);
+                    $('#demoremarks').val(result.remarks);
 
-            // Show the modal
-            $('#confirmModal').modal('show');
+                    // Show the modal
+                    $('#confirmModal').modal('show');
+                }
+            });
         }
-    });
-}
 
-// Helper function to format date into DD-MM-YYYY hh:mm AM/PM
-function formatDate(dateString) {
-    const date = new Date(dateString);
+        // Helper function to format date into DD-MM-YYYY hh:mm AM/PM
+        function formatDate(dateString) {
+            const date = new Date(dateString);
 
-    // Extract date components
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
-    const year = date.getFullYear();
+            // Extract date components
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+            const year = date.getFullYear();
 
-    // Extract time components
-    let hours = date.getHours();
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
+            // Extract time components
+            let hours = date.getHours();
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
 
-    // Convert hours to 12-hour format
-    hours = hours % 12;
-    hours = hours ? hours : 12; // The hour '0' should be '12'
+            // Convert hours to 12-hour format
+            hours = hours % 12;
+            hours = hours ? hours : 12; // The hour '0' should be '12'
 
-    return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
-}
+            return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
+        }
 
 
         function openupdatemodal(id) {
@@ -522,7 +537,6 @@ function formatDate(dateString) {
 
         };
     </script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function updateTableAndPagination(data) {
             // $('#tableContainer').html(data.table);

@@ -46,9 +46,12 @@
                                             <td>{{ $request->class_name }}</td>
                                             <td>{{ $request->classes_purchased }}</td>
                                             <td>£{{ $request->amount }}</td>
-                                            <td>{{ \Carbon\Carbon::parse($request->created_at)->format('d M Y, h:i A') }}</td>
                                             <td>
-                                                @if($request->status == 0)
+                                                {{ \Carbon\Carbon::parse($request->created_at)->setTimezone('Asia/Karachi')->format('d M Y, h:i A') }}
+                                            </td>
+
+                                            <td>
+                                                @if ($request->status == 0)
                                                     <span class="badge badge-warning">Pending</span>
                                                 @elseif($request->status == 1)
                                                     <span class="badge badge-success">Approved</span>
@@ -57,14 +60,14 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                @if($request->status == 0)
+                                                @if ($request->status == 0)
                                                     <div class="btn-group" role="group">
-                                                        <button type="button" class="btn btn-success btn-sm" 
-                                                                onclick="approveRequest('{{ $request->transaction_id }}')">
+                                                        <button type="button" class="btn btn-success btn-sm"
+                                                            onclick="approveRequest('{{ $request->transaction_id }}')">
                                                             <i class="fa fa-check"></i> Approve
                                                         </button>
-                                                        <button type="button" class="btn btn-danger btn-sm" 
-                                                                onclick="rejectRequest('{{ $request->transaction_id }}')">
+                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                            onclick="rejectRequest('{{ $request->transaction_id }}')">
                                                             <i class="fa fa-times"></i> Reject
                                                         </button>
                                                     </div>
@@ -82,7 +85,7 @@
                             </table>
                         </div>
 
-                        @if($enrollmentRequests->hasPages())
+                        @if ($enrollmentRequests->hasPages())
                             <div class="mt-3">
                                 {{ $enrollmentRequests->links() }}
                             </div>
@@ -99,9 +102,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Approve Enrollment Request</h5>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form id="approvalForm" method="POST" action="{{ route('admin.approve-enrollment') }}">
                     @csrf
@@ -110,24 +111,27 @@
                         <div class="form-group">
                             <label>Payment Verification</label>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="payment_verified" id="paymentVerified" value="1" required>
+                                <input class="form-check-input" type="radio" name="payment_verified" id="paymentVerified"
+                                    value="1" required>
                                 <label class="form-check-label" for="paymentVerified">
                                     Payment has been verified
                                 </label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="payment_verified" id="paymentPending" value="0">
+                                <input class="form-check-input" type="radio" name="payment_verified" id="paymentPending"
+                                    value="0">
                                 <label class="form-check-label" for="paymentPending">
                                     Payment pending verification
                                 </label>
                             </div>
                         </div>
                         <div class="alert alert-info">
-                            <strong>Note:</strong> If payment is verified, the enrollment will be approved and slots will be confirmed. If payment is pending, the request will remain in pending status.
+                            <strong>Note:</strong> If payment is verified, the enrollment will be approved and slots will be
+                            confirmed. If payment is pending, the request will remain in pending status.
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-success">Approve Request</button>
                     </div>
                 </form>
@@ -141,9 +145,8 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Reject Enrollment Request</h5>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
                 </div>
                 <form id="rejectionForm" method="POST" action="{{ route('admin.reject-enrollment') }}">
                     @csrf
@@ -151,14 +154,16 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="rejectionReason">Reason for Rejection</label>
-                            <textarea class="form-control" name="rejection_reason" id="rejectionReason" rows="3" required placeholder="Please provide a reason for rejecting this enrollment request..."></textarea>
+                            <textarea class="form-control" name="rejection_reason" id="rejectionReason" rows="3" required
+                                placeholder="Please provide a reason for rejecting this enrollment request..."></textarea>
                         </div>
                         <div class="alert alert-warning">
-                            <strong>Warning:</strong> Rejecting this request will release the booked slots and notify the student.
+                            <strong>Warning:</strong> Rejecting this request will release the booked slots and notify the
+                            student.
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-danger">Reject Request</button>
                     </div>
                 </form>

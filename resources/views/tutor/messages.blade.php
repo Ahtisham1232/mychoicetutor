@@ -196,7 +196,7 @@
                                             class="rounded-circle mr-1" alt="You" width="40" height="40">
                                     @endif
                                     <div class="text-muted small text-nowrap mt-2">
-                                        {{ $message->created_at }}</div>
+                                        {{ $message->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}</div>
                                 </div>
                                 <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
                                     <div class="font-weight-bold mb-1">You</div>
@@ -223,7 +223,7 @@
                                     @endif
                                 @endif
                                 <div class="text-muted small text-nowrap mt-2">
-                                    {{ $message->created_at }}</div>
+                                    {{ $message->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}</div>
                             </div>
                             <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
                                 <div class="font-weight-bold mb-1">{{ $header->name }}</div>
