@@ -116,7 +116,7 @@
                                     <div class="d-flex align-items-start">
 
                                         @if (empty($userlist->profile_pic))
-                                        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-profiles/avatar-1.webp"
+                                        <img src="images/students/profilepics/no-img.jpg"
                                             class="rounded-circle mr-1" alt="Richard" width="40" height="40">
                                         @else
                                         @if ($userlist->role_id == 2)
@@ -150,7 +150,7 @@
                             <div class="d-flex align-items-center py-1">
                                 <div class="position-relative">
                                     @if (empty($header->profile_pic))
-                                    <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-profiles/avatar-1.webp"
+                                    <img src="images/students/profilepics/no-img.jpg"
                                         class="rounded-circle mr-1" alt="Richard" width="40" height="40">
                                     @else
                                     <img src="{{ url('images/tutors/profilepics') }}/{{ $header->profile_pic }}"
@@ -204,7 +204,7 @@
                                 <img src="{{ url('images/tutors/profilepics') }}/{{ $header->profile_pic }}"
                                     class="rounded-circle mr-1" alt="Chris Wood" width="40" height="40">
                                 @elseif ($header->role_id == 1)
-                                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-profiles/avatar-1.webp"
+                                <img src="images/students/profilepics/no-img.jpg"
                                     class="rounded-circle mr-1" alt="Chris Wood" width="40" height="40">
                                 @endif
 

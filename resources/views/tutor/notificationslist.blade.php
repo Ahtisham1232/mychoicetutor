@@ -44,7 +44,7 @@
                                    <td>{{$loop->iteration}}</td>
                                    <td>
                                     @if($notification->created_at)
-                                        {{ \Carbon\Carbon::parse($notification->created_at)->format('d-m-Y h:i A') }}
+                                        {{ $notification->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}
                                     @else
                                         ''
                                     @endif

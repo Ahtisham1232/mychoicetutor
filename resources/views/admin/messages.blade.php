@@ -107,7 +107,7 @@
                             </div>
                         @endif
 
-                        @if(!empty($searchtext))
+                        @if (!empty($searchtext))
                             <div class="alert alert-info py-2 px-3 mb-2">
                                 🔍 Showing search results for "<strong>{{ $searchtext }}</strong>"
                             </div>
@@ -122,9 +122,9 @@
                                         class="badge bg-primary buttons">Students</button></a>
                                 <a href="{{ route('admin.messages.tutors') }}"> <button
                                         class="badge bg-primary buttons">Tutors</button></a>
-                                @if(!empty($searchtext))
-                                 <a href="{{ route('admin.messages') }}"> <button
-                                        class="badge bg-primary buttons">✖ Remove Filter</button></a>
+                                @if (!empty($searchtext))
+                                    <a href="{{ route('admin.messages') }}"> <button class="badge bg-primary buttons">✖
+                                            Remove Filter</button></a>
                                 @endif
 
                             </div>
@@ -215,8 +215,8 @@
                                 <div class="d-flex align-items-start m-3">
 
                                     @if (empty($userlist->profile_pic))
-                                        <img src="https://mychoicetutor.com/new-styles/assets/images/users/avatar-1.jpg"
-                                            class="rounded-circle mr-1" alt="Richard" width="40" height="40">
+                                        <img src="images/students/profilepics/no-img.jpg" class="rounded-circle mr-1"
+                                            alt="Richard" width="40" height="40">
                                     @else
                                         @if ($userlist->role_id == 2)
                                             <img src="{{ url('images/tutors/profilepics') }}/{{ $userlist->profile_pic }}"
@@ -258,7 +258,7 @@
                                     <div class="d-flex align-items-center py-1 ">
                                         <div class="position-relative">
                                             @if (empty($header->profile_pic))
-                                                <img src="https://mychoicetutor.com/new-styles/assets/images/users/avatar-1.jpg"
+                                                <img src="images/students/profilepics/no-img.jpg"
                                                     class="rounded-circle mr-1" alt="Richard" width="40"
                                                     height="40">
                                             @else
@@ -288,9 +288,10 @@
                                         <i class="fas fa-comments fa-3x text-muted"></i>
                                     </div>
                                     <h5 class="text-muted" style="font-size: 20px">Select a conversation</h5>
-                                    <p class="text-muted" style="font-size: 17px">Choose someone from the list to start chatting</p>
+                                    <p class="text-muted" style="font-size: 17px">Choose someone from the list to start
+                                        chatting</p>
                                 </div>
-                                
+
                             @endif
                             <div class="position-relative chatarea" id="chatbox">
                                 <div class="chat-messages p-4">
@@ -300,15 +301,19 @@
                                             @if ($message->from_id === session('userid')->id && $message->from_role_id === 1)
                                                 <div class="chat-message-right pb-4">
                                                     <div>
-                                                        <img src="https://mychoicetutor.com/new-styles/assets/images/users/avatar-1.jpg"
+                                                        <img src="images/students/profilepics/no-img.jpg"
                                                             class="rounded-circle mr-1" alt="Chris Wood" width="40"
                                                             height="40">
                                                         <div class="text-muted small text-nowrap mt-2">
-                                                            {{ $message->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}</div>
+                                                            {{ $message->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}
+                                                        </div>
                                                     </div>
-                                                    <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
-                                                        <div class="font-weight-bold mb-1">You</div>
-                                                        {{ $message->body }}
+                                                    <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3 shadow-sm"
+                                                        style="max-width: 80%;">
+                                                        <div class="small text-muted font-weight-bold mb-1">You</div>
+                                                        <div class="text-dark">
+                                                            {{ $message->body }}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             @else
@@ -323,17 +328,24 @@
                                                                 class="rounded-circle mr-1" alt="Chris Wood"
                                                                 width="40" height="40">
                                                         @elseif ($header->role_id == 1)
-                                                            <img src="https://mychoicetutor.com/new-styles/assets/images/users/avatar-1.jpg"
+                                                            <img src="images/students/profilepics/no-img.jpg"
                                                                 class="rounded-circle mr-1" alt="Chris Wood"
                                                                 width="40" height="40">
                                                         @endif
 
                                                         <div class="text-muted small text-nowrap mt-2">
-                                                            {{ $message->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}</div>
+                                                            {{ $message->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}
+                                                        </div>
                                                     </div>
-                                                    <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
-                                                        <div class="font-weight-bold mb-1">{{ $header->name }}</div>
-                                                        {{ $message->body }}
+                                                    <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3 shadow-sm"
+                                                        style="max-width: 80%; border: 1px solid #e9ecef;">
+                                                        <div class="small font-weight-bold text-primary mb-1">
+                                                            {{ $header->name }}
+                                                        </div>
+
+                                                        <div class="text-dark" style="line-height: 1.4;">
+                                                            {{ $message->body }}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             @endif

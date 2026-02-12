@@ -134,10 +134,6 @@ class AssignmentsController extends Controller
 
     public function status(Request $request)
     {
-        // echo 'Test';
-        // echo $request->id;
-        // echo $request->status;
-        // dd();
         $data = StudentAssignmentList::find($request->id);
         if ($request->status == 1) {
             $status = 0;
@@ -166,28 +162,42 @@ class AssignmentsController extends Controller
     {
         $classes = (new CommonController)->classes();
         $assignments = StudentAssignmentList::select(
-            'student_assignment_lists.id as assignment_id',
-            'student_assignment_lists.name as assignment_name',
-            'student_assignment_lists.assignment_link as assignment_link',
-            'student_assignment_lists.topic',
-            'subjects.name as subject',
-            'classes.name as class',
-            'studentregistrations.name as studentname',
-            'studentregistrations.id as studentid',
-            DB::raw('MAX(student_assignment_lists.created_at) as created_at')
+        'student_assignment_lists.id as assignment_id',
+        'student_assignment_lists.name as assignment_name',
+        'student_assignment_lists.assignment_link',
+        'student_assignment_lists.topic',
+        'subjects.name as subject',
+        'classes.name as class',
+        'studentregistrations.name as studentname',
+        'studentregistrations.id as studentid',
+        DB::raw('MAX(student_assignment_lists.created_at) as created_at')
         )
+        ->selectRaw("
+            EXISTS (
+                SELECT 1 
+                FROM student_assignments 
+                WHERE student_assignments.assignment_id = student_assignment_lists.id
+                AND student_assignments.submitted_by = student_assignment_lists.student_id
+            ) as is_submitted
+        ")
         ->join('subjects', 'subjects.id', '=', 'student_assignment_lists.subject_id')
         ->join('classes', 'classes.id', '=', 'student_assignment_lists.class_id')
         ->leftJoin('studentregistrations', 'studentregistrations.id', '=', 'student_assignment_lists.student_id')
-        ->leftJoin('student_assignments', 'student_assignments.submitted_by', '=', 'student_assignment_lists.student_id')
         ->where('student_assignment_lists.is_active', 1)
         ->where('student_assignment_lists.assigned_by', session('userid')->id)
-        ->groupBy('student_assignment_lists.id', 'student_assignment_lists.name','student_assignment_lists.assignment_link','student_assignment_lists.topic', 'subjects.name', 'classes.name', 'studentregistrations.name', 'studentregistrations.id')
+        ->groupBy(
+            'student_assignment_lists.id',
+            'student_assignment_lists.name',
+            'student_assignment_lists.assignment_link',
+            'student_assignment_lists.topic',
+            'subjects.name',
+            'classes.name',
+            'studentregistrations.name',
+            'studentregistrations.id'
+        )
         ->orderBy('created_at', 'desc')
         ->get();
-        // $students = studentregistration::select('*')
-        // ->where('is_active','1')
-        // ->get();
+
         $students = studentregistration::select(
             'studentregistrations.*',
             'studentprofiles.profile_pic as profile_pic'

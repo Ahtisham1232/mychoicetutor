@@ -39,7 +39,7 @@
         <img src="{{ url('images/tutors/profilepics') }}/{{ $header->profile_pic }}"
             class="rounded-circle mr-1" alt="Chris Wood" width="40" height="40">
         @elseif ($header->role_id == 1)
-        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-profiles/avatar-1.webp"
+        <img src="images/students/profilepics/no-img.jpg"
             class="rounded-circle mr-1" alt="Chris Wood" width="40" height="40">
         @endif
 

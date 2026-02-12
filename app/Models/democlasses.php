@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class democlasses extends Model
 {
     use HasFactory;
-    // use Paginator;
-
+    protected $casts = [
+        'slot_confirmed' => 'datetime',
+    ];
 }

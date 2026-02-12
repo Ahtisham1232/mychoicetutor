@@ -27,6 +27,7 @@
                     <h3>Notifications</h3>
                 </div>
                 <div class=" table-responsive">
+
                     <table class="table table-hover table-striped align-middle table-nowrap mb-0 users-table">
                         <thead class=" ">
                             <tr>
@@ -44,7 +45,8 @@
                                    <td>{{$loop->iteration}}</td>
                                    <td>
                                        @if($notification->created_at)
-                                       {{ \Carbon\Carbon::parse($notification->created_at)->format('d-m-Y h:i A') }}
+                                            {{ $notification->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}
+
                                        @else
                                        ''
                                        @endif
@@ -56,79 +58,78 @@
                         </tbody>
                     </table>
 
-
-
                 </div>
                 <br>
                 <div class="d-flex justify-content-center">
                     {!! $notifications->links() !!}
                 </div>
 
-
-
             </div>
-            <!-- content-wrapper ends -->
-            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-            <script>
-                function updateTableAndPagination(data) {
-                    // $('#tableContainer').html(data.table);
-                    $('.users-table tbody').html(data.table);
-                    $('#paginationContainer').html(data.pagination);
-                }
+        </div>
 
-                $(document).ready(function() {
-                    $('#payment-search').submit(function(e) {
-                        e.preventDefault();
-                        // alert('test');
-                        const page = 1;
-                        const ajaxUrl = '{{ route('student.demolist-search') }}'
-                        var formData = $(this).serialize();
+    </div>
+    <!-- content-wrapper ends -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function updateTableAndPagination(data) {
+            // $('#tableContainer').html(data.table);
+            $('.users-table tbody').html(data.table);
+            $('#paginationContainer').html(data.pagination);
+        }
 
-                        formData += `&page=${page}`;
+        $(document).ready(function() {
+            $('#payment-search').submit(function(e) {
+                e.preventDefault();
+                // alert('test');
+                const page = 1;
+                const ajaxUrl = '{{ route('student.demolist-search') }}'
+                var formData = $(this).serialize();
 
-                        $.ajax({
-                            type: 'post',
-                            url: ajaxUrl, // Define your route here
-                            data: formData,
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                            },
+                formData += `&page=${page}`;
 
-                            success: function(data) {
-                                // console.log(data)
-                                updateTableAndPagination(data);
-                            },
-                            error: function(xhr, status, error) {
-                                console.log(xhr.responseText);
-                            }
-                        });
+                $.ajax({
+                    type: 'post',
+                    url: ajaxUrl, // Define your route here
+                    data: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
 
-                    });
-
-
-                    $(document).on('click', '#paginationContainer .pagination a', function(e) {
-                        e.preventDefault();
-                        var formData = $('#payment-search').serialize();
-                        const page = $(this).attr('href').split('page=')[1];
-                        formData += `&page=${page}`;
-                        $.ajax({
-                            type: 'post',
-                            url: '{{ route('student.demolist-search') }}', // Define your route here
-                            data: formData,
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                            },
-                            success: function(data) {
-                                updateTableAndPagination(data);
-                            },
-                            error: function(xhr, status, error) {
-                                console.log(xhr.responseText);
-                            }
-                        });
-                    });
-
-
-
+                    success: function(data) {
+                        // console.log(data)
+                        updateTableAndPagination(data);
+                    },
+                    error: function(xhr, status, error) {
+                        console.log(xhr.responseText);
+                    }
                 });
-            </script>
-        @endsection
+
+            });
+
+
+            $(document).on('click', '#paginationContainer .pagination a', function(e) {
+                e.preventDefault();
+                var formData = $('#payment-search').serialize();
+                const page = $(this).attr('href').split('page=')[1];
+                formData += `&page=${page}`;
+                $.ajax({
+                    type: 'post',
+                    url: '{{ route('student.demolist-search') }}', // Define your route here
+                    data: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(data) {
+                        updateTableAndPagination(data);
+                    },
+                    error: function(xhr, status, error) {
+                        console.log(xhr.responseText);
+                    }
+                });
+            });
+
+
+
+        });
+    </script>
+@endsection
