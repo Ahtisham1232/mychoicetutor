@@ -48,11 +48,18 @@
                                     <td>{{ $assignment->topic }}</td>
                                     <td>{{ $assignment->assignment_name }}</td>
                                     <td><a href="{{ url('uploads/documents/assignments') }}/{{ $assignment->assignment_link }}"
-                                            target="_blank"><button class="badge bg-success">View
+                                            target="_blank"><button class="badge bg-success p-2 border-0">View
                                                 Assignment</button></td>
-                                    <td>Not Submitted</td>
+                                    <td>
+                                        @if($assignment->is_submitted)
+                                            <span class="badge bg-success">Submitted</span>
+                                        @else
+                                            <span class="badge bg-danger">Not Submitted</span>
+                                        @endif
+                                    </td>
+
                                     <td><a href="{{ url('tutor/assignments') . '/' . $assignment->assignment_id }}"> <button
-                                                class="badge bg-success">View Submissions</button></td>
+                                                class="badge bg-success p-2 border-0">View Submissions</button></td>
                                     <td><button class="btn btn-sm btn-danger"
                                             onclick="editdata('{{ $assignment->assignment_id }}','{{ $assignment->class_id }}','{{ $assignment->subject_id }}','{{ $assignment->batch_id }}','{{ $assignment->topic_id }}','{{ $assignment->assignment_name }}','{{ $assignment->assignment_description }}','{{ $assignment->assignment_start_date }}','{{ $assignment->assignment_end_date }}')">Update</button>
                                     </td>
@@ -209,6 +216,7 @@
                 </div>
             </div>
         </div>
+    </div>
 
         <script>
             function openmodal() {

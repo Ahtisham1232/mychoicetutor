@@ -15,32 +15,30 @@
         </div>
     </section>
 
-
-
     <!-- -----------testimonial---------- -->
     <section class="testimonial-sec">
         <div class="container topheader">
-            <h2 class="my-5">Review</h2>
+            <h2 class="my-5">Reviews</h2>
             <div class="row">
                 @foreach ($reviews as $review)
-            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-xs-12 mb-4">
-                <div class="testi-card">
-                    <span class="nameTo">
-                        {{ $review->tutorname }}
-                        <p>{{ $review->subjectname }}
-                            <br>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                        </p>
-                    </span>
-                    <p class="mt-4">“{{ $review->name }}”</p>
-                    <p class="nameFrom">{{ $review->studentname }}</p>
-                </div>
-            </div>
-            @endforeach
+                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-xs-12 mb-4">
+                        <div class="testi-card">
+                            <span class="nameTo">
+                                {{ $review->tutorname }}
+                                <p>{{ $review->subjectname }}
+                                    <br>
+                                    <i class="fa fa-star"></i>
+                                    <i class="fa fa-star"></i>
+                                    <i class="fa fa-star"></i>
+                                    <i class="fa fa-star"></i>
+                                    <i class="fa fa-star"></i>
+                                </p>
+                            </span>
+                            <p class="mt-4">“{{ $review->name }}”</p>
+                            <p class="nameFrom">{{ $review->studentname }}</p>
+                        </div>
+                    </div>
+                @endforeach
 
             </div>
 
@@ -53,8 +51,6 @@
 
             <div class="row">
                 <div class="col-md-6 banncol">
-
-
 
                     <div class="bannText">
                         <h2>Is MCT the right fit for you?<br>
@@ -70,9 +66,6 @@
             </div>
 
         </div>
-
-
-
     </section>
  
     @endsection

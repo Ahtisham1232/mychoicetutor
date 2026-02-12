@@ -133,7 +133,7 @@
                                 <div class="d-flex align-items-start">
 
                                     @if (empty($userlist->profile_pic))
-                                        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-profiles/avatar-1.webp"
+                                        <img src="images/students/profilepics/no-img.jpg"
                                             class="rounded-circle mr-1" alt="Richard" width="40" height="40">
                                     @else
                                         @if ($userlist->role_id == 2)

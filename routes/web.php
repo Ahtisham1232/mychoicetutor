@@ -31,19 +31,12 @@ use App\Http\Controllers\student\StudentProfileController;
 use App\Http\Controllers\student\SubjectsController;
 use App\Http\Controllers\student\TutorSearchController;
 use App\Http\Controllers\student\PaymentController;
-use App\Http\Controllers\tutor\ClassScheduleController;
 
 use App\Http\Controllers\TutorreviewsController;
 use App\Http\Controllers\ZoomClassesController;
 use App\Http\Controllers\SlotBookingController;
-// use App\Http\Controllers\WorldPayController;
-use App\Models\classes;
-use App\Models\SlotBooking;
-use App\Models\tutorreviews;
-// use App\Http\Controllers\StudentregistrationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StripePaymentController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 /*
 |--------------------------------------------------------------------------
@@ -82,9 +75,7 @@ Route::post('toptutorsearch',[HomeController::class, 'toptutorsearch'])->name('t
 Route::post('advancesearch',[HomeController::class, 'advancesearch'])->name('advancesearch');
 Route::get('reviews',[HomeController::class,'reviewslist'])->name('revieweslist');
 
-// Route::get('findatutor', function(){
-//     return view('front-cms/findatutor');
-// });
+
 // Changed to new UI for Students
 Route::get('/student/register', [HomeController::class, 'std_registration'])->name('std_registration');
 Route::post('/student/register',[HomeController::class,'student_registration_form'])->name('student_registration_form');
@@ -125,7 +116,6 @@ Route::post('tutorsearch', [TutorSearchController::class, 'tutorsearchindex'])->
 
 Route::get("logout", [HomeController::class, "logout"])->name("logout");
 
-// Route::get('/tutor/login', [HomeController::class, 'ttr_login'])->name('tutorlogin');
 
 Route::post('fetchsubjects', [CommonController::class, 'fetchsubjects'])->name('fetchsubjects');
 Route::post('fetchtutorsubjects', [CommonController::class, 'fetchtutorsubjects'])->name('fetchtutorsubjects');
@@ -634,10 +624,6 @@ Route::get('/tutor/dashboard/oauth2callback', [GoogleCalendarController::class, 
 
 
 
-
-// kamran---------------------
-
-
 Route::get('howitworks', function(){
     return view('front-cms/howitworks');
 });
@@ -664,9 +650,6 @@ Route::get('aboutus', function(){
     return view('front-cms/why_choose_us');
 });
 
-// Route::get('blogdetails', function(){
-//     return view('front-cms/blogdetails');
-// });
 
 Route::get('contact', function(){
     return view('front-cms/contact');
