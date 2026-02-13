@@ -27,13 +27,12 @@
             }
 
             .chat-messages {
-                display: flex;
-                max-height: 300px;
-                flex-direction: column-reverse;
-                /* Reverse message order */
-                overflow-y: scroll;
-                /* Enable scrolling */
+            display: flex;
+            max-height: 400px;
+            flex-direction: column;
+            overflow-y: auto;
             }
+
 
             .chat-message-left,
             .chat-message-right {
@@ -122,11 +121,11 @@
                                             class="list-group-item list-group-item-action border-0">
                                 @endif
 
-                                <div class="d-flex align-items-start">
+                                <div class="d-flex align-items-start my-2">
 
                                     @if (empty($userlist->profile_pic))
-                                        <img src="images/students/profilepics/no-img.jpg"
-                                            class="rounded-circle mr-1" alt="Richard" width="40" height="40">
+                                        <img src="{{ asset('images/students/profilepics/no-img.jpg') }}"
+                                                class="rounded-circle me-2" alt="Richard" width="40" height="40">
                                     @else
                                         <img src="{{ url('images/students/profilepics') }}/{{ $userlist->profile_pic }}"
                                             class="rounded-circle mr-1" alt="Richard" width="40" height="40">
@@ -154,7 +153,7 @@
                                     <div class="d-flex align-items-center py-1">
                                         <div class="position-relative">
                                             @if (empty($header->profile_pic))
-                                                <img src="images/students/profilepics/no-img.jpg"
+                                                <img src="{{asset('images/students/profilepics/no-img.jpg')}}"
                                                     class="rounded-circle mr-1" alt="Richard" width="40"
                                                     height="40">
                                             @else
@@ -195,7 +194,7 @@
                                                 <div class="chat-message-right pb-4">
                                                     <div>
                                                         @if (empty($tutorProfile->profile_pic ?? ''))
-                                                            <img src="images/students/profilepics/no-img.jpg"
+                                                            <img src="{{asset('images/students/profilepics/no-img.jpg')}}"
                                                                 class="rounded-circle mr-1" alt="You" width="40"
                                                                 height="40">
                                                         @else
@@ -208,7 +207,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3 shadow-sm"
-                                                        style="max-width: 80%;">
+                                                        style="max-width: 80%;margin-right:12px">
                                                         <div class="small text-muted font-weight-bold mb-1">You</div>
                                                         <div class="text-dark">
                                                             {{ $message->body }}
@@ -225,7 +224,7 @@
                                                                 width="40" height="40">
                                                         @elseif ($header->role_id == 3)
                                                             @if (empty($header->profile_pic))
-                                                                <img src="images/students/profilepics/no-img.jpg"
+                                                                <img src="{{asset('images/students/profilepics/no-img.jpg')}}"
                                                                     class="rounded-circle mr-1" alt="{{ $header->name }}"
                                                                     width="40" height="40">
                                                             @else
@@ -239,7 +238,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3 shadow-sm"
-                                                        style="max-width: 80%; border: 1px solid #e9ecef;">
+                                                        style="max-width: 80%; border: 1px solid #e9ecef; margin-left:12px">
                                                         <div class="small font-weight-bold text-primary mb-1">
                                                             {{ $header->name }}
                                                         </div>
@@ -388,11 +387,10 @@
                         notification.className = 'alert alert-info alert-dismissible fade show position-fixed';
                         notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
                         notification.innerHTML = `
-                <strong>New Message!</strong> ${message}
-                <button type="button" class="close" data-dismiss="alert">
-                    <span>&times;</span>
-                </button>
-            `;
+                            <strong>New Message!</strong> ${message}
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>`;
 
                         // Add to page
                         document.body.appendChild(notification);

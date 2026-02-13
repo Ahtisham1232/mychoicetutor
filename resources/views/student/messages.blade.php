@@ -22,8 +22,8 @@
             .chat-messages {
             display: flex;
             max-height: 300px;
-            flex-direction: column-reverse; /* Reverse message order */
-            overflow-y: scroll; /* Enable scrolling */
+            flex-direction: column-reverse;
+            overflow-y: scroll;
             }
 
             .chat-message-left,
@@ -130,10 +130,10 @@
                                                 class="list-group-item list-group-item-action border-0">
                                 @endif
 
-                                <div class="d-flex align-items-start">
+                                <div class="d-flex align-items-start my-3">
 
                                     @if (empty($userlist->profile_pic))
-                                        <img src="images/students/profilepics/no-img.jpg"
+                                        <img src="{{ asset('images/students/profilepics/no-img.jpg') }}"
                                             class="rounded-circle mr-1" alt="Richard" width="40" height="40">
                                     @else
                                         @if ($userlist->role_id == 2)
@@ -169,7 +169,7 @@
                                     <div class="d-flex align-items-center py-1">
                                         <div class="position-relative">
                                             @if (empty($header->profile_pic))
-                                                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-profiles/avatar-1.webp"
+                                                <img src="{{ asset('images/students/profilepics/no-img.jpg') }}"
                                                     class="rounded-circle mr-1" alt="{{ $header->name }}" width="40"
                                                     height="40">
                                             @else

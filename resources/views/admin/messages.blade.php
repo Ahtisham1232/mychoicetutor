@@ -215,15 +215,21 @@
                                 <div class="d-flex align-items-start m-3">
 
                                     @if (empty($userlist->profile_pic))
-                                        <img src="images/students/profilepics/no-img.jpg" class="rounded-circle mr-1"
+                                        <img src="{{asset('images/students/profilepics/no-img.jpg')}}" class="rounded-circle mr-1"
                                             alt="Richard" width="40" height="40">
                                     @else
                                         @if ($userlist->role_id == 2)
                                             <img src="{{ url('images/tutors/profilepics') }}/{{ $userlist->profile_pic }}"
-                                                class="rounded-circle mr-1" alt="Richard" width="40" height="40">
+                                            class="rounded-circle mr-1"
+                                            width="40" height="40"
+                                            onerror="this.onerror=null;this.src='{{ asset('images/students/profilepics/no-img.jpg') }}';">
+
                                         @elseif ($userlist->role_id == 3)
                                             <img src="{{ url('images/students/profilepics') }}/{{ $userlist->profile_pic }}"
-                                                class="rounded-circle mr-1" alt="Richard" width="40" height="40">
+                                            class="rounded-circle mr-1"
+                                            width="40" height="40"
+                                            onerror="this.onerror=null;this.src='{{ asset('images/students/profilepics/no-img.jpg') }}';">
+
                                         @endif
                                     @endif
 
@@ -258,17 +264,17 @@
                                     <div class="d-flex align-items-center py-1 ">
                                         <div class="position-relative">
                                             @if (empty($header->profile_pic))
-                                                <img src="images/students/profilepics/no-img.jpg"
+                                                <img src="{{asset('images/students/profilepics/no-img.jpg')}}"
                                                     class="rounded-circle mr-1" alt="Richard" width="40"
                                                     height="40">
                                             @else
                                                 @if ($header->role_id == 2)
                                                     <img src="{{ url('images/tutors/profilepics') }}/{{ $header->profile_pic }}"
-                                                        class="rounded-circle mr-1" alt="Richard" width="40"
+                                                        class="rounded-circle mr-1" alt="Tutor" width="40"
                                                         height="40">
                                                 @elseif ($header->role_id == 3)
                                                     <img src="{{ url('images/students/profilepics') }}/{{ $header->profile_pic }}"
-                                                        class="rounded-circle mr-1" alt="Richard" width="40"
+                                                        class="rounded-circle mr-1" alt="Student" width="40"
                                                         height="40">
                                                 @endif
                                             @endif
@@ -300,9 +306,9 @@
                                         @foreach ($messages as $message)
                                             @if ($message->from_id === session('userid')->id && $message->from_role_id === 1)
                                                 <div class="chat-message-right pb-4">
-                                                    <div>
-                                                        <img src="images/students/profilepics/no-img.jpg"
-                                                            class="rounded-circle mr-1" alt="Chris Wood" width="40"
+                                                    <div style="margin-left:12px">
+                                                        <img src="{{asset('images/students/profilepics/no-img.jpg')}}"
+                                                            class="rounded-circle mr-1" alt="Student" width="40"
                                                             height="40">
                                                         <div class="text-muted small text-nowrap mt-2">
                                                             {{ $message->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}
@@ -321,15 +327,15 @@
                                                     <div>
                                                         @if ($header->role_id == 3)
                                                             <img src="{{ url('images/students/profilepics') }}/{{ $header->profile_pic }}"
-                                                                class="rounded-circle mr-1" alt="Chris Wood"
+                                                                class="rounded-circle mr-1" alt="Student"
                                                                 width="40" height="40">
                                                         @elseif ($header->role_id == 2)
                                                             <img src="{{ url('images/tutors/profilepics') }}/{{ $header->profile_pic }}"
-                                                                class="rounded-circle mr-1" alt="Chris Wood"
+                                                                class="rounded-circle mr-1" alt="Tutor"
                                                                 width="40" height="40">
                                                         @elseif ($header->role_id == 1)
-                                                            <img src="images/students/profilepics/no-img.jpg"
-                                                                class="rounded-circle mr-1" alt="Chris Wood"
+                                                            <img src="{{asset('images/students/profilepics/no-img.jpg')}}"
+                                                                class="rounded-circle mr-1" alt="Admin"
                                                                 width="40" height="40">
                                                         @endif
 
