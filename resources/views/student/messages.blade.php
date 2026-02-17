@@ -19,13 +19,6 @@
                 color: #e4606d;
             }
 
-            .chat-messages {
-            display: flex;
-            max-height: 300px;
-            flex-direction: column-reverse;
-            overflow-y: scroll;
-            }
-
             .chat-message-left,
             .chat-message-right {
                 display: flex;

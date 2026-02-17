@@ -187,13 +187,10 @@
                                     @if (isset($messages))
                                         @foreach ($messages as $message)
                                             @if ($message->from_id === session('userid')->id && $message->from_role_id === 2)
-                                                {{-- <div class="my-message">
-                                            <p>{{ $message->content }}</p>
-                                <span>{{ $message->created_at->format('H:i') }}</span>
-                            </div> --}}
+
                                                 <div class="chat-message-right pb-4">
-                                                    <div>
-                                                        @if (empty($tutorProfile->profile_pic ?? ''))
+                                                    <div style="margin-right: 12px;">
+                                                        @if (empty($tutorProfile->profile_pic))
                                                             <img src="{{asset('images/students/profilepics/no-img.jpg')}}"
                                                                 class="rounded-circle mr-1" alt="You" width="40"
                                                                 height="40">
@@ -217,7 +214,7 @@
                                             @else
 
                                                 <div class="chat-message-left pb-4">
-                                                    <div>
+                                                    <div style="margin-right: 12px;">
                                                         @if ($header->role_id == 1)
                                                             <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-profiles/avatar-1.webp"
                                                                 class="rounded-circle mr-1" alt="{{ $header->name }}"
@@ -366,13 +363,13 @@
                     }
 
                     @if (isset($header) && $header !== null)
-                        // Real-time chat and notifications (same Pusher instance as presence)
-                        var channel = pusher.subscribe('chat.{{ session('userid')->id }}');
+                        // Real-time chat and notifications (private channels - must match Laravel PrivateChannel names)
+                        var channel = pusher.subscribe('private-chat.{{ session('userid')->id }}');
                         channel.bind('new-message', function(data) {
                             console.log('New message received:', data);
                             reloadChat();
                         });
-                        var notificationChannel = pusher.subscribe('notifications.{{ session('userid')->id }}');
+                        var notificationChannel = pusher.subscribe('private-notifications.{{ session('userid')->id }}');
                         notificationChannel.bind('message.notification', function(data) {
                             console.log('Notification received:', data);
                             showNotification(data.message);
@@ -420,7 +417,8 @@
                                         method: 'POST',
                                         body: formData,
                                         headers: {
-                                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                                            'Accept': 'application/json'
                                         }
                                     })
                                     .then(response => response.json())

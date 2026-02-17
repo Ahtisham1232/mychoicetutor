@@ -28,13 +28,29 @@ class MessagesController extends Controller
         }
         $channelName = $request->input('channel_name');
         $socketId = $request->input('socket_id');
-        if ($channelName !== 'presence-chat' || !$socketId) {
+        if (!$socketId) {
             return response()->json(['error' => 'Forbidden'], 403);
         }
         $key = config('chatify.pusher.key');
         $secret = config('chatify.pusher.secret');
         if (!$key || !$secret) {
             return response()->json(['error' => 'Server config error'], 500);
+        }
+
+        // Private channel auth for chat and notifications (real-time messages)
+        if (preg_match('/^private-chat\.(\d+)$/', $channelName, $m) || preg_match('/^private-notifications\.(\d+)$/', $channelName, $m)) {
+            $channelUserId = (int) $m[1];
+            if ($channelUserId !== (int) $user->id) {
+                return response()->json(['error' => 'Forbidden'], 403);
+            }
+            $stringToSign = $socketId . ':' . $channelName;
+            $signature = hash_hmac('sha256', $stringToSign, $secret, false);
+            return response()->json(['auth' => $key . ':' . $signature]);
+        }
+
+        // Presence channel auth (online/offline status)
+        if ($channelName !== 'presence-chat') {
+            return response()->json(['error' => 'Forbidden'], 403);
         }
         $userId = $user->role_id . '_' . $user->id;
         $channelData = json_encode([
@@ -166,18 +182,18 @@ class MessagesController extends Controller
     {
         // Get admins (role_id = 1) - admins don't have profile pics, so we'll handle this in the view
         $admins = admin::select('id', 'name', 'email', 'mobile', 'role_id', \DB::raw('NULL as profile_pic'))
-                      ->where('id', '!=', session('userid')->id)
-                      ->where('role_id', 1);
+            ->where('id', '!=', session('userid')->id)
+            ->where('role_id', 1);
 
         // Get tutors assigned to this student via paymentstudents table and democlasses with profile pics
         $allTutors = tutorregistration::select(
-                'tutorregistrations.id',
-                'tutorregistrations.name',
-                'tutorregistrations.email',
-                'tutorregistrations.mobile',
-                'tutorregistrations.role_id',
-                'tutorprofiles.profile_pic'
-            )
+            'tutorregistrations.id',
+            'tutorregistrations.name',
+            'tutorregistrations.email',
+            'tutorregistrations.mobile',
+            'tutorregistrations.role_id',
+            'tutorprofiles.profile_pic'
+        )
             ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
             ->leftJoin('paymentstudents', function ($join) {
                 $join->on('paymentstudents.tutor_id', '=', 'tutorregistrations.id')
@@ -213,9 +229,9 @@ class MessagesController extends Controller
     public function messagesbystudentadmins()
     {
         $userlists = admin::select('id', 'name', 'email', 'mobile', 'role_id', \DB::raw('NULL as profile_pic'))
-                         ->where('id', '!=', session('userid')->id)
-                         ->where('role_id', 1) // Get only admins
-                         ->get();
+            ->where('id', '!=', session('userid')->id)
+            ->where('role_id', 1) // Get only admins
+            ->get();
         $this->addOnlineStatusToUserList($userlists);
 
         // Get student's profile picture
@@ -234,16 +250,16 @@ class MessagesController extends Controller
     {
         // Get admins
         $admins = admin::select('id', 'name', 'email', 'mobile', 'role_id')
-                      ->where('id', '!=', session('userid')->id)
-                      ->where('role_id', 1);
+            ->where('id', '!=', session('userid')->id)
+            ->where('role_id', 1);
 
         // Get only tutors assigned to this student
         $tutors = tutorregistration::select('tutorregistrations.id', 'tutorregistrations.name', 'tutorregistrations.email', 'tutorregistrations.mobile', 'tutorregistrations.role_id')
-                                  ->join('paymentstudents', 'paymentstudents.tutor_id', '=', 'tutorregistrations.id')
-                                  ->where('paymentstudents.student_id', session('userid')->id)
-                                  ->where('tutorregistrations.id', '!=', session('userid')->id)
-                                  ->where('tutorregistrations.role_id', 2)
-                                  ->distinct();
+            ->join('paymentstudents', 'paymentstudents.tutor_id', '=', 'tutorregistrations.id')
+            ->where('paymentstudents.student_id', session('userid')->id)
+            ->where('tutorregistrations.id', '!=', session('userid')->id)
+            ->where('tutorregistrations.role_id', 2)
+            ->distinct();
 
         $userlists = $admins->union($tutors)->get();
         $this->addOnlineStatusToUserList($userlists);
@@ -255,17 +271,17 @@ class MessagesController extends Controller
         $studentProfile = studentprofile::where('student_id', session('userid')->id)->first();
 
         // Get messages between student and this admin
-        $messages = ChMessage::where(function($query) use ($id) {
+        $messages = ChMessage::where(function ($query) use ($id) {
             $query->where('from_id', session('userid')->id)
-                  ->where('from_role_id', session('userid')->role_id)
-                  ->where('to_id', $id)
-                  ->where('to_role_id', 1); // Admin role
-        })->orWhere(function($query) use ($id) {
+                ->where('from_role_id', session('userid')->role_id)
+                ->where('to_id', $id)
+                ->where('to_role_id', 1); // Admin role
+        })->orWhere(function ($query) use ($id) {
             $query->where('from_id', $id)
-                  ->where('from_role_id', 1) // Admin role
-                  ->where('to_id', session('userid')->id)
-                  ->where('to_role_id', session('userid')->role_id);
-        })->orderBy('created_at', 'desc')->get();
+                ->where('from_role_id', 1) // Admin role
+                ->where('to_id', session('userid')->id)
+                ->where('to_role_id', session('userid')->role_id);
+        })->orderBy('created_at', 'asc')->get();
 
         return view('student.messages', compact('userlists', 'header', 'messages', 'studentProfile'))->with('info', 'Admin messages feature is temporarily unavailable.');
     }
@@ -276,16 +292,16 @@ class MessagesController extends Controller
     public function messagesbystudentadminmessagesload($id)
     {
         // Get messages between student and admin
-        $messages = ChMessage::where(function($query) use ($id) {
+        $messages = ChMessage::where(function ($query) use ($id) {
             $query->where('from_id', session('userid')->id)
-                  ->where('from_role_id', session('userid')->role_id)
-                  ->where('to_id', $id)
-                  ->where('to_role_id', 1); // Admin role
-        })->orWhere(function($query) use ($id) {
+                ->where('from_role_id', session('userid')->role_id)
+                ->where('to_id', $id)
+                ->where('to_role_id', 1); // Admin role
+        })->orWhere(function ($query) use ($id) {
             $query->where('from_id', $id)
-                  ->where('from_role_id', 1) // Admin role
-                  ->where('to_id', session('userid')->id)
-                  ->where('to_role_id', session('userid')->role_id);
+                ->where('from_role_id', 1) // Admin role
+                ->where('to_id', session('userid')->id)
+                ->where('to_role_id', session('userid')->role_id);
         })->orderBy('created_at', 'asc')->get();
 
         // Get student profile for avatar
@@ -301,13 +317,13 @@ class MessagesController extends Controller
     public function messagesbystudenttutor()
     {
         $userlists = tutorregistration::select('tutorregistrations.id', 'tutorregistrations.name', 'tutorregistrations.email', 'tutorregistrations.mobile', 'tutorregistrations.role_id', 'tutorprofiles.profile_pic')
-                                    ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
-                                    ->join('paymentstudents', 'paymentstudents.tutor_id', '=', 'tutorregistrations.id')
-                                    ->where('paymentstudents.student_id', session('userid')->id)
-                                    ->where('tutorregistrations.id', '!=', session('userid')->id)
-                                    ->where('tutorregistrations.role_id', 2) // Get only tutors
-                                    ->distinct()
-                                    ->get();
+            ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
+            ->join('paymentstudents', 'paymentstudents.tutor_id', '=', 'tutorregistrations.id')
+            ->where('paymentstudents.student_id', session('userid')->id)
+            ->where('tutorregistrations.id', '!=', session('userid')->id)
+            ->where('tutorregistrations.role_id', 2) // Get only tutors
+            ->distinct()
+            ->get();
         $this->addOnlineStatusToUserList($userlists);
 
         // Get student's profile picture
@@ -326,41 +342,41 @@ class MessagesController extends Controller
     {
         // Get admins
         $admins = admin::select('id', 'name', 'email', 'mobile', 'role_id')
-                      ->where('id', '!=', session('userid')->id)
-                      ->where('role_id', 1);
+            ->where('id', '!=', session('userid')->id)
+            ->where('role_id', 1);
 
         // Get only tutors assigned to this student
         $tutors = tutorregistration::select('tutorregistrations.id', 'tutorregistrations.name', 'tutorregistrations.email', 'tutorregistrations.mobile', 'tutorregistrations.role_id')
-                                  ->join('paymentstudents', 'paymentstudents.tutor_id', '=', 'tutorregistrations.id')
-                                  ->where('paymentstudents.student_id', session('userid')->id)
-                                  ->where('tutorregistrations.id', '!=', session('userid')->id)
-                                  ->where('tutorregistrations.role_id', 2)
-                                  ->distinct();
+            ->join('paymentstudents', 'paymentstudents.tutor_id', '=', 'tutorregistrations.id')
+            ->where('paymentstudents.student_id', session('userid')->id)
+            ->where('tutorregistrations.id', '!=', session('userid')->id)
+            ->where('tutorregistrations.role_id', 2)
+            ->distinct();
 
         $userlists = $admins->union($tutors)->get();
         $this->addOnlineStatusToUserList($userlists);
 
         // Get the specific tutor for the header with profile picture
         $header = tutorregistration::select('tutorregistrations.*', 'tutorprofiles.profile_pic')
-                                  ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
-                                  ->where('tutorregistrations.id', $id)
-                                  ->first();
+            ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
+            ->where('tutorregistrations.id', $id)
+            ->first();
 
         // Get student's profile picture
         $studentProfile = studentprofile::where('student_id', session('userid')->id)->first();
 
         // Get messages between student and this tutor
-        $messages = ChMessage::where(function($query) use ($id) {
+        $messages = ChMessage::where(function ($query) use ($id) {
             $query->where('from_id', session('userid')->id)
-                  ->where('from_role_id', session('userid')->role_id)
-                  ->where('to_id', $id)
-                  ->where('to_role_id', 2); // Tutor role
-        })->orWhere(function($query) use ($id) {
+                ->where('from_role_id', session('userid')->role_id)
+                ->where('to_id', $id)
+                ->where('to_role_id', 2); // Tutor role
+        })->orWhere(function ($query) use ($id) {
             $query->where('from_id', $id)
-                  ->where('from_role_id', 2) // Tutor role
-                  ->where('to_id', session('userid')->id)
-                  ->where('to_role_id', session('userid')->role_id);
-        })->orderBy('created_at', 'desc')->get();
+                ->where('from_role_id', 2) // Tutor role
+                ->where('to_id', session('userid')->id)
+                ->where('to_role_id', session('userid')->role_id);
+        })->orderBy('created_at', 'asc')->get();
 
         return view('student.messages', compact('userlists', 'header', 'messages', 'studentProfile'))->with('info', 'Tutor messages feature is temporarily unavailable.');
     }
@@ -371,27 +387,27 @@ class MessagesController extends Controller
     public function messagesbystudenttutormessagesload($id)
     {
         // Get messages between student and tutor
-        $messages = ChMessage::where(function($query) use ($id) {
+        $messages = ChMessage::where(function ($query) use ($id) {
             $query->where('from_id', session('userid')->id)
-                  ->where('from_role_id', session('userid')->role_id)
-                  ->where('to_id', $id)
-                  ->where('to_role_id', 2); // Tutor role
-        })->orWhere(function($query) use ($id) {
+                ->where('from_role_id', session('userid')->role_id)
+                ->where('to_id', $id)
+                ->where('to_role_id', 2); // Tutor role
+        })->orWhere(function ($query) use ($id) {
             $query->where('from_id', $id)
-                  ->where('from_role_id', 2) // Tutor role
-                  ->where('to_id', session('userid')->id)
-                  ->where('to_role_id', session('userid')->role_id);
+                ->where('from_role_id', 2) // Tutor role
+                ->where('to_id', session('userid')->id)
+                ->where('to_role_id', session('userid')->role_id);
         })->orderBy('created_at', 'asc')->get();
 
         // Get student profile for avatar
         $studentProfile = studentprofile::where('student_id', session('userid')->id)->first();
         $header = tutorregistration::select('tutorregistrations.*', 'tutorprofiles.profile_pic')
-                ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
-                ->where('tutorregistrations.id', $id)
-                ->first();
+            ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
+            ->where('tutorregistrations.id', $id)
+            ->first();
 
         // Return HTML partial instead of JSON
-        return view('student.partials.chat-messages', compact('messages', 'studentProfile','header'))->render();
+        return view('student.partials.chat-messages', compact('messages', 'studentProfile', 'header'))->render();
     }
 
     /**
@@ -439,23 +455,23 @@ class MessagesController extends Controller
     {
         // Other admins (role_id = 1)
         $admins = admin::select('id', 'name', 'email', 'mobile', 'role_id', \DB::raw('NULL as profile_pic'))
-                      ->where('id', '!=', session('userid')->id)
-                      ->where('role_id', 1)
-                      ->get();
+            ->where('id', '!=', session('userid')->id)
+            ->where('role_id', 1)
+            ->get();
 
         // All tutors (role_id = 2) with profile pic
         $tutors = tutorregistration::select('tutorregistrations.id', 'tutorregistrations.name', 'tutorregistrations.email', 'tutorregistrations.mobile', 'tutorregistrations.role_id', 'tutorprofiles.profile_pic')
-                                    ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
-                                    ->where('tutorregistrations.id', '!=', session('userid')->id)
-                                    ->where('tutorregistrations.role_id', 2)
-                                    ->get();
+            ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
+            ->where('tutorregistrations.id', '!=', session('userid')->id)
+            ->where('tutorregistrations.role_id', 2)
+            ->get();
 
         // All students (role_id = 3) with profile pic
         $students = studentregistration::select('studentregistrations.id', 'studentregistrations.name', 'studentregistrations.email', 'studentregistrations.mobile', 'studentregistrations.role_id', 'studentprofiles.profile_pic')
-                                        ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
-                                        ->where('studentregistrations.id', '!=', session('userid')->id)
-                                        ->where('studentregistrations.role_id', 3)
-                                        ->get();
+            ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
+            ->where('studentregistrations.id', '!=', session('userid')->id)
+            ->where('studentregistrations.role_id', 3)
+            ->get();
 
         $userlists = $admins->merge($tutors)->merge($students);
         $this->addOnlineStatusToUserList($userlists);
@@ -465,7 +481,7 @@ class MessagesController extends Controller
         // $hasStudents = $userlists->contains('role_id', 3);
 
 
-        return view('admin.messages', compact('userlists', 'messages', 'header','activeTab'));
+        return view('admin.messages', compact('userlists', 'messages', 'header', 'activeTab'));
     }
 
     /**
@@ -474,10 +490,10 @@ class MessagesController extends Controller
     public function messagesbyadminstudents()
     {
         $userlists = studentregistration::select('studentregistrations.id', 'studentregistrations.name', 'studentregistrations.email', 'studentregistrations.mobile', 'studentregistrations.role_id', 'studentprofiles.profile_pic')
-                                      ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
-                                      ->where('studentregistrations.id', '!=', session('userid')->id)
-                                      ->where('studentregistrations.role_id', 3) // Get only students
-                                      ->get();
+            ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
+            ->where('studentregistrations.id', '!=', session('userid')->id)
+            ->where('studentregistrations.role_id', 3) // Get only students
+            ->get();
         $this->addOnlineStatusToUserList($userlists);
 
         // Empty messages array for initial view (no conversation selected yet)
@@ -485,29 +501,29 @@ class MessagesController extends Controller
         $header = null;
         $activeTab = 'student';
 
-        return view('admin.messages', compact('userlists', 'messages', 'header','activeTab'))->with('info', 'Student messages feature is temporarily unavailable.');
+        return view('admin.messages', compact('userlists', 'messages', 'header', 'activeTab'))->with('info', 'Student messages feature is temporarily unavailable.');
     }
 
-        /**
+    /**
      * Admin tutor messages - placeholder method
      */
     public function messagesbyadmintutor()
     {
         $userlists = tutorregistration::select('tutorregistrations.id', 'tutorregistrations.name', 'tutorregistrations.email', 'tutorregistrations.mobile', 'tutorregistrations.role_id', 'tutorprofiles.profile_pic')
-                                    ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
-                                    ->where('tutorregistrations.id', '!=', session('userid')->id)
-                                    ->where('tutorregistrations.role_id', 2) // Get only tutors
-                                    ->get();
+            ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
+            ->where('tutorregistrations.id', '!=', session('userid')->id)
+            ->where('tutorregistrations.role_id', 2) // Get only tutors
+            ->get();
         $this->addOnlineStatusToUserList($userlists);
 
         // Empty messages array for initial view (no conversation selected yet)
         $messages = [];
         $header = null;
         $activeTab = 'tutor';
-        return view('admin.messages', compact('userlists', 'messages', 'header','activeTab'))->with('info', 'Tutor messages feature is temporarily unavailable.');
+        return view('admin.messages', compact('userlists', 'messages', 'header', 'activeTab'))->with('info', 'Tutor messages feature is temporarily unavailable.');
     }
 
-       /**
+    /**
      * Admin tutor messages by ID - placeholder method
      * When admin message to the specific tutor
      */
@@ -515,9 +531,9 @@ class MessagesController extends Controller
     {
         // Get all tutors for the user list
         $userlists = tutorregistration::select('id', 'name', 'email', 'mobile', 'role_id')
-                                      ->where('id', '!=', session('userid')->id)
-                                      ->where('role_id', 2) // Get only tutors
-                                      ->get();
+            ->where('id', '!=', session('userid')->id)
+            ->where('role_id', 2) // Get only tutors
+            ->get();
         $this->addOnlineStatusToUserList($userlists);
 
         // Get the specific tutor for the header
@@ -525,26 +541,26 @@ class MessagesController extends Controller
             'tutorregistrations.*',
             'tutorprofiles.profile_pic'
         )
-        ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
-        ->where('tutorregistrations.id', $id)
-        ->first();
+            ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
+            ->where('tutorregistrations.id', $id)
+            ->first();
 
 
         // Get messages between admin and this tutor
-        $messages = ChMessage::where(function($query) use ($id) {
+        $messages = ChMessage::where(function ($query) use ($id) {
             $query->where('from_id', session('userid')->id)
-                  ->where('from_role_id', session('userid')->role_id)
-                  ->where('to_id', $id)
-                  ->where('to_role_id', 2); // Tutor role
-        })->orWhere(function($query) use ($id) {
+                ->where('from_role_id', session('userid')->role_id)
+                ->where('to_id', $id)
+                ->where('to_role_id', 2); // Tutor role
+        })->orWhere(function ($query) use ($id) {
             $query->where('from_id', $id)
-                  ->where('from_role_id', 2) // Tutor role
-                  ->where('to_id', session('userid')->id)
-                  ->where('to_role_id', session('userid')->role_id);
-        })->orderBy('created_at', 'desc')->get();
+                ->where('from_role_id', 2) // Tutor role
+                ->where('to_id', session('userid')->id)
+                ->where('to_role_id', session('userid')->role_id);
+        })->orderBy('created_at', 'asc')->get();
         $activeTab = null;
 
-        return view('admin.messages', compact('userlists', 'header', 'messages','activeTab'))->with('info', 'Tutor messages feature is temporarily unavailable.');
+        return view('admin.messages', compact('userlists', 'header', 'messages', 'activeTab'))->with('info', 'Tutor messages feature is temporarily unavailable.');
     }
 
     /**
@@ -554,9 +570,9 @@ class MessagesController extends Controller
     {
         // Get all students for the user list
         $userlists = studentregistration::select('id', 'name', 'email', 'mobile', 'role_id')
-                                      ->where('id', '!=', session('userid')->id)
-                                      ->where('role_id', 3) // Get only students
-                                      ->get();
+            ->where('id', '!=', session('userid')->id)
+            ->where('role_id', 3) // Get only students
+            ->get();
         $this->addOnlineStatusToUserList($userlists);
 
         // Get the specific student for the header
@@ -564,27 +580,27 @@ class MessagesController extends Controller
             'studentregistrations.*',
             'studentprofiles.profile_pic'
         )
-        ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
-        ->where('studentregistrations.id', $id)
-        ->first();
+            ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
+            ->where('studentregistrations.id', $id)
+            ->first();
 
 
         // Get messages between admin and this student
-        $messages = ChMessage::where(function($query) use ($id) {
+        $messages = ChMessage::where(function ($query) use ($id) {
             $query->where('from_id', session('userid')->id)
-                  ->where('from_role_id', session('userid')->role_id)
-                  ->where('to_id', $id)
-                  ->where('to_role_id', 3); // Student role
-        })->orWhere(function($query) use ($id) {
+                ->where('from_role_id', session('userid')->role_id)
+                ->where('to_id', $id)
+                ->where('to_role_id', 3); // Student role
+        })->orWhere(function ($query) use ($id) {
             $query->where('from_id', $id)
-                  ->where('from_role_id', 3) // Student role
-                  ->where('to_id', session('userid')->id)
-                  ->where('to_role_id', session('userid')->role_id);
-        })->orderBy('created_at', 'desc')->get();
+                ->where('from_role_id', 3) // Student role
+                ->where('to_id', session('userid')->id)
+                ->where('to_role_id', session('userid')->role_id);
+        })->orderBy('created_at', 'asc')->get();
         // dd($messages->toArray());
         $activeTab = null;
 
-        return view('admin.messages', compact('userlists', 'header', 'messages','activeTab'))->with('info', 'Student messages feature is temporarily unavailable.');
+        return view('admin.messages', compact('userlists', 'header', 'messages', 'activeTab'))->with('info', 'Student messages feature is temporarily unavailable.');
     }
 
     /**
@@ -593,20 +609,30 @@ class MessagesController extends Controller
      */
     public function messagesbyadminstudentmessagesload($id)
     {
+        $user = session('userid');
+        if (!$user) {
+            return view('admin.partial_chat_messages', [
+                'messages' => collect(),
+                'header' => null,
+                'tutorProfilePic' => '',
+            ])->render();
+        }
         // Get messages between admin and student
-        $messages = ChMessage::where(function($query) use ($id) {
+        $messages = ChMessage::where(function ($query) use ($id) {
             $query->where('from_id', session('userid')->id)
-                  ->where('from_role_id', session('userid')->role_id)
-                  ->where('to_id', $id)
-                  ->where('to_role_id', 3); // Student role
-        })->orWhere(function($query) use ($id) {
+                ->where('from_role_id', session('userid')->role_id)
+                ->where('to_id', $id)
+                ->where('to_role_id', 3); // Student role
+        })->orWhere(function ($query) use ($id) {
             $query->where('from_id', $id)
-                  ->where('from_role_id', 3) // Student role
-                  ->where('to_id', session('userid')->id)
-                  ->where('to_role_id', session('userid')->role_id);
+                ->where('from_role_id', 3) // Student role
+                ->where('to_id', session('userid')->id)
+                ->where('to_role_id', session('userid')->role_id);
         })->orderBy('created_at', 'asc')->get();
 
-        return response()->json(['messages' => $messages]);
+        $tutorProfilePic = tutorprofile::where('tutor_id', $user->id)->value('profile_pic') ?? '';
+
+        return view('admin.partial_chat_messages', compact('messages', 'header', 'tutorProfilePic'))->render();
     }
 
     /**
@@ -623,20 +649,29 @@ class MessagesController extends Controller
      */
     public function messagesbyadmintutormessagesload($id)
     {
+        $user = session('userid');
+        if (!$user) {
+            return view('admin.partial_chat_messages', [
+                'messages' => collect(),
+                'header' => null,
+                'tutorProfilePic' => '',
+            ])->render();
+        }
         // Get messages between admin and tutor
-        $messages = ChMessage::where(function($query) use ($id) {
+        $messages = ChMessage::where(function ($query) use ($id) {
             $query->where('from_id', session('userid')->id)
-                  ->where('from_role_id', session('userid')->role_id)
-                  ->where('to_id', $id)
-                  ->where('to_role_id', 2); // Tutor role
-        })->orWhere(function($query) use ($id) {
+                ->where('from_role_id', session('userid')->role_id)
+                ->where('to_id', $id)
+                ->where('to_role_id', 2); // Tutor role
+        })->orWhere(function ($query) use ($id) {
             $query->where('from_id', $id)
-                  ->where('from_role_id', 2) // Tutor role
-                  ->where('to_id', session('userid')->id)
-                  ->where('to_role_id', session('userid')->role_id);
+                ->where('from_role_id', 2) // Tutor role
+                ->where('to_id', session('userid')->id)
+                ->where('to_role_id', session('userid')->role_id);
         })->orderBy('created_at', 'asc')->get();
+        $tutorProfilePic = tutorprofile::where('tutor_id', $user->id)->value('profile_pic') ?? '';
 
-        return response()->json(['messages' => $messages]);
+        return view('admin.partial_chat_messages', compact('messages', 'header', 'tutorProfilePic'))->render();
     }
 
     /**
@@ -693,13 +728,13 @@ class MessagesController extends Controller
         $search = $request->searchtext;
 
         $userlists = studentregistration::select(
-                'studentregistrations.id',
-                'studentregistrations.name',
-                'studentregistrations.email',
-                'studentregistrations.mobile',
-                'studentregistrations.role_id',
-                'studentprofiles.profile_pic'
-            )
+            'studentregistrations.id',
+            'studentregistrations.name',
+            'studentregistrations.email',
+            'studentregistrations.mobile',
+            'studentregistrations.role_id',
+            'studentprofiles.profile_pic'
+        )
             ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
             ->where('studentregistrations.id', '!=', session('userid')->id)
             ->where('studentregistrations.role_id', 3)
@@ -727,13 +762,13 @@ class MessagesController extends Controller
         $search = $request->searchtext;
 
         $userlists = tutorregistration::select(
-                'tutorregistrations.id',
-                'tutorregistrations.name',
-                'tutorregistrations.email',
-                'tutorregistrations.mobile',
-                'tutorregistrations.role_id',
-                'tutorprofiles.profile_pic'
-            )
+            'tutorregistrations.id',
+            'tutorregistrations.name',
+            'tutorregistrations.email',
+            'tutorregistrations.mobile',
+            'tutorregistrations.role_id',
+            'tutorprofiles.profile_pic'
+        )
             ->leftJoin('tutorprofiles', 'tutorregistrations.id', '=', 'tutorprofiles.tutor_id')
             ->where('tutorregistrations.id', '!=', session('userid')->id)
             ->where('tutorregistrations.role_id', 2)
@@ -760,8 +795,8 @@ class MessagesController extends Controller
     {
         // Get admins (role_id = 1)
         $admins = admin::select('id', 'name', 'email', 'mobile', 'role_id', \DB::raw('NULL as profile_pic'))
-                      ->where('id', '!=', session('userid')->id)
-                      ->where('role_id', 1);
+            ->where('id', '!=', session('userid')->id)
+            ->where('role_id', 1);
 
         // Get students assigned to this tutor via paymentstudents table and the demo class table with profile pics
         $allStudents = studentregistration::select(
@@ -772,22 +807,22 @@ class MessagesController extends Controller
             'studentregistrations.role_id',
             'studentprofiles.profile_pic'
         )
-        ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
-        ->leftJoin('paymentstudents', function ($join) {
-            $join->on('paymentstudents.student_id', '=', 'studentregistrations.id')
-                ->where('paymentstudents.tutor_id', session('userid')->id);
-        })
-        ->leftJoin('democlasses', function ($join) {
-            $join->on('democlasses.student_id', '=', 'studentregistrations.id')
-                ->where('democlasses.tutor_id', session('userid')->id);
-        })
-        ->where(function ($query) {
-            $query->whereNotNull('paymentstudents.id')
-                ->orWhereNotNull('democlasses.id');
-        })
-        ->where('studentregistrations.role_id', 3)
-        ->where('studentregistrations.id', '!=', session('userid')->id)
-        ->distinct();
+            ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
+            ->leftJoin('paymentstudents', function ($join) {
+                $join->on('paymentstudents.student_id', '=', 'studentregistrations.id')
+                    ->where('paymentstudents.tutor_id', session('userid')->id);
+            })
+            ->leftJoin('democlasses', function ($join) {
+                $join->on('democlasses.student_id', '=', 'studentregistrations.id')
+                    ->where('democlasses.tutor_id', session('userid')->id);
+            })
+            ->where(function ($query) {
+                $query->whereNotNull('paymentstudents.id')
+                    ->orWhereNotNull('democlasses.id');
+            })
+            ->where('studentregistrations.role_id', 3)
+            ->where('studentregistrations.id', '!=', session('userid')->id)
+            ->distinct();
 
 
         $userlists = $admins->union($allStudents)->get();
@@ -808,9 +843,9 @@ class MessagesController extends Controller
     public function messagesbytutoradmins()
     {
         $userlists = admin::select('id', 'name', 'email', 'mobile', 'role_id', \DB::raw('NULL as profile_pic'))
-                         ->where('id', '!=', session('userid')->id)
-                         ->where('role_id', 1) // Get only admins
-                         ->get();
+            ->where('id', '!=', session('userid')->id)
+            ->where('role_id', 1) // Get only admins
+            ->get();
         $this->addOnlineStatusToUserList($userlists);
 
         // Get tutor's profile picture
@@ -832,11 +867,11 @@ class MessagesController extends Controller
 
         // Get only students assigned to this tutor
         $students = studentregistration::select('studentregistrations.id', 'studentregistrations.name', 'studentregistrations.email', 'studentregistrations.mobile', 'studentregistrations.role_id')
-                                      ->join('paymentstudents', 'paymentstudents.student_id', '=', 'studentregistrations.id')
-                                      ->where('paymentstudents.tutor_id', session('userid')->id)
-                                      ->where('studentregistrations.id', '!=', session('userid')->id)
-                                      ->where('studentregistrations.role_id', 3)
-                                      ->distinct();
+            ->join('paymentstudents', 'paymentstudents.student_id', '=', 'studentregistrations.id')
+            ->where('paymentstudents.tutor_id', session('userid')->id)
+            ->where('studentregistrations.id', '!=', session('userid')->id)
+            ->where('studentregistrations.role_id', 3)
+            ->distinct();
 
         $userlists = $admins->union($students)->get();
         $this->addOnlineStatusToUserList($userlists);
@@ -848,17 +883,17 @@ class MessagesController extends Controller
         $tutorProfile = tutorprofile::where('tutor_id', session('userid')->id)->first();
 
         // Get messages between tutor and this admin
-        $messages = ChMessage::where(function($query) use ($id) {
+        $messages = ChMessage::where(function ($query) use ($id) {
             $query->where('from_id', session('userid')->id)
-                  ->where('from_role_id', session('userid')->role_id)
-                  ->where('to_id', $id)
-                  ->where('to_role_id', 1); // Admin role
-        })->orWhere(function($query) use ($id) {
+                ->where('from_role_id', session('userid')->role_id)
+                ->where('to_id', $id)
+                ->where('to_role_id', 1); // Admin role
+        })->orWhere(function ($query) use ($id) {
             $query->where('from_id', $id)
-                  ->where('from_role_id', 1) // Admin role
-                  ->where('to_id', session('userid')->id)
-                  ->where('to_role_id', session('userid')->role_id);
-        })->orderBy('created_at', 'desc')->get();
+                ->where('from_role_id', 1) // Admin role
+                ->where('to_id', session('userid')->id)
+                ->where('to_role_id', session('userid')->role_id);
+        })->orderBy('created_at', 'asc')->get();
 
         return view('tutor.messages', compact('userlists', 'header', 'messages', 'tutorProfile'))->with('info', 'Admin messages feature is temporarily unavailable.');
     }
@@ -868,20 +903,29 @@ class MessagesController extends Controller
      */
     public function messagesbytutoradminmessagesload($id)
     {
+        $user = session('userid');
+        if (!$user) {
+            return view('tutor.partial_chat_messages', [
+                'messages' => collect(),
+                'header' => null,
+                'tutorProfilePic' => '',
+            ])->render();
+        }
         // Get messages between tutor and admin
-        $messages = ChMessage::where(function($query) use ($id) {
-            $query->where('from_id', session('userid')->id)
-                  ->where('from_role_id', session('userid')->role_id)
-                  ->where('to_id', $id)
-                  ->where('to_role_id', 1); // Admin role
-        })->orWhere(function($query) use ($id) {
+        $messages = ChMessage::where(function ($query) use ($id, $user) {
+            $query->where('from_id', $user->id)
+                ->where('from_role_id', $user->role_id)
+                ->where('to_id', $id)
+                ->where('to_role_id', 1); // Admin role
+        })->orWhere(function ($query) use ($id, $user) {
             $query->where('from_id', $id)
-                  ->where('from_role_id', 1) // Admin role
-                  ->where('to_id', session('userid')->id)
-                  ->where('to_role_id', session('userid')->role_id);
+                ->where('from_role_id', 1) // Admin role
+                ->where('to_id', $user->id)
+                ->where('to_role_id', $user->role_id);
         })->orderBy('created_at', 'asc')->get();
-
-        return response()->json(['messages' => $messages]);
+        $header = admin::find($id);
+        $tutorProfilePic = tutorprofile::where('tutor_id', $user->id)->value('profile_pic') ?? '';
+        return view('tutor.partial_chat_messages', compact('messages', 'header', 'tutorProfilePic'))->render();
     }
 
     /**
@@ -890,13 +934,13 @@ class MessagesController extends Controller
     public function messagesbytutorstudents()
     {
         $userlists = studentregistration::select(
-                'studentregistrations.id',
-                'studentregistrations.name',
-                'studentregistrations.email',
-                'studentregistrations.mobile',
-                'studentregistrations.role_id',
-                'studentprofiles.profile_pic'
-            )
+            'studentregistrations.id',
+            'studentregistrations.name',
+            'studentregistrations.email',
+            'studentregistrations.mobile',
+            'studentregistrations.role_id',
+            'studentprofiles.profile_pic'
+        )
             ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
 
             ->leftJoin('paymentstudents', function ($join) {
@@ -939,36 +983,36 @@ class MessagesController extends Controller
 
         // Get only students assigned to this tutor
         $students = studentregistration::select('studentregistrations.id', 'studentregistrations.name', 'studentregistrations.email', 'studentregistrations.mobile', 'studentregistrations.role_id')
-                                      ->join('paymentstudents', 'paymentstudents.student_id', '=', 'studentregistrations.id')
-                                      ->where('paymentstudents.tutor_id', session('userid')->id)
-                                      ->where('studentregistrations.id', '!=', session('userid')->id)
-                                      ->where('studentregistrations.role_id', 3)
-                                      ->distinct();
+            ->join('paymentstudents', 'paymentstudents.student_id', '=', 'studentregistrations.id')
+            ->where('paymentstudents.tutor_id', session('userid')->id)
+            ->where('studentregistrations.id', '!=', session('userid')->id)
+            ->where('studentregistrations.role_id', 3)
+            ->distinct();
 
         $userlists = $admins->union($students)->get();
         $this->addOnlineStatusToUserList($userlists);
 
         // Get the specific student for the header with profile picture
         $header = studentregistration::select('studentregistrations.*', 'studentprofiles.profile_pic')
-                                    ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
-                                    ->where('studentregistrations.id', $id)
-                                    ->first();
+            ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
+            ->where('studentregistrations.id', $id)
+            ->first();
 
         // Get tutor's profile picture
         $tutorProfile = tutorprofile::where('tutor_id', session('userid')->id)->first();
 
         // Get messages between tutor and this student
-        $messages = ChMessage::where(function($query) use ($id) {
+        $messages = ChMessage::where(function ($query) use ($id) {
             $query->where('from_id', session('userid')->id)
-                  ->where('from_role_id', session('userid')->role_id)
-                  ->where('to_id', $id)
-                  ->where('to_role_id', 3); // Student role
-        })->orWhere(function($query) use ($id) {
+                ->where('from_role_id', session('userid')->role_id)
+                ->where('to_id', $id)
+                ->where('to_role_id', 3); // Student role
+        })->orWhere(function ($query) use ($id) {
             $query->where('from_id', $id)
-                  ->where('from_role_id', 3) // Student role
-                  ->where('to_id', session('userid')->id)
-                  ->where('to_role_id', session('userid')->role_id);
-        })->orderBy('created_at', 'desc')->get();
+                ->where('from_role_id', 3) // Student role
+                ->where('to_id', session('userid')->id)
+                ->where('to_role_id', session('userid')->role_id);
+        })->orderBy('created_at', 'asc')->get();
 
         return view('tutor.messages', compact('userlists', 'header', 'messages', 'tutorProfile'))->with('info', 'Student messages feature is temporarily unavailable.');
     }
@@ -978,20 +1022,33 @@ class MessagesController extends Controller
      */
     public function messagesbytutorstudentmessagesload($id)
     {
+        $user = session('userid');
+        if (!$user) {
+            return view('tutor.partial_chat_messages', [
+                'messages' => collect(),
+                'header' => null,
+                'tutorProfilePic' => '',
+            ])->render();
+        }
         // Get messages between tutor and student
-        $messages = ChMessage::where(function($query) use ($id) {
+        $messages = ChMessage::where(function ($query) use ($id, $user) {
             $query->where('from_id', session('userid')->id)
-                  ->where('from_role_id', session('userid')->role_id)
-                  ->where('to_id', $id)
-                  ->where('to_role_id', 3); // Student role
-        })->orWhere(function($query) use ($id) {
+                ->where('from_role_id', session('userid')->role_id)
+                ->where('to_id', $id)
+                ->where('to_role_id', 3); // Student role
+        })->orWhere(function ($query) use ($id) {
             $query->where('from_id', $id)
-                  ->where('from_role_id', 3) // Student role
-                  ->where('to_id', session('userid')->id)
-                  ->where('to_role_id', session('userid')->role_id);
+                ->where('from_role_id', 3) // Student role
+                ->where('to_id', session('userid')->id)
+                ->where('to_role_id', session('userid')->role_id);
         })->orderBy('created_at', 'asc')->get();
 
-        return response()->json(['messages' => $messages]);
+        $header = studentregistration::select('studentregistrations.*', 'studentprofiles.profile_pic')
+            ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
+            ->where('studentregistrations.id', $id)
+            ->first();
+        $tutorProfilePic = tutorprofile::where('tutor_id', $user->id)->value('profile_pic') ?? '';
+        return view('tutor.partial_chat_messages', compact('messages', 'header', 'tutorProfilePic'))->render();
     }
 
     /**
