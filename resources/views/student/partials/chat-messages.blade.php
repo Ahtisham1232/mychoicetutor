@@ -78,7 +78,7 @@
                                 width="40" height="40">
                         @endif
                         <div class="text-muted small text-nowrap mt-2">
-                            {{ $message->created_at }}
+                            {{ $message->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}
                         </div>
                     </div>
                     <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3 shadow-sm"

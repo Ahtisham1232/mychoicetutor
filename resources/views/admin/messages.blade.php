@@ -15,14 +15,6 @@
                 color: #e4606d;
             }
 
-            .chat-messages {
-                display: flex;
-                max-height: 300px;
-                flex-direction: column-reverse;
-                /* Reverse message order */
-                overflow-y: scroll;
-                /* Enable scrolling */
-            }
 
             .chat-message-left,
             .chat-message-right {
@@ -324,7 +316,7 @@
                                                 </div>
                                             @else
                                                 <div class="chat-message-left pb-4">
-                                                    <div>
+                                                    <div style="margin-right: 12px;">
                                                         @if ($header->role_id == 3)
                                                             <img src="{{ url('images/students/profilepics') }}/{{ $header->profile_pic }}"
                                                                 class="rounded-circle mr-1" alt="Student"
