@@ -143,7 +143,7 @@ class SendClassReminders extends Command
         // ================= REGULAR CLASSES (SlotBooking) =================
 
 
-        $slotBookings = SlotBooking::where('status', 2)
+        $slotBookings = SlotBooking::where('status', 1)
             ->whereNotNull('student_id')
             ->whereNotNull('tutor_id')
             ->whereNotNull('meeting_id')

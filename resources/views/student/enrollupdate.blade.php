@@ -123,7 +123,6 @@
                         ?>
 
 
-
                         <div class="col-md-2 mt-4">
                             <label for="">Total Classes</label>
                             <input type="number" class="form-control readonly" name="classpurchased" id="classpurchased" value="{{$class_purchased}}" readonly>
@@ -163,17 +162,17 @@
                 <hr>
 
                 <div class="table-responsive">
-                            <table class="table table-hover table-striped align-middle table-nowrap mb-0 users-table" style="display:block; overflow-Y:scroll !important;">
-                                <thead class="thead-dark">
-                                    <tr>
-                                        <th scope="col">Date</th>
-                                        <th scope="col">Slots</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- ... Existing HTML code ... -->
-
-                                    @foreach($groupedSlots as $date => $slots)
+                    <table class="table table-hover table-striped align-middle table-nowrap mb-0 users-table" style="display:block; overflow-Y:scroll !important;">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th scope="col">Date</th>
+                                <th scope="col">Slots</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                                <!-- ... Existing HTML code ... -->
+                            @if(isset($groupedSlots) && count($groupedSlots)>0)
+                                @foreach($groupedSlots as $date => $slots)
                                     <tr>
                                         <td>{{ $date }}</td>
                                         <td>
@@ -196,16 +195,19 @@
                                         </td>
                                     </tr>
                                 @endforeach
+                            @else  
+                                <div class="alert alert-danger mt-3">
+                                    <i class="fa fa-lock"></i> 
+                                    <strong>Update Booking Unavailable:</strong> This tutor has not set their availability slots yet.Update Enrollment is disabled until slots are created.
+                                </div>
+                            @endif
 
-                                </tbody>
-
-                            </table>
-                        </div>
-
-
+                        </tbody>
 
                     </table>
                 </div>
+
+            </div>
                 @if (session('usertype') == 'Parent')
                 @else
                 <div style="display: flex; justify-content:space-between" class="my-3">
@@ -213,7 +215,12 @@
                     <input type="hidden" id="slotids" name="slotids">
                     <input type="checkbox" id="contactadmin" name="contactadmin"> <span><label for="contactadmin" > Please select to contact Admin, if you are not able to select slots.</label></span>
                    </div>
-                <button class="btn btn-sm btn-success">Update Slots</button>
+                 @if(!isset($groupedSlots) || count($groupedSlots) == 0)
+                        <!-- Do NOT show the button, maybe show alert instead -->
+                    @else
+                        <button class="btn btn-sm btn-success">Update Slots</button>
+                    @endif
+
                 @endif
             </form>
                 </div>

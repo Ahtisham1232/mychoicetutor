@@ -111,6 +111,11 @@ class GoogleCalendarController extends Controller
                 return back()->with('fail', 'Slot booking not found.');
             }
 
+            // Only allow scheduling when admin has approved the enrollment (slot status = 1)
+            if ((int) $classdata->status !== 1) {
+                return back()->with('fail', 'You can only schedule a class after the enrollment request has been approved by admin. This slot is still pending approval.');
+            }
+
             $studentpayment = paymentstudents::select('*')->where('id', $classdata->class_schedule_id)->first();
             if (!$studentpayment) {
                 return back()->with('fail', 'Payment record not found.');

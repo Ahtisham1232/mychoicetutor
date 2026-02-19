@@ -107,18 +107,7 @@ class ClassController extends Controller
     public function studentclass()
     {
 
-        $targetValue = session('userid')->id; // The value we want to check in the JSON array
-// $abc = zoom_classes::select('*')->where('student_id',session('userid')->id)->get();
-// dd($abc);
-        // $classes = zoom_classes::select('zoom_classes.*', 'zoom_classes.id as class_id', 'tutorregistrations.name as tutor_name', 'zoom_classes.topic_name as topics', 'zoom_classes.tutor_id as tutor_id', 'subjects.id as subject_id', 'subjects.name as subjects', 'slot_bookings.date as slotdate', 'slot_bookings.slot as slottime')
-        //     ->leftJoin('slot_bookings', 'slot_bookings.meeting_id', 'zoom_classes.id')
-        //     ->leftJoin('subjects', 'subjects.id', 'slot_bookings.subject_id')
-        //     ->leftJoin('tutorregistrations', 'tutorregistrations.id', 'slot_bookings.tutor_id')
-        //     // ->where('zoom_classes.is_active', 1)
-        //     ->where('slot_bookings.student_id', session('userid')->id)
-        //     // ->where('zoom_classes.is_completed', 0)
-        //     ->get();
-
+        $targetValue = session('userid')->id; // The value we want to check in the JSON array    
         $classes = SlotBooking::select(
             'zoom_classes.*',
             'zoom_classes.id as class_id',
@@ -396,8 +385,6 @@ class ClassController extends Controller
             ->paginate(10);
         $subjects = subjects::where('is_active', 1)->where('class_id', session('userid')->class_id)->get();
         $batches = batches::where('is_active', 1)->get();
-// dd($classes);
-        // return view('student.classes',get_defined_vars());
         return view('student.class-report', get_defined_vars());
     }
     public function student_class_reportParent()
