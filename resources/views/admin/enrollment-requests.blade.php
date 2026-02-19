@@ -27,7 +27,7 @@
                                         <th>Class</th>
                                         <th>Classes</th>
                                         <th>Amount</th>
-                                        <th>Request Date</th>
+                                        <th>Created Slot Date</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>

@@ -172,23 +172,6 @@ class TutorSearchController extends Controller
             )
             ->get();
 
-        // // Accessing total_classes_purchased for each tutor
-        // foreach ($tutorlist as $tutor) {
-        //     echo $tutor->total_classes_purchased;
-        //     // dd($tutor);
-        // }
-
-        // // Alternatively, if you expect a single tutor, you can do:
-        // $tutor = $tutorlist->first();
-        // if ($tutor) {
-        //     echo $tutor->total_classes_purchased;
-        // } else {
-        //     echo "No tutor found.";
-        // }
-        // dd($tutor);
-
-        // dd($tutorlist);
-
         return view('student.yourtutor', compact('tutorlist'));
     }
     public function tutorprofile($id)
@@ -587,7 +570,6 @@ class TutorSearchController extends Controller
     // NEW: Enrollment request method (no payment required)
     public function purchaseclass(Request $request)
     {
-        // dd($request);
         try {
             $request->validate([
                 'tutorenrollid' => 'required',

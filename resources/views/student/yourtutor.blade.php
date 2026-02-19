@@ -120,8 +120,15 @@
                                             <div class="tu-listinginfo_title">
                                                 <div class="tu-listinginfo-img">
                                                     <figure>
-                                                        <img src="{{ url('images/tutors/profilepics', '/') }}{{ $tutorlist->profile_pic ?? url('images/avatar/default-profile-pic.png') }}"
-                                                            width="60px" alt="imge">
+                                                        @if (empty($tutorlist->profile_pic))
+                                                            <img src="{{asset('images/students/profilepics/no-img.jpg')}}"
+                                                                class="rounded-circle mr-1" alt="empty-pic" width="40"
+                                                                height="40">
+                                                        @else
+                                                            <img src="{{ url('images/tutors/profilepics') }}/{{ $tutorlist->profile_pic }}"
+                                                                class="rounded-circle mr-1" alt="tutor-pic" width="40"
+                                                                height="40">
+                                                        @endif
                                                     </figure>
                                                     <div class="tu-listing-heading">
                                                         <h5><a href="{{ url('#') }}">{{ $tutorlist->name }}</a> <i
@@ -278,24 +285,26 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <script>
-                function openDemoModal(id, name, className, subjectId, subjectName, classPurchased, totalAmountPaid, enrollmentDate,
-                    classAttended) {
-                    // alert(totalAmountPaid)
+    <script>
+        function openDemoModal(id, name, className, subjectId, subjectName, classPurchased, totalAmountPaid, enrollmentDate,
+            classAttended) {
+            // alert(totalAmountPaid)
 
-                    // document.getElementById('studentName').innerHTML = name;
-                    document.getElementById('tutorName').innerHTML = name;
-                    document.getElementById('className').innerHTML = className;
-                    document.getElementById('subjectName').innerHTML = subjectName;
-                    document.getElementById('enrollmentDate').innerHTML = enrollmentDate;
-                    document.getElementById('paidAmount').innerHTML = totalAmountPaid;
-                    document.getElementById('totalClassCount').innerHTML = classPurchased;
-                    document.getElementById('totalAvailableClass').innerHTML = classPurchased - classAttended;
-                    document.getElementById('totalAttendedClass').innerHTML = classAttended;
-                    // document.getElementById('fullDetailsBtn').innerHTML = "<a href='completed-classes'><button class='btn btn-primary'>View All Classes</button></a>";
-                    $("#openClassModal").modal('show');
-                }
-            </script>
-            <!-- content-wrapper ends -->
-        @endsection
+            // document.getElementById('studentName').innerHTML = name;
+            document.getElementById('tutorName').innerHTML = name;
+            document.getElementById('className').innerHTML = className;
+            document.getElementById('subjectName').innerHTML = subjectName;
+            document.getElementById('enrollmentDate').innerHTML = enrollmentDate;
+            document.getElementById('paidAmount').innerHTML = totalAmountPaid;
+            document.getElementById('totalClassCount').innerHTML = classPurchased;
+            document.getElementById('totalAvailableClass').innerHTML = classPurchased - classAttended;
+            document.getElementById('totalAttendedClass').innerHTML = classAttended;
+            // document.getElementById('fullDetailsBtn').innerHTML = "<a href='completed-classes'><button class='btn btn-primary'>View All Classes</button></a>";
+            $("#openClassModal").modal('show');
+        }
+    </script>
+    <!-- content-wrapper ends -->
+@endsection

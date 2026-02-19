@@ -151,6 +151,8 @@
                                 <span class="badge bg-danger">Booked</span>
                                 @endif
                             </td>
+                            @elseif ($slot->status == 2)
+                            <td><span class="badge bg-warning text-dark">Pending Admin Approval</span></td>
                             @else
                             <td>Completed</td>
                             @endif
@@ -161,6 +163,8 @@
                                 <button class="btn btn-sm btn-danger"
                                     onclick="warningModal('{{ $slot->id }}')">Delete</button>
                             </td>
+                            @elseif ($slot->status == 2)
+                            <td><span class="text-muted small">Waiting for admin to approve enrollment</span></td>
                             @else
                             <td>
                                 @if ($slot->is_class_scheduled == 1)
