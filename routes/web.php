@@ -78,11 +78,11 @@ Route::get('reviews',[HomeController::class,'reviewslist'])->name('revieweslist'
 
 // Changed to new UI for Students
 Route::get('/student/register', [HomeController::class, 'std_registration'])->name('std_registration');
-Route::post('/student/register',[HomeController::class,'student_registration_form'])->name('student_registration_form');
+Route::post('/student/register',[HomeController::class,'student_tutor_registration_form'])->name('student_tutor_registration_form');
 Route::get('/student/login', [HomeController::class, 'std_login'])->name('studentlogin');
 Route::get('/student/mobile-verify',[HomeController::class,'student_mobile_verify'])->name('student_mobile_verify');
 Route::post('/student/mobile-verify',[HomeController::class,'verify_student_mobile'])->name('verify_student_mobile');
-Route::get('/student-login',[HomeController::class, 'student_login'])->name('student_login');
+Route::get('/student-login',[HomeController::class, 'userLogin'])->name('userLogin');
 Route::post('/forget-password',[HomeController::class, 'forget_password'])->name('forget_password');
 Route::get('reset-password/{token}', [HomeController::class, 'reset_password_form'])->name('reset.password.get');
 // Handle reset

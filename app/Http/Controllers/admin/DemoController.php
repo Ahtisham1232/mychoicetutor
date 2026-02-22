@@ -14,6 +14,7 @@ use App\Models\Notification;
 use App\Events\RealTimeMessage;
 use App\Models\studentregistration;
 use App\Models\tutorregistration;
+use App\Helpers\CommonHelper;
 use App\Services\TwilioWhatsAppService;
 use Illuminate\Support\Facades\Log;
 
@@ -303,7 +304,7 @@ public function demostatusupdate(Request $request, TwilioWhatsAppService $whatsA
                 $classType = 'Demo Class';
 
                 // Format phone number
-                $studentNumber = '+92' . ltrim($student->mobile, '0');
+                $studentNumber = $student->mobile;
 
                 $bodyVariablesStudent = [
                     $student->name,

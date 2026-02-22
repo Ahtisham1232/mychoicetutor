@@ -14,6 +14,7 @@ use App\Models\tutorregistration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use App\Helpers\CommonHelper;
 use App\Services\TwilioWhatsAppService;
 use Carbon\Carbon;
 
@@ -228,7 +229,7 @@ class DemoListController extends Controller
             if (!empty($tutor->mobile)) {
                 try {
                     $templateIdTutor = 1634;
-                    $tutorNumber = '+92' . ltrim($tutor->mobile, '0');
+                   $tutorNumber = $tutor->mobile;
                     $bodyVariablesTutor = [
                         $tutor->name,
                         $formattedSlot1,
@@ -245,7 +246,7 @@ class DemoListController extends Controller
             if (!empty($profchk->mobile)) {
                 try {
                     $templateIdStudent = 1635;
-                    $studentNumber = '+92' . ltrim($profchk->mobile, '0');
+                    $studentNumber = $profchk->mobile;
                     $bodyVariablesStudent = [
                         $student->name,
                         $tutor->name,

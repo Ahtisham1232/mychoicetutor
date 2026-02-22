@@ -54,12 +54,23 @@
                         <input type="hidden" id="showloginpopup" name="showloginpopup" value="1">
                         <div class="alert alert-danger">{{ Session::get('fail') }}</div>
                     @endif
-                    <label for="number">Mobile Number</label>
-                    <input type="number" class="form-control" id="username" name="username" aria-describedby=""
-                        placeholder="Your Number" required>
+                   <label for="number">Mobile Number</label>
+                    <div style="display:flex; gap:10px; margin-bottom: 15px;">
+                        <select class="form-control" id="country_code" name="country_code" style="max-width:100px;">
+                            @foreach(config('phone') as $country)
+                                <option value="{{ $country['code'] }}" 
+                                    {{ old('country_code', '+92') == $country['code'] ? 'selected' : '' }}>
+                                    {{ $country['code'] }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        <input type="number" class="form-control" id="mobile" name="mobile" 
+                            placeholder="Your Number" required value="{{ old('mobile') }}" oninput="this.value=this.value.slice(0,20)">
+                    </div>
                 </div>
                 <span class="text-danger  login-errorMessage">
-                    @error('username')
+                    @error('mobile')
                         {{ $message }}
                     @enderror
                 </span>

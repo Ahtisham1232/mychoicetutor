@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\RealTimeMessage;
+use App\Helpers\CommonHelper;
 use App\Mail\SendMail;
 use App\Models\Blogs;
 use App\Models\classes;
@@ -145,7 +146,6 @@ class HomeController extends Controller
 
         $blogs = Blogs::select('*')->where('is_active', 1)->orderby('created_at')->get();
         // dd($subjectcategories);
-        // dd(get_defined_vars());
         return view('front-cms.index', get_defined_vars());
         // return view('front-cms.index', compact('classes'));
     }
@@ -227,7 +227,6 @@ class HomeController extends Controller
             ->groupBy('subjectcategories.id', 'subjectcategories.name', 'subjectcategories.category_image', 'subjectcategories.is_active', 'subjectcategories.created_at', 'subjectcategories.updated_at')
             ->get();
 
-        // dd( ($tutors));
         return view('front-cms.findatutor', get_defined_vars());
     }
     public function advancesearch(Request $request)
@@ -310,69 +309,6 @@ class HomeController extends Controller
             ->groupBy('subjectcategories.id', 'subjectcategories.name', 'subjectcategories.category_image', 'subjectcategories.is_active', 'subjectcategories.created_at', 'subjectcategories.updated_at')
             ->get();
 
-        //     $classes = classes::all('id', 'name');
-
-        //     $tutors = tutorprofile::select(
-        //     'tutorprofiles.name',
-        //     'tutorprofiles.headline',
-        //     'tutorprofiles.profile_pic',
-        //     'tutorprofiles.tutor_id as tutor_id',
-        //     DB::raw('(tutorprofiles.rateperhour * tutorprofiles.admin_commission / 100) as rateperhour'), // Calculate rateperhour with commission
-        //     DB::raw('GROUP_CONCAT(DISTINCT subjects.name) as subjects'), // Concatenate subjects
-        //     DB::raw('GROUP_CONCAT(DISTINCT classes.name) as classNames'), // Concatenate class names
-        //     DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'),
-        //     DB::raw('AVG(tutorreviews.ratings) as avg_rating'),
-        //     DB::raw('COUNT(tutorreviews.id) as total_reviews') // Count total reviews
-        // )
-        // ->distinct()
-        // ->leftJoin('tutorsubjectmappings', 'tutorsubjectmappings.tutor_id', '=', 'tutorprofiles.tutor_id')
-        // ->leftJoin('teacherclassmappings', 'teacherclassmappings.subject_mapping_id', '=', 'tutorsubjectmappings.id')
-        // ->leftJoin('subjects', 'subjects.id', '=', 'tutorsubjectmappings.subject_id')
-        // ->leftJoin('classes', 'classes.id', '=', 'tutorsubjectmappings.class_id')
-        // ->leftJoin('tutorregistrations','tutorregistrations.id','tutorprofiles.tutor_id')
-        // ->leftJoin('tutorreviews', function($join) {
-        //     $join->on('tutorreviews.tutor_id', '=', 'tutorprofiles.tutor_id')
-        //          ->on('tutorreviews.subject_id', '=', 'tutorsubjectmappings.subject_id');
-        // })
-        // ->where('tutorsubjectmappings.subject_id', 'LIKE', '%' . $subjectid . '%')
-        // ->where('tutorsubjectmappings.class_id', 'LIKE', '%' . $classid . '%')
-        // ->where('tutorprofiles.country_id', 'LIKE', '%' . $countryid . '%')
-        // ->where('tutorprofiles.name', 'LIKE', '%' . $tutorname . '%')
-        // ->where('tutorregistrations.is_active', 1)
-        // ->groupBy(
-        //     'tutorprofiles.name',
-        //     'tutorprofiles.profile_pic',
-        //     'tutorprofiles.rate',
-        //     'tutorsubjectmappings.rate',
-        //     'tutorsubjectmappings.admin_commission',
-        //     'tutorprofiles.headline',
-        //     'tutorprofiles.rateperhour',
-        //     'tutorprofiles.admin_commission',
-        //     'tutorprofiles.tutor_id'
-        // )
-        // ->havingRaw('AVG(tutorreviews.ratings) >= ?', [$ratings])
-        // ->get();
-
-        //     $subjectlists = DB::table('subjects')
-        //     ->join('subjectcategories', 'subjects.category', '=', 'subjectcategories.id')
-        //     ->select('subjectcategories.name as category_name', 'subjects.name as subject_name','subjects.id as subject_id')
-        //     ->where('subjects.is_active', 1)
-        //     ->orderBy('subjectcategories.name')
-        //     ->get();
-
-        //     // Grades/Level
-        //     $gradelists = Classes::where('is_active',1)->get();
-        //     $subjects = Subjects::where('is_active',1)->get();
-        //     $countries = Country::where('is_active',1)->get();
-
-        //     // Subject Categories with subjects count
-        //     $subjectcategories = DB::table('subjectcategories')
-        // ->select('subjectcategories.*', DB::raw('COUNT(subjects.id) as subject_count'))
-        // ->leftJoin('subjects', 'subjectcategories.id', '=', 'subjects.category')
-        // ->where('subjectcategories.is_active',1)
-        // ->groupBy('subjectcategories.id', 'subjectcategories.name', 'subjectcategories.category_image', 'subjectcategories.is_active','subjectcategories.created_at','subjectcategories.updated_at')
-        // ->get();
-
         // dd( ($tutors));
         return view('front-cms.findatutor', get_defined_vars());
     }
@@ -445,7 +381,6 @@ class HomeController extends Controller
             ->groupBy('subjectcategories.id', 'subjectcategories.name', 'subjectcategories.category_image', 'subjectcategories.is_active', 'subjectcategories.created_at', 'subjectcategories.updated_at')
             ->get();
 
-        // dd($subjectcategories);
         // dd( ($tutors));
         return view('front-cms.allsubjects', get_defined_vars());
         // return view('front-cms.index', compact('classes'));
@@ -712,12 +647,17 @@ class HomeController extends Controller
     {
 
         $request->validate([
-            'username' => 'required',
+            'mobile' => 'required',
             'password' => 'required',
             'loginAs' => 'required',
         ]);
         if ($request->loginAs == 'student') {
-            $user = studentregistration::where('mobile', '=', $request->username)->first();
+
+            $mobile = $request->mobile;
+            $countryCode = $request->country_code;
+            $fullMobileWithPlus = CommonHelper::ensureE164($mobile, $countryCode);
+                    
+            $user = studentregistration::where('mobile', $fullMobileWithPlus)->first();
             if ($user) {
                 if (Hash::check($request->password, $user->password)) {
                     //  event(new Registered($user));
@@ -754,7 +694,11 @@ class HomeController extends Controller
             }
         }
         if ($request->loginAs == 'parent') {
-            $user = studentregistration::where('mobile', '=', $request->username)->first();
+            $mobile = $request->mobile;
+            $countryCode = $request->country_code;
+            $fullMobile = CommonHelper::ensureE164($mobile, $countryCode);
+            // Find the student by mobile
+            $user = studentregistration::where('mobile', $fullMobile)->first();
 
             if ($user) {
                 if (Hash::check($request->password, $user->parent_password)) {
@@ -768,7 +712,12 @@ class HomeController extends Controller
             }
         }
         if ($request->loginAs == 'tutor') {
-            $user = tutorregistration::where('mobile', '=', $request->username)->first();
+
+            $mobile = $request->mobile;
+            $countryCode = $request->country_code;
+            $fullMobileWithPlus = CommonHelper::ensureE164($mobile, $countryCode);
+                    
+            $user = tutorregistration::where('mobile', $fullMobileWithPlus)->first();
             if ($user) {
                 if (Hash::check($request->password, $user->password)) {
                     //  event(new Registered($user));
@@ -815,12 +764,16 @@ class HomeController extends Controller
     {
 
         $request->validate([
-            'username' => 'required',
+            'mobile' => 'required',
             'password' => 'required',
             'loginAs' => 'required',
         ]);
         if ($request->loginAs == 'student') {
-            $user = studentregistration::where('mobile', '=', $request->username)->first();
+            $mobile = $request->mobile;
+            $countryCode = $request->country_code;
+            $fullMobileWithPlus = CommonHelper::ensureE164($mobile, $countryCode);
+                    
+            $user = studentregistration::where('mobile', $fullMobileWithPlus)->first();
             if ($user) {
                 if (Hash::check($request->password, $user->password)) {
                     //  event(new Registered($user));
@@ -857,10 +810,13 @@ class HomeController extends Controller
             }
         }
         if ($request->loginAs == 'parent') {
-            $user = studentregistration::where('mobile', '=', $request->username)->first();
+            $fullMobile = CommonHelper::ensureE164($request->mobile, $request->country_code);
+            // Find the student by mobile
+            $user = studentregistration::where('mobile', $fullMobile)->first();
+
 
             if ($user) {
-                if (Hash::check($request->password, $user->parent_password)) {
+                if (Hash::check($request->password, $user->parent_password))  {
                     $request->session()->put('userid', $user);
                     $request->session()->put('usertype', 'Parent');
                     return redirect('student/dashboard');
@@ -871,7 +827,10 @@ class HomeController extends Controller
             }
         }
         if ($request->loginAs == 'tutor') {
-            $user = tutorregistration::where('mobile', '=', $request->username)->first();
+            $mobile = $request->mobile;
+                $countryCode = $request->country_code;
+                $fullMobileWithPlus = CommonHelper::ensureE164($mobile, $countryCode);
+                $user = tutorregistration::where('mobile', $fullMobileWithPlus)->first();
             if ($user) {
                 if (Hash::check($request->password, $user->password)) {
                     //  event(new Registered($user));
@@ -916,19 +875,27 @@ class HomeController extends Controller
         }
     }
 
-    // Student Calls
-    public function student_login(Request $request)
+    // Users Calls (Tutor, Student, Parent)
+    public function userLogin(Request $request)
     {
 
         $request->validate([
-            'username' => 'required',
+            'mobile' => 'required|numeric|digits_between:7,20',
+            'country_code' => 'required|numeric',
             'password' => 'required',
             'loginAs' => 'required',
         ]);
+        // dd($request->all());
+        // Format the input to match your E.164 database entries
+        $fullMobile = CommonHelper::ensureE164($request->mobile, $request->country_code);
+
         if ($request->loginAs == 'student') {
-            $user = studentregistration::where('mobile', '=', $request->username)->first();
+            // dd('i am in student logi');
+            $user = studentregistration::where('mobile', $fullMobile)->first();
+            // dd($user->toArray());
             if ($user) {
                 if (Hash::check($request->password, $user->password)) {
+                    // dd('inside the hash');
                     //  event(new Registered($user));
 
                     $user_role = Auth::user();
@@ -958,7 +925,10 @@ class HomeController extends Controller
             }
         }
         if ($request->loginAs == 'parent') {
-            $user = studentregistration::where('mobile', '=', $request->username)->first();
+               // Format the mobile number to E.164 (same as stored during registration)
+            $fullMobile = CommonHelper::ensureE164($request->mobile, $request->country_code);
+            // Find the student by mobile
+            $user = studentregistration::where('mobile', $fullMobile)->first();
 
             if ($user) {
                 if (Hash::check($request->password, $user->parent_password)) {
@@ -972,7 +942,7 @@ class HomeController extends Controller
             }
         }
         if ($request->loginAs == 'tutor') {
-            $user = tutorregistration::where('mobile', '=', $request->username)->first();
+            $user = tutorregistration::where('mobile', $fullMobile)->first();
             if ($user) {
                 if (Hash::check($request->password, $user->password)) {
                     //  event(new Registered($user));
@@ -1090,14 +1060,15 @@ class HomeController extends Controller
         // return view('common.student-register');
         return view('front-cms.register');
     }
-    public function student_registration_form(Request $request)
+    public function student_tutor_registration_form(Request $request)
     {
         try {
             // if ($request->id == "1") {
             $request->validate([
                 'name' => 'required',
                 'email' => 'required|email',
-                'mobile' => 'required|min:4|max:13',
+                'country_code' => 'required|numeric',
+                'mobile' => 'required|numeric|digits_between:6,15',
                 'password' => 'required|min:8|max:50',
                 'confpassword' => 'required|min:8|max:50|same:password',
                 'expcheck' => 'required|accepted',
@@ -1105,10 +1076,10 @@ class HomeController extends Controller
                 'name.required' => 'Name is required.',
                 'email.required' => 'Email is required.',
                 'email.email' => 'Email must be a valid email address.',
-                'mobile.required' => 'Mobile number is required.',
-                'mobile.min' => 'Mobile number must be at least 4 digits.',
-                'mobile.max' => 'Mobile number must not exceed 13 digits.',
-                'password.required' => 'Password is required.',
+                // 'mobile.required' => 'Mobile number is required.',
+                // 'mobile.min' => 'Mobile number must be at least 4 digits.',
+                // 'mobile.max' => 'Mobile number must not exceed 13 digits.',
+                // 'password.required' => 'Password is required.',
                 'password.min' => 'Password must be at least 8 characters.',
                 'password.max' => 'Password must not exceed 50 characters.',
                 'confpassword.required' => 'Confirmation password is required.',
@@ -1123,9 +1094,14 @@ class HomeController extends Controller
                 DB::beginTransaction();
 
                 try {
-                    $user = studentregistration::where('mobile', '=', $request->mobile,)->first();
-                    // echo $user;
-                    // dd();
+                    // Here we are setting the phone of the student according to the E.164 format
+                    // by combining the country code and mobile number, and removing any leading zeros from the mobile number.
+                    $mobile = $request->mobile;
+                    $countryCode = $request->country_code;
+                    $fullMobileWithPlus = CommonHelper::ensureE164($mobile, $countryCode);
+                    
+                    $user = studentregistration::where('mobile', $fullMobileWithPlus)->first();
+
                     if ($user) {
                         DB::rollBack();
                         return back()->with('fail', 'Mobile Already Registered');
@@ -1136,15 +1112,17 @@ class HomeController extends Controller
                         DB::rollBack();
                         return back()->with('fail', 'Email Already Registered');
                     }
+           
                     $user = new studentregistration();
-                    $user->mobile = $request->mobile;
+                    $user->mobile = $fullMobileWithPlus;
                     $user->role_id = "3";
                     $user->class_id = '0';
                     $user->name = $request->name;
                     $user->email = $request->email;
                     $user->is_active = "1";
+                    $user->timezone = $request->timezone ?? null;
                     $user->password = Hash::make($request->password);
-                    $user->parent_password = Hash::make($request->mobile);
+                    $user->parent_password = Hash::make($fullMobileWithPlus);
                     $res = $user->save();
 
                     if (!$res) {
@@ -1152,7 +1130,7 @@ class HomeController extends Controller
                         return back()->with('fail', 'Failed to save student registration.');
                     }
 
-                    $finduser = studentregistration::select('*')->where('mobile', $request->mobile)->first();
+                    $finduser = studentregistration::select('*')->where('mobile', $fullMobileWithPlus)->first();
                     if (!$finduser) {
                         DB::rollBack();
                         return back()->with('fail', 'Failed to retrieve student registration.');
@@ -1160,7 +1138,7 @@ class HomeController extends Controller
 
                     $studentprofile = new studentprofile();
                     $studentprofile->name = $request->name;
-                    $studentprofile->mobile = $request->mobile;
+                    $studentprofile->mobile = $fullMobileWithPlus;
                     $studentprofile->email = $request->email;
                     $studentprofile->student_id = $finduser->id;
                     // $studentprofile->profile_pic =
@@ -1176,7 +1154,7 @@ class HomeController extends Controller
                     try {
                         $details = [
                             'name' => $request->name,
-                            'mobile' => $request->mobile,
+                            'mobile' => $fullMobileWithPlus,
                             'password' => $request->password,
                             'mailtype' => 1,
                         ];
@@ -1224,7 +1202,7 @@ class HomeController extends Controller
                         // Don't fail registration if OTP sending fails
                     }
 
-                    $studentRegistration = studentregistration::where('mobile', $mobile)->first();
+                    $studentRegistration = studentregistration::where('mobile', $fullMobileWithPlus)->first();
                     if ($studentRegistration) {
                         $studentRegistration->mobile_otp = '1234';
                         // $studentRegistration->mobile_otp = $otp;
@@ -1233,7 +1211,8 @@ class HomeController extends Controller
 
                     DB::commit();
 
-                    $user = studentregistration::where('mobile', '=', $mobile)->first();
+                    $user = studentregistration::where('mobile', $fullMobileWithPlus)->first();
+
                     if ($user) {
                         $request->session()->put('userid', $user);
                         return redirect('student/dashboard')->with('success', 'Registration successful. Explore tutors and book classes. Best Wishes!!');
@@ -1253,9 +1232,18 @@ class HomeController extends Controller
                     $request->validate([
                         'name' => 'required',
                         'email' => 'required',
-                        'mobile' => 'required|min:4|max:11',
+                        'country_code' => 'required|numeric',
+                        'mobile' => 'required|numeric|digits_between:6,15',
                         'password' => 'required|min:8|max:50',
                     ]);
+
+                     // Here we are setting the phone of the student according to the E.164 format
+                    // by combining the country code and mobile number, and removing any leading zeros from the mobile number.
+        
+                    $mobile = $request->mobile;
+                    $countryCode = $request->country_code;
+                    $fullMobileWithPlus = CommonHelper::ensureE164($mobile, $countryCode);
+
 
                     $user = tutorregistration::where('email', '=', $request->email,)->first();
                     if ($user) {
@@ -1263,17 +1251,19 @@ class HomeController extends Controller
                         return back()->with('fail', 'Email Already Registered');
                     }
 
-                    $user = tutorregistration::where('mobile', '=', $request->mobile,)->first();
+                    $user = tutorregistration::where('mobile', $fullMobileWithPlus)->first();
+
                     if ($user) {
                         DB::rollBack();
                         return back()->with('fail', 'Mobile Already Registered');
                     }
 
                     $user = new tutorregistration();
-                    $user->mobile = $request->mobile;
+                    $user->mobile = $fullMobileWithPlus;
                     $user->role_id = "2";
                     $user->name = $request->name;
                     $user->email = $request->email;
+                    $user->timezone = $request->timezone ?? null;
                     $user->is_active = "0";
                     $user->password = Hash::make($request->password);
 
@@ -1284,7 +1274,7 @@ class HomeController extends Controller
                         return back()->with('fail', 'Failed to save tutor registration.');
                     }
 
-                    $checktutorid = tutorregistration::select('*')->where('mobile', $request->mobile)->first();
+                    $checktutorid = tutorregistration::select('*')->where('mobile', $fullMobileWithPlus)->first();
                     if (!$checktutorid) {
                         DB::rollBack();
                         return back()->with('fail', 'Failed to retrieve tutor registration.');
@@ -1292,7 +1282,7 @@ class HomeController extends Controller
 
                     $tprofile = new tutorprofile();
                     $tprofile->name = $request->name;
-                    $tprofile->mobile = $request->mobile;
+                    $tprofile->mobile = $fullMobileWithPlus;
                     $tprofile->email = $request->email;
                     $tprofile->tutor_id = $checktutorid->id;
                     $tprofile->qualification = " ";
@@ -1309,7 +1299,7 @@ class HomeController extends Controller
                     try {
                         $details = [
                             'name' => $request->name,
-                            'mobile' => $request->mobile,
+                            'mobile' => $fullMobileWithPlus,
                             'password' => $request->password,
                             'mailtype' => 1,
                         ];
@@ -1320,13 +1310,13 @@ class HomeController extends Controller
                         // Don't fail registration if email fails
                     }
 
-                    $mobile = $request->mobile;
+                    $mobile = $fullMobileWithPlus;
 
                     $user = 'BhashWAPAI';
                     $pass = '123456';
                     $sender = 'BUZWAP';
                     // $phone = '7004920897';
-                    $phone = $request->mobile;
+                    $phone = $mobile;
                     $text = 'delivery';
                     $priority = 'wa';
                     $stype = 'normal';
@@ -1406,10 +1396,12 @@ class HomeController extends Controller
 
         ]);
         $userotp = $request->digit1_input . $request->digit2_input . $request->digit3_input . $request->digit4_input;
-        // echo $otp;
-        // dd();
-        $otp = studentregistration::select('*')->where('mobile', $request->mobile)->first();
-        if ($userotp == $otp->mobile_otp) {
+        $mobile = $request->mobile;
+        $countryCode = $request->country_code;
+        $fullMobileWithPlus = CommonHelper::ensureE164($mobile, $countryCode);
+            
+        $user = studentregistration::where('mobile', $fullMobileWithPlus)->first();
+        if ($user && $userotp == $user->mobile_otp) {
             return view('common.student-mobile-verified')->with('success', 'OTP Verified');
         } else {
 
@@ -1429,10 +1421,16 @@ class HomeController extends Controller
     {
 
         $request->validate([
-            'username' => 'required',
+            'mobile' => 'required',
             'password' => 'required',
+            'country_code' => 'required'
         ]);
-        $user = tutorregistration::where('mobile', '=', $request->username)->first();
+
+         $mobile = $request->mobile;
+            $countryCode = $request->country_code;
+            $fullMobileWithPlus = CommonHelper::ensureE164($mobile, $countryCode);
+            $user = tutorregistration::where('mobile', $fullMobileWithPlus)->first();
+
         if ($user) {
             if (Hash::check($request->password, $user->password)) {
                 //  event(new Registered($user));
@@ -1476,8 +1474,9 @@ class HomeController extends Controller
             $request->validate([
                 'name' => 'required',
                 'email' => 'required',
-                'mobile' => 'required|min:4|max:11',
+                'mobile' => 'required|numeric|digits_between:6,15',
                 'password' => 'required|min:8|max:50',
+                'country_code' => 'required',
             ]);
 
             // Check for existing email
@@ -1487,15 +1486,15 @@ class HomeController extends Controller
                 return back()->with('fail', 'Email Already Registered');
             }
 
-            // Check for existing mobile
-            $existingMobile = tutorregistration::where('mobile', '=', $request->mobile)->first();
+            $fullMobile = CommonHelper::ensureE164($request->mobile, $request->country_code);
+            $existingMobile = tutorregistration::where('mobile', $fullMobile)->first();
             if ($existingMobile) {
                 DB::rollBack();
                 return back()->with('fail', 'Mobile Already Registered');
             }
 
             $user = new tutorregistration();
-            $user->mobile = $request->mobile;
+            $user->mobile = $fullMobile;
             $user->role_id = "2";
             $user->name = $request->name;
             $user->email = $request->email;
@@ -1511,11 +1510,11 @@ class HomeController extends Controller
 
             // Create tutor profile
             try {
-                $checktutorid = tutorregistration::select('*')->where('mobile', $request->mobile)->first();
+                $checktutorid = tutorregistration::select('*')->where('mobile', $mobileToStore)->first();
                 if ($checktutorid) {
                     $tprofile = new tutorprofile();
                     $tprofile->name = $request->name;
-                    $tprofile->mobile = $request->mobile;
+                    $tprofile->mobile = $fullMobile;
                     $tprofile->email = $request->email;
                     $tprofile->tutor_id = $checktutorid->id;
                     $tprofile->qualification = " ";
@@ -1531,7 +1530,7 @@ class HomeController extends Controller
 
             DB::commit();
 
-            $mobile = $request->mobile;
+            $mobile = $fullMobile;
             return view('common.tutor-mobile-verify', compact('mobile'))->with('success', 'Registration successful. Please Login Now To Access More Features.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
@@ -1609,11 +1608,12 @@ class HomeController extends Controller
     {
 
         $request->validate([
-            'username' => 'required',
+            'mobile' => 'required',
             'password' => 'required',
         ]);
-        $user = studentregistration::where('mobile', '=', $request->username)->first();
-
+        $fullMobile = CommonHelper::ensureE164($request->mobile, $request->country_code);
+        // Find the student by mobile
+        $user = studentregistration::where('mobile', $fullMobile)->first();
         if ($user) {
             if (Hash::check($request->password, $user->parent_password)) {
                 $request->session()->put('userid', $user);

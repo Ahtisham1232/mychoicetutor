@@ -8,8 +8,10 @@ use App\Models\studentprofile;
 use App\Models\tutorprofile;
 use App\Models\tutorregistration;
 use App\Models\SlotBooking;
+use App\Models\studentregistration;
 use App\Models\zoom_classes;
 use App\Models\subjects;
+use App\Helpers\TimezoneHelper;
 use App\Services\TwilioWhatsAppService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -67,10 +69,10 @@ class SendClassReminders extends Command
             $subject = subjects::find($class->subject_id);
             $meetingLink = $class->demo_link ?? "https://mychoicetutor.com/waiting-room";
 
-            $classDateTime = Carbon::parse($class->slot_confirmed, 'UTC')
-                ->setTimezone('Asia/Karachi');
-
-            $formattedDateTime = $classDateTime->format('d M Y h:i A');
+            $studentReg = studentregistration::find($class->student_id);
+            $tutorReg   = tutorregistration::find($class->slot_confirmed_by);
+            $formattedForStudent = TimezoneHelper::formatInUserTz($class->slot_confirmed, 'd M Y h:i A', 'UTC', $studentReg);
+            $formattedForTutor   = TimezoneHelper::formatInUserTz($class->slot_confirmed, 'd M Y h:i A', 'UTC', $tutorReg);
 
             Log::info('Demo reminder claimed', ['class_id' => $class->id]); // LOG
 
@@ -84,11 +86,11 @@ class SendClassReminders extends Command
                     ]);
 
                     $sentStudent = $this->whatsApp->sendMessage(
-                        "+92" . ltrim($student->mobile, "0"),
+                          $student->mobile,
                         [
                             $student->name ?? 'Student',
                             $subject->name ?? 'Demo Class',
-                            $formattedDateTime,
+                            $formattedForStudent,
                             $tutor->name ?? 'Tutor',
                             $meetingLink,
                         ],
@@ -110,11 +112,11 @@ class SendClassReminders extends Command
                     ]);
 
                     $sentTutor = $this->whatsApp->sendMessage(
-                        "+92" . ltrim($tutor->mobile, "0"),
+                          $tutor->mobile,
                         [
                             $tutor->name ?? 'Tutor',
                             $subject->name ?? 'Demo Class',
-                            $formattedDateTime,
+                            $formattedForTutor,
                             $student->name ?? 'Student',
                             $meetingLink,
                         ],
@@ -188,12 +190,19 @@ class SendClassReminders extends Command
                 ?? $zoomClass->start_url
                 ?? "https://mychoicetutor.com/waiting-room";
 
-            $classDateTime = Carbon::parse(
+            $studentReg = studentregistration::find($booking->student_id);
+            $formattedForStudent = TimezoneHelper::formatInUserTz(
                 $booking->date . ' ' . $booking->slot,
-                'UTC'
-            )->setTimezone('Asia/Karachi');
-
-            $formattedDateTime = $classDateTime->format('d M Y h:i A');
+                'd M Y h:i A',
+                'UTC',
+                $studentReg
+            );
+            $formattedForTutor = TimezoneHelper::formatInUserTz(
+                $booking->date . ' ' . $booking->slot,
+                'd M Y h:i A',
+                'UTC',
+                $tutorReg
+            );
 
             $sentStudent = false;
             $sentTutor   = false;
@@ -201,11 +210,11 @@ class SendClassReminders extends Command
             if (!empty($studentProfile->mobile)) {
                 try {
                     $sentStudent = $this->whatsApp->sendMessage(
-                        "+92" . ltrim($studentProfile->mobile, "0"),
+                         $studentProfile->mobile,
                         [
                             $studentProfile->name ?? 'Student',
                             $subject->name ?? 'Class',
-                            $formattedDateTime,
+                            $formattedForStudent,
                             // $tutorReg->name ?? 'Tutor',
                             $meetingLink,
                         ],
@@ -223,11 +232,11 @@ class SendClassReminders extends Command
             if (!empty($tutorReg->mobile)) {
                 try {
                     $sentTutor = $this->whatsApp->sendMessage(
-                        "+92" . ltrim($tutorReg->mobile, "0"),
+                         $tutorReg->mobile,
                         [
                             $tutorReg->name ?? 'Tutor',
                             $subject->name ?? 'Class',
-                            $formattedDateTime,
+                            $formattedForTutor,
                             $studentProfile->name ?? 'Student',
                             $meetingLink,
                         ],

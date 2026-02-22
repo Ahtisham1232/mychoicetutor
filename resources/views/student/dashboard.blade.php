@@ -294,8 +294,8 @@
                                             <td>
                                                 <div class="dayTime">
                                                     @php
-                                                    $startDateTime = \Carbon\Carbon::parse($democlass->slot_confirmed);
-                                                    $now = \Carbon\Carbon::now();
+                                                    $startDateTime = $democlass->slot_confirmed_local ?? \Carbon\Carbon::parse($democlass->slot_confirmed);
+                                                    $now = \Carbon\Carbon::now($startDateTime->timezone);
 
                                                     if ($startDateTime->isToday()) {
                                                     $message = 'Today';
@@ -307,8 +307,7 @@
                                                     }
                                                     @endphp
                                                     <span>{{ $message }}</span>
-                                                    {{-- <small>{{ $startDateTime->format('Y-m-d H:i:s') }}</small> --}}
-                                                    <small><td>{{ \Carbon\Carbon::parse($startDateTime)->format('d-m-Y h:i A') }}</td></small>
+                                                    <small><td>{{ $startDateTime->format('d-m-Y h:i A') }}</td></small>
                                                 </div>
                                             </td>
 

@@ -19,6 +19,7 @@ use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Events\RealTimeMessage;
+use App\Helpers\CommonHelper;
 use App\Services\TwilioWhatsAppService;
 use Illuminate\Support\Facades\Log;
 
@@ -501,8 +502,8 @@ class ZoomClassesController extends Controller
                     // Determine class type label
                     $classType = 'Regular Class';
 
-                    // Format phone number
-                    $studentNumber = '+92' . ltrim($student->mobile, '0');
+                    // phone number
+                    $studentNumber = $student->mobile;
 
                     $bodyVariablesStudent = [
                         $student->name,
