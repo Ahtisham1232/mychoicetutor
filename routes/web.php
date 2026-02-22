@@ -126,7 +126,9 @@ Route::post('batchbysubject', [CommonController::class, 'batchbysubject'])->name
 Route::post('studentsbybatch', [CommonController::class, 'studentsbybatch'])->name('studentsbybatch');
 Route::post('fetchtutors', [CommonController::class, 'fetchtutors'])->name('fetchtutors');
 Route::get('subjects',[SubjectController::class,'cmsindex'])->name('cmsindex');
-// Student Activity
+
+
+//************************************************ Student  Routes ************************************************
 Route::group(['prefix' => 'student', 'middleware' => ['StudentAuthenticate']], function () {
     // student dashboard
 
@@ -226,11 +228,12 @@ Route::group(['prefix' => 'student', 'middleware' => ['StudentAuthenticate']], f
     Route::get('addfav/{id}',[MyFavouriteController::class,'addfav'])->name('student.addfav');
 });
 
-// Admin Routes
+
+//************************************************ Admin Authenticate Routes ************************************************
 Route::get('admin/signin', [LoginController::class, 'index'])->name('signin');
 Route::get('admin/login', [LoginController::class, 'login'])->name('admin.login');
 
-// admin activity
+//************************************************ Admin Routes ************************************************
 Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], function () {
     // Admin dashboard
     Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
@@ -319,14 +322,6 @@ Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], funct
     Route::any('tutor-payment', [PaymentsController::class, 'tutorPaymentAdmin'])->name('admin.tutor-payment');
     Route::post('fetchtutorsAmount', [PaymentsController::class, 'fetchtutorsAmount'])->name('admin.fetch-tutor-amount');
 
-
-
-    // admin tutor payment
-    Route::any('tutor-payment', [PaymentsController::class, 'tutorPaymentAdmin'])->name('admin.tutor-payment');
-    Route::post('fetchtutorsAmount', [PaymentsController::class, 'fetchtutorsAmount'])->name('admin.fetch-tutor-amount');
-
-
-
     // Learning contents
     Route::get('learningcontents', [LearningsContentsController::class, 'index'])->name('admin.learningcontents');
     Route::get('addlearningcontents', [LearningsContentsController::class, 'add'])->name('admin.addlearningcontents');
@@ -393,8 +388,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], funct
 
 });
 
-
-// Tutor Activity
+//************************************************ Tutor Routes ************************************************
 Route::group(['prefix' => 'tutor', 'middleware' => ['TutorAuthenticate']], function () {
 
     // Tutor Dashboard
@@ -418,7 +412,7 @@ Route::group(['prefix' => 'tutor', 'middleware' => ['TutorAuthenticate']], funct
     // Demo List
     Route::get('demolist', [DemoController::class, 'tutordemolist'])->name('tutor.demolist');
     Route::post('demolist', [DemoController::class, 'tutordemoupdate'])->name('tutor.demo.update');
-    Route::get('demodetails/{id}', [DemoController::class, 'demodetails'])->name('admin.demodetails');
+    Route::get('demodetails/{id}', [DemoController::class, 'demodetails'])->name('tutor.demodetails');
     Route::post('demolist-search', [DemoController::class, 'tutorDemolistsearch'])->name('tutor.demolist-search');
     Route::post('demo/confirm', [GoogleCalendarController::class, 'democonfirm'])->name('tutor.demo.confirm');
     Route::post('demo/end', [GoogleCalendarController::class, 'demoend'])->name('tutor.demo.end');
@@ -528,7 +522,8 @@ Route::group(['prefix' => 'tutor', 'middleware' => ['TutorAuthenticate']], funct
     Route::get('exam/report/{id}', [OnlineTestController::class, 'tutortestreport'])->name('tutor.test.report');
 
 });
-// parent routes
+
+//************************************************ Parent Routes ************************************************
 Route::group(['prefix' => 'parent', 'middleware' => ['StudentAuthenticate']], function () {
     // student dashboard
     Route::get('dashboard', [DashboardController::class, 'parent_dashboard'])->name('parent.dashboard');
@@ -622,8 +617,6 @@ Route::get('/test-recording', function () {
 Route::get('tutorprofile/{id}', [TutorSearchController::class, 'teacherprofile'])->name('tutorprofile');
 Route::get('/tutor/dashboard/oauth2callback', [GoogleCalendarController::class, 'oauth2callbackdemo']);
 
-
-
 Route::get('howitworks', function(){
     return view('front-cms/howitworks');
 });
@@ -642,24 +635,22 @@ Route::get('why-choose-us', function(){
     return view('front-cms/aboutus');
 });
 
-// Route::get('why-choose-us', function(){
-//     return view('front-cms/why_choose_us');
-// });
-
 Route::get('aboutus', function(){
     return view('front-cms/why_choose_us');
 });
 
-
 Route::get('contact', function(){
     return view('front-cms/contact');
 });
+
 Route::get('privacypolicy', function(){
     return view('front-cms/privacypolicy');
 });
+
 Route::get('refundpolicy', function(){
     return view('front-cms/refundpolicy');
 });
+
 Route::get('termsandconditions', function(){
     return view('front-cms/termsandconditions');
 })->name('termsandconditions');
