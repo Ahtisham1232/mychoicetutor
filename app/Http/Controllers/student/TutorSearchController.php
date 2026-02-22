@@ -17,6 +17,7 @@ use App\Models\tutorprofile;
 use App\Models\tutorregistration;
 use App\Models\tutorreviews;
 use App\Models\tutorsubjectmapping;
+use App\Helpers\TimezoneHelper;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -666,14 +667,9 @@ class TutorSearchController extends Controller
                     $templateIdTutor = 1605; // Your approved template ID
                     $tutorNumber = $tutor->mobile;
 
-                    // Format date & time nicely for WhatsApp message
-                    $slotDate = Carbon::parse($firstSlot->date, 'UTC')
-                        ->setTimezone('Asia/Karachi')
-                        ->format('d M Y');
-
-                    $slotTime = Carbon::parse($firstSlot->slot, 'UTC')
-                        ->setTimezone('Asia/Karachi')
-                        ->format('h:i A');
+                    // Format date & time in tutor's timezone for WhatsApp message
+                    $slotDate = TimezoneHelper::formatInUserTz($firstSlot->date, 'd M Y', 'UTC', $tutor);
+                    $slotTime = TimezoneHelper::formatInUserTz($firstSlot->slot, 'h:i A', 'UTC', $tutor);
 
                     // Variables must match your template placeholders exactly
                     $bodyVariablesTutor = [
@@ -1304,9 +1300,9 @@ class TutorSearchController extends Controller
         // dd($slotsAvailability);
         $groupedSlots = [];
         foreach ($slotsAvailability as $slot) {
-            // Convert UTC date and time to PKT for display
-            $date = Carbon::parse($slot->date, 'UTC')->setTimezone('Asia/Karachi')->isoFormat('DD-MM-YYYY (dddd)');
-            $time = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+            // Convert UTC date and time to student's timezone for display
+            $date = TimezoneHelper::toUserTz($slot->date, 'UTC')->isoFormat('DD-MM-YYYY (dddd)');
+            $time = TimezoneHelper::timeToUserTz($slot->slot);
             $id = $slot->id;
             $isAvailable = $slot->status == 0; // Adjust this based on your actual logic
             // dd($slotsAvailability);
@@ -1357,9 +1353,9 @@ class TutorSearchController extends Controller
         $bookedSlotsCount = 0; // Initialize the count variable
 
         foreach ($slotsAvailability as $slot) {
-            // Convert UTC date and time to PKT for display
-            $date = Carbon::parse($slot->date, 'UTC')->setTimezone('Asia/Karachi')->toDateString();
-            $time = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+            // Convert UTC date and time to student's timezone for display
+            $date = TimezoneHelper::dateToUserTz($slot->date);
+            $time = TimezoneHelper::timeToUserTz($slot->slot);
 
             $id = $slot->id;
             $isAvailable = $slot->status == 0; // Adjust this based on your actual logic

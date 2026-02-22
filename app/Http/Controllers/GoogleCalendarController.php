@@ -21,6 +21,7 @@ use Google_Client;
 use Google_Service_Calendar;
 use Google_Service_Calendar_Event;
 use Illuminate\Http\Request;
+use App\Helpers\TimezoneHelper;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use App\Helpers\CommonHelper;
@@ -79,10 +80,10 @@ class GoogleCalendarController extends Controller
             // Merge both collections
             $liveclasses = $scheduledClasses->concat($bookedSlots)->sortByDesc('slotdate')->values();
 
-            // Convert slot dates and times from UTC to PKT for display
+            // Convert slot dates and times from UTC to user (tutor) timezone for display
             $liveclasses->each(function ($class) {
-                $class->slotdate = Carbon::parse($class->slotdate, 'UTC')->setTimezone('Asia/Karachi')->toDateString();
-                $class->slottime = Carbon::parse($class->slottime, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+                $class->slotdate = TimezoneHelper::dateToUserTz($class->slotdate);
+                $class->slottime = TimezoneHelper::timeToUserTz($class->slottime);
             });
 
             $classes = (new CommonController)->classes();
@@ -215,19 +216,26 @@ class GoogleCalendarController extends Controller
                                 try {
                                     $templateIdClassConfirm = 1630;
 
-                                    $classDateTime = Carbon::parse(
+                                    $classDateTimeFormatted = TimezoneHelper::formatInUserTz(
                                         $classdata->date . ' ' . $classdata->slot,
-                                        'UTC'
-                                    )->setTimezone('Asia/Karachi');
-                                    
+                                        'd M Y',
+                                        'UTC',
+                                        $student
+                                    );
+                                    $classTimeFormatted = TimezoneHelper::formatInUserTz(
+                                        $classdata->date . ' ' . $classdata->slot,
+                                        'h:i A',
+                                        'UTC',
+                                        $student
+                                    );
                                     $studentNumber = $student->mobile;
 
                                     $bodyVariablesStudent = [
                                         $student->name,
                                         $subjectName,
                                         $tutor->name,
-                                        $classDateTime->format('d M Y'),
-                                        $classDateTime->format('h:i A'),
+                                        $classDateTimeFormatted,
+                                        $classTimeFormatted,
                                     ];
 
                                     $sent = $whatsApp->sendMessage(
@@ -347,7 +355,7 @@ class GoogleCalendarController extends Controller
             if ($meeting['success']) {
                 $dcnf = democlasses::find($request->confirmid);
                 // $dcnf->slot_confirmed = $request->slot;
-                $dcnf->slot_confirmed = Carbon::parse($request->slot, 'Asia/Karachi')->utc();
+                $dcnf->slot_confirmed = Carbon::parse($request->slot, TimezoneHelper::userTimezone())->utc();
                 $dcnf->slot_confirmed_at = Carbon::now();
                 $dcnf->slot_confirmed_by = session('userid')->id;
                 $dcnf->demo_link = $meeting['meeting_url'];

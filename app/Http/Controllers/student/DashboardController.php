@@ -16,6 +16,7 @@ use App\Models\democlasses;
 use App\Models\subjects;
 use App\Models\zoom_classes;
 use App\Models\OnlineTests;
+use App\Helpers\TimezoneHelper;
 use Illuminate\Support\Carbon;
 use App\Models\payments\paymentdetails;
 use App\Models\StudentAssignmentList;
@@ -88,6 +89,8 @@ class DashboardController extends Controller
 
         $upclasses->transform(function ($class) {
             $class->start_time = Carbon::parse($class->start_time);
+            $class->slotdate = TimezoneHelper::dateToUserTz($class->slotdate);
+            $class->slottime = TimezoneHelper::timeToUserTz($class->slottime);
             return $class;
         });
 

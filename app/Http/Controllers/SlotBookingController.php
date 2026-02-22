@@ -5,6 +5,7 @@ use App\Models\SlotBooking;
 use App\Models\subjects;
 use App\Models\status;
 use App\Models\studentregistration;
+use App\Helpers\TimezoneHelper;
 use Carbon\Carbon;
 use App\Events\RealTimeMessage;
 use App\Models\Notification;
@@ -46,12 +47,12 @@ class SlotBookingController extends Controller
     ->where('studentregistrations.is_active',1)
     ->get();
 
-        // Convert slot dates and times from UTC to PKT for display
+        // Convert slot dates and times from UTC to user timezone for display
         $slots->each(function ($slot) {
-            $slot->date = Carbon::parse($slot->date)->setTimezone('Asia/Karachi')->toDateString();
-            $slot->slot = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+            $slot->date = TimezoneHelper::dateToUserTz($slot->date);
+            $slot->slot = TimezoneHelper::timeToUserTz($slot->slot);
             if ($slot->booked_at) {
-                $slot->booked_at = Carbon::parse($slot->booked_at, 'UTC')->setTimezone('Asia/Karachi');
+                $slot->booked_at = TimezoneHelper::toUserTz($slot->booked_at, 'UTC');
             }
         });
 
@@ -66,8 +67,8 @@ class SlotBookingController extends Controller
         'classtime' => 'required',
     ]);
 
-    // Parse the PKT time from the request
-    $requestedDateTime = Carbon::parse($request->classdate . ' ' . $request->classtime, 'Asia/Karachi');
+    // Parse the time from the request in the tutor's timezone
+    $requestedDateTime = Carbon::parse($request->classdate . ' ' . $request->classtime, TimezoneHelper::userTimezone());
     
     // Convert to UTC for storage
     $utcDateTime = $requestedDateTime->setTimezone('UTC');
@@ -120,8 +121,7 @@ class SlotBookingController extends Controller
     } else {
         // Conflicting slots found
         $conflictingTimes = $existingSlots->pluck('slot')->map(function ($time) {
-            // Convert UTC time back to PKT for display
-            return Carbon::parse($time, 'UTC')->setTimezone('Asia/Karachi')->format('h:i A');
+            return TimezoneHelper::formatInUserTz($time, 'h:i A', 'UTC');
         })->implode(', ');
 
         return back()->with('fail', 'Slot creation failed. There is a conflicting slot within the 1-hour gap. Conflicting times: ' . $conflictingTimes);
@@ -209,8 +209,7 @@ private function replicateSlotsForPeriod($sourceDateTime, $days)
         if ($existingSlots->isNotEmpty()) {
             // Conflicting slots found for the current day
             $conflictingTimes = $existingSlots->pluck('slot')->map(function ($time) {
-                // Convert UTC time back to PKT for display
-                return Carbon::parse($time, 'UTC')->setTimezone('Asia/Karachi')->format('h:i A');
+                return TimezoneHelper::formatInUserTz($time, 'h:i A', 'UTC');
             })->implode(', ');
 
             $conflictMessage = ($conflictMessage) ?
@@ -299,12 +298,12 @@ public function tutorslotsearch(Request $request) {
 
     $slots = $slotsQuery->get();
 
-    // Convert slot dates and times from UTC to PKT for display
+    // Convert slot dates and times from UTC to user timezone for display
     $slots->each(function ($slot) {
-        $slot->date = Carbon::parse($slot->date, 'UTC')->setTimezone('Asia/Karachi')->toDateString();
-        $slot->slot = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+        $slot->date = TimezoneHelper::dateToUserTz($slot->date);
+        $slot->slot = TimezoneHelper::timeToUserTz($slot->slot);
         if ($slot->booked_at) {
-            $slot->booked_at = Carbon::parse($slot->booked_at, 'UTC')->setTimezone('Asia/Karachi');
+            $slot->booked_at = TimezoneHelper::toUserTz($slot->booked_at, 'UTC');
         }
     });
 
@@ -341,10 +340,10 @@ public function indexslotsearch(Request $request) {
         ->where('slot_bookings.date', $utcDate) // Assuming there is a 'status' column for the slot status
         ->get();
 
-    // Convert slot dates and times from UTC to PKT for display
+    // Convert slot dates and times from UTC to user timezone for display
     $slots->each(function ($slot) {
-        $slot->date = Carbon::parse($slot->date, 'UTC')->setTimezone('Asia/Karachi')->toDateString();
-        $slot->slot = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+        $slot->date = TimezoneHelper::dateToUserTz($slot->date);
+        $slot->slot = TimezoneHelper::timeToUserTz($slot->slot);
     });
 
     // Return the filtered slots as JSON
@@ -417,15 +416,15 @@ public function admintutorslots(){
         ->whereDate('slot_bookings.date', '>=', Carbon::now('UTC')->toDateString())
         ->paginate(100);
     
-    // Convert slot dates and times from UTC to PKT for display
+    // Convert slot dates and times from UTC to user timezone for display (admin: default Asia/Karachi)
     $slots->getCollection()->each(function ($slot) {
-        $slot->date = Carbon::parse($slot->date, 'UTC')->setTimezone('Asia/Karachi')->toDateString();
-        $slot->slot = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+        $slot->date = TimezoneHelper::dateToUserTz($slot->date);
+        $slot->slot = TimezoneHelper::timeToUserTz($slot->slot);
         if ($slot->booked_at) {
-            $slot->booked_at = Carbon::parse($slot->booked_at, 'UTC')->setTimezone('Asia/Karachi');
+            $slot->booked_at = TimezoneHelper::toUserTz($slot->booked_at, 'UTC');
         }
     });
-    
+
     return view('admin.tutorslotslist', get_defined_vars());
 }
 
@@ -478,12 +477,12 @@ public function admintutorslotssearch(Request $request){
 
             $slots=  $query->get();
             
-            // Convert slot dates and times from UTC to PKT for display
+            // Convert slot dates and times from UTC to user timezone for display
             $slots->each(function ($slot) {
-                $slot->date = Carbon::parse($slot->date, 'UTC')->setTimezone('Asia/Karachi')->toDateString();
-                $slot->slot = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+                $slot->date = TimezoneHelper::dateToUserTz($slot->date);
+                $slot->slot = TimezoneHelper::timeToUserTz($slot->slot);
                 if ($slot->booked_at) {
-                    $slot->booked_at = Carbon::parse($slot->booked_at, 'UTC')->setTimezone('Asia/Karachi');
+                    $slot->booked_at = TimezoneHelper::toUserTz($slot->booked_at, 'UTC');
                 }
             });
             // ->get();

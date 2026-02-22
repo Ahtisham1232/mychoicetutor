@@ -47,7 +47,7 @@
                                             <td>{{ $request->classes_purchased }}</td>
                                             <td>£{{ $request->amount }}</td>
                                             <td>
-                                                {{ \Carbon\Carbon::parse($request->created_at)->setTimezone('Asia/Karachi')->format('d M Y, h:i A') }}
+                                                {{ \App\Helpers\TimezoneHelper::formatInUserTz($request->created_at, 'd M Y, h:i A') }}
                                             </td>
 
                                             <td>

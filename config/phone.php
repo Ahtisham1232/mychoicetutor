@@ -22,4 +22,13 @@ return [
         'code' => '+971',
     ],
 
+    'QA' => [
+        'name' => 'Qatar',
+        'code' => '+974',
+    ],
+    'SA' => [
+        'name' => 'Saudi Arabia',
+        'code' => '+966',
+    ],
+
 ];

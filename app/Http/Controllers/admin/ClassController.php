@@ -14,6 +14,7 @@ use App\Models\subjects;
 use App\Models\zoom_classes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\TimezoneHelper;
 use Carbon\Carbon;
 
 class ClassController extends Controller
@@ -129,13 +130,13 @@ class ClassController extends Controller
         }) // Exclude completed classes only if they exist
         ->orderBy('zoom_classes.id','desc')->get();
 
-        // Convert slot dates and times from UTC to PKT for display
+        // Convert slot dates and times from UTC to viewer's timezone for display
         $classes->each(function ($class) {
             if (isset($class->slotdate) && $class->slotdate) {
-                $class->slotdate = Carbon::parse($class->slotdate, 'UTC')->setTimezone('Asia/Karachi')->toDateString();
+                $class->slotdate = TimezoneHelper::dateToUserTz($class->slotdate);
             }
             if (isset($class->slottime) && $class->slottime) {
-                $class->slottime = Carbon::parse($class->slottime, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+                $class->slottime = TimezoneHelper::timeToUserTz($class->slottime);
             }
         });
 

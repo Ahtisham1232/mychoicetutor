@@ -637,7 +637,7 @@ class PaymentsController extends Controller
                 Log::error('student mobile  for admin approval: ' . $studentProfile->mobile);
                 if (!empty($studentProfile->mobile)) {
                     $templateIdStudent = 1637; // TODO: Replace with actual template ID for admin approval notification
-                    $studentNumber = '+92' . ltrim($studentProfile->mobile, '0');
+                    $studentNumber = $studentProfile->mobile;
                     $bodyVariablesStudent = [
                         $student->name,
                         $tutor->name,

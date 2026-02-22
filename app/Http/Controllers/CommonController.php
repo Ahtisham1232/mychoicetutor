@@ -12,6 +12,7 @@ use App\Models\subjects;
 use App\Models\topics;
 use App\Models\SlotBooking;
 use Illuminate\Http\Request;
+use App\Helpers\TimezoneHelper;
 use Carbon\Carbon;
 
 class CommonController extends Controller
@@ -59,9 +60,9 @@ class CommonController extends Controller
         $slots = SlotBooking::where("date", $utcDate)
             ->where('status', 0)->get();
         
-        // Convert slot times from UTC to PKT for display
+        // Convert slot times from UTC to user timezone for display
         $slots->each(function ($slot) {
-            $slot->slot = Carbon::parse($slot->slot, 'UTC')->setTimezone('Asia/Karachi')->toTimeString('minute');
+            $slot->slot = TimezoneHelper::toUserTz($slot->slot, 'UTC')->toTimeString('minute');
         });
         
         $data['times'] = $slots;
