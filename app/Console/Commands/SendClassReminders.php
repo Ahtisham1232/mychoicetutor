@@ -84,7 +84,7 @@ class SendClassReminders extends Command
                     ]);
 
                     $sentStudent = $this->whatsApp->sendMessage(
-                        "+92" . ltrim($student->mobile, "0"),
+                          $student->mobile,
                         [
                             $student->name ?? 'Student',
                             $subject->name ?? 'Demo Class',
@@ -110,7 +110,7 @@ class SendClassReminders extends Command
                     ]);
 
                     $sentTutor = $this->whatsApp->sendMessage(
-                        "+92" . ltrim($tutor->mobile, "0"),
+                          $tutor->mobile,
                         [
                             $tutor->name ?? 'Tutor',
                             $subject->name ?? 'Demo Class',
@@ -201,7 +201,7 @@ class SendClassReminders extends Command
             if (!empty($studentProfile->mobile)) {
                 try {
                     $sentStudent = $this->whatsApp->sendMessage(
-                        "+92" . ltrim($studentProfile->mobile, "0"),
+                         $studentProfile->mobile,
                         [
                             $studentProfile->name ?? 'Student',
                             $subject->name ?? 'Class',
@@ -223,7 +223,7 @@ class SendClassReminders extends Command
             if (!empty($tutorReg->mobile)) {
                 try {
                     $sentTutor = $this->whatsApp->sendMessage(
-                        "+92" . ltrim($tutorReg->mobile, "0"),
+                          $tutorReg->mobile,
                         [
                             $tutorReg->name ?? 'Tutor',
                             $subject->name ?? 'Class',

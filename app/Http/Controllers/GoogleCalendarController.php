@@ -23,6 +23,7 @@ use Google_Service_Calendar_Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
+use App\Helpers\CommonHelper;
 use App\Services\TwilioWhatsAppService;
 use App\Services\JitsiMeetService;
 use Illuminate\Support\Facades\Log;
@@ -219,7 +220,7 @@ class GoogleCalendarController extends Controller
                                         'UTC'
                                     )->setTimezone('Asia/Karachi');
                                     
-                                    $studentNumber = '+92' . ltrim($student->mobile, '0');
+                                    $studentNumber = $student->mobile;
 
                                     $bodyVariablesStudent = [
                                         $student->name,
@@ -388,7 +389,7 @@ class GoogleCalendarController extends Controller
                     if (!empty($demostudent->mobile)) {
                         try {
                             $templateIdDemoConfirm = 1645;
-                            $studentNumber = '+92' . ltrim($demostudent->mobile, '0');
+                            $studentNumber = $demostudent->mobile;
                             $bodyVariablesStudent = [
                                 $demostudent->name,
                                 $subjectName,

@@ -48,7 +48,7 @@
                                         <div class="alert alert-danger">{{ Session::get('fail') }}</div>
                                     @endif
                                     <div class="p-2 mt-4">
-                                        <form action="{{Route('student_registration_form')}}" method="POST" id="regisForm">
+                                        <form action="{{Route('student_tutor_registration_form')}}" method="POST" id="regisForm">
                                             @csrf
 
                                             <div class="mb-3">

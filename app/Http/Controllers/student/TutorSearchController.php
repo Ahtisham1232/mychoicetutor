@@ -22,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
+use App\Helpers\CommonHelper;
 use App\Services\TwilioWhatsAppService;
 use App\Models\studentprofile;
 use Illuminate\Support\Facades\Log;
@@ -663,7 +664,7 @@ class TutorSearchController extends Controller
                     ->first();
                 if (!empty($tutor->mobile) && $firstSlot) {
                     $templateIdTutor = 1605; // Your approved template ID
-                    $tutorNumber = '+92' . ltrim($tutor->mobile, '0');
+                    $tutorNumber = $tutor->mobile;
 
                     // Format date & time nicely for WhatsApp message
                     $slotDate = Carbon::parse($firstSlot->date, 'UTC')

@@ -28,6 +28,8 @@
                             @endif
                         <form action="{{url('/student/register')}}" method="POST" class="">
                             @csrf
+                                <input type="hidden" name="timezone" id="timezone">
+
                             <div class="form-group">
                                 <label for="name">Full Name:<span class="reqrd">*</span></label>
                                 <input type="text" class="form-control" id="name" name="name" aria-describedby=""
@@ -53,16 +55,35 @@
 
                             <div class="form-group">
                                 <label for="number">Mobile:<span class="reqrd">*</span></label>
-                               <input type="text" class="form-control" id="mobile" name="mobile"
-       placeholder="Your mobile number"
-       value="{{ old('mobile') }}" maxlength="11"
-       oninput="formatMobile(this)">
 
-                                <span class="text-danger error-message" id="mobile-error">
+                                <div style="display:flex; gap:10px;">
+
+                                    <!-- Country Code Dropdown -->
+                                    <select class="form-control" id="country_code" name="country_code" style="max-width:120px;">
+                                        @foreach(config('phone') as $key => $country)
+                                            <option value="{{ $country['code'] }}"
+                                                {{ old('country_code', '+92') == $country['code'] ? 'selected' : '' }}>
+                                                {{ $country['code'] }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    <!-- Mobile Input -->
+                                    <input type="text"
+                                        class="form-control"
+                                        id="mobile"
+                                        name="mobile"
+                                        placeholder="Mobile (no country code)"
+                                        value="{{ old('mobile') }}"
+                                        oninput="formatMobile(this)">
+                                </div>
+
+                                <span class="text-danger error-message">
                                     @error('mobile')
                                         {{ $message }}
                                     @enderror
                                 </span>
+
                             </div>
 
                             <div class="form-group">
@@ -150,17 +171,13 @@
                             </div>
 
 
-
-
-
-
                         </form>
                     </div>
                 </div>
             </div>
 
         </div>
-        </div>
+
     </section>
 
     <script>
@@ -184,22 +201,31 @@
             tutorRadio.addEventListener('change', switchActiveClass);
         });
     </script>
-  <script>
-function formatMobile(input) {
-    let number = input.value.replace(/\D/g, ''); // remove all non-digits
+    <script>
+            function formatMobile(input)
+            {
+                // Allow digits only
+                let number = input.value.replace(/\D/g, '');
 
-    // Replace 92 only if it's at the very beginning
-    if (number.startsWith('92')) {
-        number = '0' + number.slice(2);
-    }
+                // limit length (max 15 digits international standard)
+                if (number.length > 15) {
+                    number = number.slice(0, 15);
+                }
 
-    // Limit to max 11 digits
-    if (number.length > 11) {
-        number = number.slice(0, 11);
-    }
+                input.value = number;
+            }
+    </script>
 
-    input.value = number; // update field value
-}
-</script>
+    {{-- Pick the timezone of the user and log  --}}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            console.log("User timezone:", timezone);
+
+            document.getElementById("timezone").value = timezone;
+        });
+    </script>
+
 
 @endsection
