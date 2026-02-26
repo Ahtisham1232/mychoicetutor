@@ -179,7 +179,7 @@
                                     <div class="col-12 col-md-6 col-ms-6 mb-3">
                                         <label>Assignment Start Date<span style="color:red">*</span></label>
                                         <input type="date" class="form-control" id="assigstartdate"
-                                            name="assigstartdate" required>
+                                            name="assigstartdate" required  min="{{ date('Y-m-d') }}">
                                         <span class="text-danger">
                                             @error('assigstartdate')
                                                 {{ 'Start date is required' }}
@@ -189,7 +189,7 @@
                                     <div class="col-12 col-md-6 col-ms-6 mb-3">
                                         <label>Assignment End Date<span style="color:red">*</span></label>
                                         <input type="date" class="form-control" id="assigenddate" name="assigenddate"
-                                            required>
+                                            required  min="{{ date('Y-m-d') }}">
                                         <span class="text-danger">
                                             @error('assigenddate')
                                                 {{ 'End date is required' }}

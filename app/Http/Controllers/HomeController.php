@@ -1628,6 +1628,14 @@ class HomeController extends Controller
 
     public function notifications()
     {
+        $user = session('userid');
+        // if no session, return empty response safely
+        if (!$user) {
+            return response()->json([
+                'notifications' => [],
+                'unread_count' => 0
+            ]);
+        }
         // Logged In User Role
         $logged_in_role = session('userid')->role_id;
 
@@ -1868,7 +1876,7 @@ class HomeController extends Controller
             return redirect()->back()->with('fail', 'Notification not found or invalid.');
         }
         // Notification Event On Chat
-        if ($notificationData->alert_type == 1) {
+        if ($notificationData->alert_type == 12) {
 
             // Initiated By Admin
             if ($notificationData->initiator_role == 1) {

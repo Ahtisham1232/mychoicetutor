@@ -631,6 +631,13 @@ class MessagesController extends Controller
         })->orderBy('created_at', 'asc')->get();
 
         $tutorProfilePic = tutorprofile::where('tutor_id', $user->id)->value('profile_pic') ?? '';
+          $header = studentregistration::select(
+            'studentregistrations.*',
+            'studentprofiles.profile_pic'
+        )
+            ->leftJoin('studentprofiles', 'studentregistrations.id', '=', 'studentprofiles.student_id')
+            ->where('studentregistrations.id', $id)
+            ->first();
 
         return view('admin.partial_chat_messages', compact('messages', 'header', 'tutorProfilePic'))->render();
     }
