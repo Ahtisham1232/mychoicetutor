@@ -12,8 +12,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Events\RealTimeMessage;
 use App\Models\Notification;
-use App\Models\studentprofile;
 use App\Models\studentregistration;
+use App\Services\TwilioWhatsAppService;
+use Illuminate\Support\Facades\Log;
+use App\Helpers\TimezoneHelper;
+
+
 
 class AssignmentsController extends Controller
 {
@@ -283,9 +287,8 @@ class AssignmentsController extends Controller
         }
     }
 
-    public function tutorassignmentscreate(Request $request)
+    public function tutorassignmentscreate(Request $request, TwilioWhatsAppService $whatsApp)
     {
-
         $request->validate([
             'class' => 'required',
             'subject' => 'required',
@@ -329,39 +332,57 @@ class AssignmentsController extends Controller
             $notificationdata->initiator_id = session('userid')->id;
             $notificationdata->initiator_role = session('userid')->role_id;
             $notificationdata->event_id = $data->id;
-            // Sending to admin
-            // if($request->receiver_role_id == 1){
-            //     $notificationdata->show_to_admin = 1;
-            //     $notificationdata->show_to_admin_id = $request->receiver_id;
-            //     // $notificationdata->show_to_all_admin = 1;
-            // }
-            // Sending to tutor
-            // if($request->receiver_role_id == 2){
-                // $notificationdata->show_to_tutor = 1;
-                // $notificationdata->show_to_tutor_id = $tutor_id->assigned_by;
-                // $notificationdata->show_to_all_tutor = 0;
-            // }
-            // Sending to student
-            // if($request->receiver_role_id == 3){
-                $notificationdata->show_to_student = 1;
-                $notificationdata->show_to_student_id = $data->student_id;
-                $notificationdata->show_to_all_student = 0;
-            // }
-            // // Sending to parent
-            // if($request->receiver_role_id == 3){
-            //     $notificationdata->show_to_parent = 1;
-            //     $notificationdata->show_to_parent_id = $request->receiver_id;
-            //     // $notificationdata->show_to_all_parent = 0;
-            // }
+           
+            $notificationdata->show_to_student = 1;
+            $notificationdata->show_to_student_id = $data->student_id;
+            $notificationdata->show_to_all_student = 0;
+ 
             $notificationdata->read_status = 0;
 
-            $notified = $notificationdata->save();
+             $notificationdata->save();
             broadcast(new RealTimeMessage('$notification'));
 
+            // 2. WhatsApp Notification Logic (Template 2070)
+            try {
+                // Fetch Student and Tutor details
+                $student = studentregistration::find($data->student_id);
+                // Assuming the tutor is the one logged in
+                $tutorName = session('userid')->name; 
+                
+
+                $subject = subjects::find($data->subject_id);
+                $subjectName = $subject ? $subject->name : '';
+
+                if ($student && !empty($student->mobile)) {
+                    $templateId = 2070;
+                    $studentNumber = $student->mobile;
+
+                    // Mapping variables to the template placeholders {{1}} to {{5}}
+                    $bodyVariables = [
+                        $student->name,               // {{1}} Student Name
+                        $data->topic,                // {{2}} Topic
+                        $subjectName,                // {{3}} Subject
+                        $tutorName,                  // {{4}} Tutor Name
+                        $data->assignment_end_date,  // {{5}} Deadline
+                    ];
+
+                    $sent = $whatsApp->sendMessage(
+                        $studentNumber,
+                        $bodyVariables,
+                        $templateId
+                    );
+
+                    if ($sent) {
+                        Log::info("WhatsApp Assignment Alert Sent", ['student' => $student->id]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::error('WhatsApp Assignment Error: ' . $e->getMessage());
+                // We don't fail the whole request if WhatsApp fails
+            }
             // return back()->with('success', 'Assignment submitted successfully');
             return back()->with('success', $msg);
         } else {
-            // return back()->with('fail', 'Something went wrong, please try again later');
             return back()->with('fail', 'Something went wrong. Please try again later');
         }
     }
@@ -435,7 +456,7 @@ class AssignmentsController extends Controller
         ]);
     }
 
-    public function studentassignmentsupload(Request $request)
+    public function studentassignmentsupload(Request $request , TwilioWhatsAppService $whatsApp)
     {
         $request->validate([
             'id' => 'required',
@@ -449,14 +470,17 @@ class AssignmentsController extends Controller
             $request->assigupload->move(public_path('uploads/documents/assignments'), $contentlink);
             $data->submission_link = $contentlink;
         }
-        $tutor_id = StudentAssignmentList::find($request->id);
-        // dd($tutor_id);
+   
         $data->submitted_on = now();
         $data->submitted_by = session('userid')->id;
         $data->reamrks = $request->remarks;
         $data->is_active = '1';
         $res = $data->save();
         if ($res) {
+
+            $assignment = StudentAssignmentList::find($request->id);
+            $tutorId = $assignment->assigned_by;
+
             //////////////// Here I need to pass notification into db
             $notificationdata = new Notification();
             $notificationdata->alert_type = 3;
@@ -464,34 +488,62 @@ class AssignmentsController extends Controller
             $notificationdata->initiator_id = session('userid')->id;
             $notificationdata->initiator_role = session('userid')->role_id;
             $notificationdata->event_id = $data->id;
-            // Sending to admin
-            // if($request->receiver_role_id == 1){
-            //     $notificationdata->show_to_admin = 1;
-            //     $notificationdata->show_to_admin_id = $request->receiver_id;
-            //     // $notificationdata->show_to_all_admin = 1;
-            // }
-            // Sending to tutor
-            // if($request->receiver_role_id == 2){
-                $notificationdata->show_to_tutor = 1;
-                $notificationdata->show_to_tutor_id = $tutor_id->assigned_by;
-                // $notificationdata->show_to_all_tutor = 0;
-            // }
-            // Sending to student
-            // if($request->receiver_role_id == 3){
-            //     $notificationdata->show_to_student = 1;
-            //     $notificationdata->show_to_student_id = $request->receiver_id;
-            //     // $notificationdata->show_to_all_student = 0;
-            // }
-            // // Sending to parent
-            // if($request->receiver_role_id == 3){
-            //     $notificationdata->show_to_parent = 1;
-            //     $notificationdata->show_to_parent_id = $request->receiver_id;
-            //     // $notificationdata->show_to_all_parent = 0;
-            // }
+            $notificationdata->show_to_tutor = 1;
+            $notificationdata->show_to_tutor_id = $tutorId;
+            $notificationdata->show_to_all_tutor = 0;
+
             $notificationdata->read_status = 0;
 
-            $notified = $notificationdata->save();
+            $notificationdata->save();
             broadcast(new RealTimeMessage('$notification'));
+            // WhatsApp Notification to Tutor when student submits assignment
+            try {
+
+                // Get tutor info
+                $assignment = StudentAssignmentList::find($request->id);
+                $tutor = tutorregistration::find($assignment->assigned_by);
+
+                // Get student info
+                $student = studentregistration::find(session('userid')->id);
+
+                if ($tutor && !empty($tutor->mobile)) {
+
+                    $templateId = 2071; // create template in Twilio
+
+                    $tutorNumber = $tutor->mobile;
+                        $submissionTimeForTutor = TimezoneHelper::formatInUserTz(
+                            now(),
+                            'd M Y h:i A',
+                            'UTC',
+                            $tutor);
+
+                    $bodyVariables = [
+                        $tutor->name,              // {{1}} Tutor Name
+                        $student->name,           // {{2}} Student Name
+                        $assignment->name,        // {{3}} Assignment Name
+                        $submissionTimeForTutor// {{4}} Submission time
+                    ];
+
+                    $sent = $whatsApp->sendMessage(
+                        $tutorNumber,
+                        $bodyVariables,
+                        $templateId
+                    );
+
+                    if ($sent) {
+                        Log::info("WhatsApp sent to Tutor", [
+                            'tutor_id' => $tutor->id,
+                            'assignment_id' => $assignment->id
+                        ]);
+                    }
+
+                }
+
+            } catch (\Throwable $e) {
+
+                Log::error("WhatsApp Tutor Notification Error: " . $e->getMessage());
+
+            }
 
             return back()->with('success', 'Assignment submitted successfully');
         } else {

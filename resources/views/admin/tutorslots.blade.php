@@ -164,59 +164,59 @@
 
 
         <!-- Schedule modal -->
-<div class="modal fade" id="scheduleclassmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-aria-hidden="true">
-<div class="modal-dialog">
-    <div class="modal-content">
+        <div class="modal fade" id="scheduleclassmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
 
-        <div class="modal-body">
+                    <div class="modal-body">
 
-            <header>
-                <h3 class="text-center mb-4">Update Slot</h3>
-            </header>
+                        <header>
+                            <h3 class="text-center mb-4">Update Slot</h3>
+                        </header>
 
-            <form action="{{ route('admin.slots.update') }}" method="POST">
-                @csrf
-                <div class="row">
-                    <input type="hidden" id="slotid" name="slotid">
-                    <div class="col-12 col-md-6 mb-3">
-                        <label>Date<span style="color:red">*</span></label>
-                        <input type="date" class="form-control readonly" readonly id="classdate" name="classdate" min="{{ date('Y-m-d', strtotime('+1 day')) }}">
-                        <span class="text-danger">
-                            @error('classdate')
-                            {{ 'Date is required' }}
-                            @enderror
-                        </span>
+                        <form action="{{ route('admin.slots.update') }}" method="POST">
+                            @csrf
+                            <div class="row">
+                                <input type="hidden" id="slotid" name="slotid">
+                                <div class="col-12 col-md-6 mb-3">
+                                    <label>Date<span style="color:red">*</span></label>
+                                    <input type="date" class="form-control readonly" readonly id="classdate" name="classdate" min="{{ date('Y-m-d', strtotime('+1 day')) }}">
+                                    <span class="text-danger">
+                                        @error('classdate')
+                                        {{ 'Date is required' }}
+                                        @enderror
+                                    </span>
+                                </div>
+                                <div class="col-12 col-md-6 mb-3">
+                                    <label>Time<span style="color:red">*</span></label>
+                                    <input type="time" class="form-control readonly" readonly id="classtime" name="classtime">
+                                    <span class="text-danger">
+                                        @error('classtime')
+                                        {{ 'Time is required' }}
+                                        @enderror
+                                    </span>
+                                </div>
+                                <div class="col-lg-12 col-md-12 mb-3">
+                                    {{-- <label>Time<span style="color:red">*</span></label> --}}
+                                    <input type="checkbox" class="readonly" id="markactive" readonly name="markactive" checked> &nbsp; <label for="markactive">Mark As Available</label><br><i style="color: red">Once marked as available, it will be available to students for booking</i>
+                                    
+                                </div>
+                                <!-- Your other form fields here -->
+
+                            </div>
+
+                            <div style="float:right">
+                                <button type="button" class="btn btn-sm btn-danger mr-1" data-dismiss="modal"
+                                    onclick="closeModal();">Close</button>
+                                <button type="submit" class="btn btn-sm btn-success">Submit</button>
+                            </div>
+
+                        </form>
                     </div>
-                    <div class="col-12 col-md-6 mb-3">
-                        <label>Time<span style="color:red">*</span></label>
-                        <input type="time" class="form-control readonly" readonly id="classtime" name="classtime">
-                        <span class="text-danger">
-                            @error('classtime')
-                            {{ 'Time is required' }}
-                            @enderror
-                        </span>
-                    </div>
-                    <div class="col-lg-12 col-md-12 mb-3">
-                        {{-- <label>Time<span style="color:red">*</span></label> --}}
-                        <input type="checkbox" class="readonly" id="markactive" readonly name="markactive" checked> &nbsp; <label for="markactive">Mark As Available</label><br><i style="color: red">Once marked as available, it will be available to students for booking</i>
-                        
-                    </div>
-                    <!-- Your other form fields here -->
-
                 </div>
-
-                <div style="float:right">
-                    <button type="button" class="btn btn-sm btn-danger mr-1" data-dismiss="modal"
-                        onclick="closeModal();">Close</button>
-                    <button type="submit" class="btn btn-sm btn-success">Submit</button>
-                </div>
-
-            </form>
+            </div>
         </div>
-    </div>
-</div>
-</div>
 
         <!--recording warning modal -->
         <div class="modal fade" id="warningModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"

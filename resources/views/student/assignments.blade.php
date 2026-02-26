@@ -107,42 +107,42 @@
                                                 }
                                             @endphp
 
-                                    @if ($isSubmitted)
-                                        <a class="btn btn-sm btn-success"
-                                            ><span class="fa fa-check"></span> Assignment Submitted</a>
-                                    @else
-                                    @if (session('usertype') == 'Parent')
-                                    <a class="btn btn-sm btn-danger"
-                                            > Not Submitted</a>
-                                        @else
-                                        <button class="btn btn-sm btn-primary"
-                                        onclick="openmodal('{{ $assignment->assignment_id }}');" data-toggle="modal"
-                                        data-target="#openmodal"><span class="fa fa-cloud-upload"></span> Submit Assignment</button>
-                                        @endif
-                                    @endif
-                                </td>
-                                <td>
-                                    @if ($isSubmitted && $submissionData && $submissionData->results !== null)
-                                        <span class="badge bg-info" style="font-size: 14px; padding: 8px;">
-                                            {{ number_format($submissionData->results, 2) }}
-                                        </span>
-                                    @elseif ($isSubmitted)
-                                        <span class="text-muted">Not Graded Yet</span>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if ($isSubmitted && $submissionData && $submissionData->remarks)
-                                        <span style="max-width: 200px; display: inline-block;">{{ $submissionData->remarks }}</span>
-                                    @elseif ($isSubmitted)
-                                        <span class="text-muted">No remarks</span>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
+                                            @if ($isSubmitted)
+                                                <a class="btn btn-sm btn-success"
+                                                    ><span class="fa fa-check"></span> Assignment Submitted</a>
+                                            @else
+                                            @if (session('usertype') == 'Parent')
+                                            <a class="btn btn-sm btn-danger"
+                                                    > Not Submitted</a>
+                                                @else
+                                                <button class="btn btn-sm btn-primary"
+                                                onclick="openmodal('{{ $assignment->assignment_id }}');" data-toggle="modal"
+                                                data-target="#openmodal"><span class="fa fa-cloud-upload"></span> Submit Assignment</button>
+                                                @endif
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if ($isSubmitted && $submissionData && $submissionData->results !== null)
+                                                <span class="badge bg-info" style="font-size: 14px; padding: 8px;">
+                                                    {{ number_format($submissionData->results, 2) }}
+                                                </span>
+                                            @elseif ($isSubmitted)
+                                                <span class="text-muted">Not Graded Yet</span>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if ($isSubmitted && $submissionData && $submissionData->remarks)
+                                                <span style="max-width: 200px; display: inline-block;">{{ $submissionData->remarks }}</span>
+                                            @elseif ($isSubmitted)
+                                                <span class="text-muted">No remarks</span>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
 
 
                             </tbody>
