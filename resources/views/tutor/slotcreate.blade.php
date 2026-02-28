@@ -410,7 +410,7 @@
                             <h4 class="">Are you sure to <span style="color: red"> Delete</span> this slot?</h4>
                             <br>
 
-                            <div id='warningbtn' style="float:right">
+                            <div id='warningbtn' style="float:right" class="pb-5">
                                 <button class="btn btn-success btn-sm" type="submit">Delete</button>
                                 <button class="btn btn-danger btn-sm" type="button"
                                     onclick="hidewarning()">Cancel</button>
