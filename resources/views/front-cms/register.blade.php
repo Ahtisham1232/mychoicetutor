@@ -62,7 +62,7 @@
                                     <select class="form-control" id="country_code" name="country_code" style="max-width:120px;">
                                         @foreach(config('phone') as $key => $country)
                                             <option value="{{ $country['code'] }}"
-                                                {{ old('country_code', '+92') == $country['code'] ? 'selected' : '' }}>
+                                                {{ old('country_code', '+44') == $country['code'] ? 'selected' : '' }}>
                                                 {{ $country['code'] }}
                                             </option>
                                         @endforeach

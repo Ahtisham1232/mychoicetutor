@@ -61,7 +61,7 @@ class TimezoneHelper
      * @param object|null $user User for target timezone; null = current session user.
      * @return string Formatted date/time string.
      */
-    public static function formatInUserTz($datetime, string $format, string $fromTz = 'UTC', $user = null): string
+    public static function formatInUserTz($datetime, string $format = 'd M Y h:i A', string $fromTz = 'UTC', $user = null): string
     {
         if ($datetime === null || $datetime === '') {
             return '';
@@ -99,5 +99,10 @@ class TimezoneHelper
         }
         $carbon = self::toUserTz($timeString, 'UTC', $user);
         return $withSeconds ? $carbon->format('H:i:s') : $carbon->format('H:i');
+    }
+    public static function slotToUserTz($date, $time, $user = null): Carbon
+    {
+        $datetime = Carbon::createFromFormat('Y-m-d H:i:s', $date . ' ' . $time, 'UTC');
+        return self::toUserTz($datetime, 'UTC', $user);
     }
 }

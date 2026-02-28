@@ -59,7 +59,7 @@
                         <select class="form-control" id="country_code" name="country_code" style="max-width:100px;">
                             @foreach(config('phone') as $country)
                                 <option value="{{ $country['code'] }}" 
-                                    {{ old('country_code', '+92') == $country['code'] ? 'selected' : '' }}>
+                                    {{ old('country_code', '+44') == $country['code'] ? 'selected' : '' }}>
                                     {{ $country['code'] }}
                                 </option>
                             @endforeach
@@ -116,6 +116,12 @@
                         @enderror
                     </span>
                 </div>
+
+                <hr>
+                
+                <p class="text-muted small text-center mb-3">
+                    <strong>Note for Parents:</strong> Please enter mobile number with the correct country code (e.g., +44, +92) to login.
+                </p>
 
                 <hr>
                 <button type="submit" class="btn brand-bg-Color popuplogin mb-3">Login</button>

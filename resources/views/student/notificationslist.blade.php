@@ -45,7 +45,7 @@
                                    <td>{{$loop->iteration}}</td>
                                    <td>
                                        @if($notification->created_at)
-                                            {{ $notification->created_at->timezone('Asia/Karachi')->format('d M Y, h:i A') }}
+                                             @userTz($notification->created_at)
 
                                        @else
                                        ''
