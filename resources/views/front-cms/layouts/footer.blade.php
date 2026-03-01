@@ -120,7 +120,7 @@
                 <hr>
                 
                 <p class="text-muted small text-center mb-3">
-                    <strong>Note for Parents:</strong> Please enter mobile number with the correct country code (e.g., +44, +92) to login.
+                    <strong>Note for Parents:</strong> Please enter mobile number in the password field with the correct country code (e.g., +44, +92) to login.
                 </p>
 
                 <hr>

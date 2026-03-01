@@ -17,6 +17,7 @@ use App\Models\tutorregistration;
 use App\Helpers\CommonHelper;
 use App\Services\TwilioWhatsAppService;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\TimezoneHelper;
 
 class DemoController extends Controller
 {
@@ -128,35 +129,98 @@ class DemoController extends Controller
         }
     }
 
-    public function demodetails($id){
+    public function demodetails($id)
+    {
         $demo = democlasses::find($id);
-        return json_encode(array($demo));
+
+        $tutor = session('userid');
+        $tutorTz = TimezoneHelper::userTimezone($tutor);
+
+        if ($demo) {
+
+            $demo->slot_1_local = $demo->slot_1
+                ? Carbon::parse($demo->slot_1, 'UTC')
+                    ->setTimezone($tutorTz)
+                    ->format('d-m-Y h:i A')
+                : null;
+
+            $demo->slot_2_local = $demo->slot_2
+                ? Carbon::parse($demo->slot_2, 'UTC')
+                    ->setTimezone($tutorTz)
+                    ->format('d-m-Y h:i A')
+                : null;
+
+            $demo->slot_3_local = $demo->slot_3
+                ? Carbon::parse($demo->slot_3, 'UTC')
+                    ->setTimezone($tutorTz)
+                    ->format('d-m-Y h:i A')
+                : null;
+
+            // ⚠ For datetime-local input (update modal)
+            $demo->slot_1_input = $demo->slot_1
+                ? Carbon::parse($demo->slot_1, 'UTC')
+                    ->setTimezone($tutorTz)
+                    ->format('Y-m-d\TH:i')
+                : null;
+
+            $demo->slot_2_input = $demo->slot_2
+                ? Carbon::parse($demo->slot_2, 'UTC')
+                    ->setTimezone($tutorTz)
+                    ->format('Y-m-d\TH:i')
+                : null;
+
+            $demo->slot_3_input = $demo->slot_3
+                ? Carbon::parse($demo->slot_3, 'UTC')
+                    ->setTimezone($tutorTz)
+                    ->format('Y-m-d\TH:i')
+                : null;
+        }
+
+        return response()->json([$demo]);
     }
 
 
-    public function demoupdate(Request $request){
+    public function demoupdate(Request $request)
+    {
         $request->validate([
-            'slotupdate1'=>'required',
-            'statusupdate'=>'required'
+            'slotupdate1' => 'required',
+            'statusupdate' => 'required'
         ]);
 
         $dcnf = democlasses::find($request->demoupdateid);
 
-        $dcnf->slot_1 = $request->slotupdate1;
-        $dcnf->slot_2 = $request->slotupdate2;
-        $dcnf->slot_3 = $request->slotupdate3;
+        $tutor = session('userid');
+        $tutorTz = TimezoneHelper::userTimezone($tutor);
+
+        // Convert Local → UTC before saving
+        $dcnf->slot_1 = $request->slotupdate1
+            ? Carbon::parse($request->slotupdate1, $tutorTz)
+                ->setTimezone('UTC')
+            : null;
+
+        $dcnf->slot_2 = $request->slotupdate2
+            ? Carbon::parse($request->slotupdate2, $tutorTz)
+                ->setTimezone('UTC')
+            : null;
+
+        $dcnf->slot_3 = $request->slotupdate3
+            ? Carbon::parse($request->slotupdate3, $tutorTz)
+                ->setTimezone('UTC')
+            : null;
         $dcnf->status = $request->statusupdate;
 
-       $res= $dcnf->save();
-       if($res){
-        return back()->with('success','Slot updated successfully');
-    }
-    else{
-        return back()->with('fail','Something went wrong. Please try again later');
-    }
+        $res = $dcnf->save();
+        if ($res) {
+            return back()->with('success', 'Slot updated successfully');
+        } else {
+            return back()->with('fail', 'Something went wrong. Please try again later');
+        }
     }
 
     public function tutordemolist(){
+
+        $tutor = session('userid');
+        $tutorTz = TimezoneHelper::userTimezone($tutor);
 
         $demos = democlasses::select('*','democlasses.id as demo_id','tutorregistrations.name as tutor','tutorregistrations.mobile as tutor_mobile','subjects.name as subject','subjects.id as subjectid','statuses.name as currentstatus','classes.name as class_name','studentregistrations.id as student_id','studentregistrations.name as student_name','studentregistrations.mobile as student_mobile','classes.name as classname')
         ->join('tutorregistrations', 'tutorregistrations.id', '=', 'democlasses.tutor_id')
@@ -166,6 +230,33 @@ class DemoController extends Controller
         ->join('studentregistrations','studentregistrations.id','=','democlasses.student_id')
         ->where('democlasses.tutor_id','=', session('userid')->id)->orderBy('democlasses.created_at', 'desc')
         ->paginate(10);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Convert UTC Slots → Tutor Timezone
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($demos as $demo) {
+
+            $demo->slot_1_local = $demo->slot_1
+                ? \Carbon\Carbon::parse($demo->slot_1, 'UTC')
+                    ->setTimezone($tutorTz)
+                    ->format('d M Y, h:i A')
+                : null;
+
+            $demo->slot_2_local = $demo->slot_2
+                ? \Carbon\Carbon::parse($demo->slot_2, 'UTC')
+                    ->setTimezone($tutorTz)
+                    ->format('d M Y, h:i A')
+                : null;
+
+            $demo->slot_3_local = $demo->slot_3
+                ? \Carbon\Carbon::parse($demo->slot_3, 'UTC')
+                    ->setTimezone($tutorTz)
+                    ->format('d M Y, h:i A')
+                : null;
+        }
 
         $subjects = subjects::where('is_active',1)->get();
         $classes = classes::where('is_active',1)->get();
@@ -232,24 +323,25 @@ class DemoController extends Controller
 public function tutordemoupdate(Request $request){
     // echo $request->statusupdate;
     // dd();
-$request->validate([
-    'statusupdate'=>'required',
-    'demoid'=>'required'
-]);
+    $request->validate([
+        'statusupdate'=>'required',
+        'demoid'=>'required'
+    ]);
 
-$data = democlasses::find($request->demoid);
-$data->status = $request->statusupdate;
-$data->remarks = $request->remarks;
+    $data = democlasses::find($request->demoid);
+    $data->status = $request->statusupdate;
+    $data->remarks = $request->remarks;
 
-$res = $data->save();
-if($res){
-    return back()->with('success','Trial details updated successfully');
-}
-else{
-    return back()->with('fail','Something went wrong. Please try again later');
-}
+    $res = $data->save();
+    if($res){
+        return back()->with('success','Trial details updated successfully');
+    }
+    else{
+        return back()->with('fail','Something went wrong. Please try again later');
+    }
 
 }
+
 public function demostatusupdate(Request $request, TwilioWhatsAppService $whatsApp)
 {
     $data = democlasses::find($request->id);

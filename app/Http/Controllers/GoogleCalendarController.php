@@ -354,8 +354,8 @@ class GoogleCalendarController extends Controller
 
             if ($meeting['success']) {
                 $dcnf = democlasses::find($request->confirmid);
-                // $dcnf->slot_confirmed = $request->slot;
-                $dcnf->slot_confirmed = Carbon::parse($request->slot, TimezoneHelper::userTimezone())->utc();
+                // slot_confirmed is already in UTC from the form, so we can store it directly
+                $dcnf->slot_confirmed = $request->slot;
                 $dcnf->slot_confirmed_at = Carbon::now();
                 $dcnf->slot_confirmed_by = session('userid')->id;
                 $dcnf->demo_link = $meeting['meeting_url'];
@@ -401,7 +401,7 @@ class GoogleCalendarController extends Controller
                             $bodyVariablesStudent = [
                                 $demostudent->name,
                                 $subjectName,
-                                Carbon::parse($request->slot)->format('d M Y h:i A'),
+                                TimezoneHelper::formatInUserTz($dcnf->slot_confirmed, 'd M Y h:i A', 'UTC', $demostudent),
                                 session('userid')->name,
                                 $meeting['meeting_url'],
                             ];
@@ -441,11 +441,10 @@ class GoogleCalendarController extends Controller
 
         // dd($request->demoendid);
         $dcnf = democlasses::find($request->demoendid);
+        if (!$dcnf) {
+        return back()->with('fail', 'Class record not found.');
+        }
 
-        // $dcnf->slot_confirmed = $request->slot;
-        // $dcnf->slot_confirmed_at = Carbon::now();
-        // $dcnf->slot_confirmed_by = session('userid')->id;
-        // $dcnf->demo_link = $response->hangoutLink;
         $dcnf->remarks = $request->demoendremarks;
         $dcnf->status = 4;
 

@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Helpers\CommonHelper;
 use App\Services\TwilioWhatsAppService;
 use Carbon\Carbon;
+use App\Helpers\TimezoneHelper;
 
 class DemoListController extends Controller
 {
@@ -142,130 +143,198 @@ class DemoListController extends Controller
     public function bookdemo(Request $request, TwilioWhatsAppService $whatsApp)
     {
         $student = session('userid');
-        // $studentprofile = studentprofile::select('*')->where('student_id',session('userid')->id)->first();
-        $profchk = studentprofile::select('email', 'mobile')->where('student_id', session('userid')->id)->first();
+        $studentTz = TimezoneHelper::userTimezone($student);
 
-        $tutor = tutorregistration::select('*')->where('id', $request->demotutorid)->first();
-        if (!$profchk || $profchk->email === null) {
+        $profchk = studentprofile::select('email', 'mobile')
+            ->where('student_id', $student->id)
+            ->first();
+
+        if (!$profchk || empty($profchk->email)) {
             return back()->with('fail', 'Please update your profile first. Visit your profile section to update');
         }
-        // Check if the demo class already exists
-        $existingDemo = democlasses::where('student_id', session('userid')->id)
+
+        $tutor = tutorregistration::find($request->demotutorid);
+        if (!$tutor) {
+            return back()->with('fail', 'Tutor not found.');
+        }
+
+        // Check duplicate demo
+        $existingDemo = democlasses::where('student_id', $student->id)
             ->where('tutor_id', $request->demotutorid)
             ->where('subject_id', $request->demosubjectid)
             ->first();
 
         if ($existingDemo) {
-        // If the record already exists, redirect back with an error message
-            return back()->with('fail','You have already taken the demo.');
+            return back()->with('fail', 'You have already taken the demo.');
         }
-        // dd($request->message);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Convert Student Selected Slots → UTC (for storage)
+        |--------------------------------------------------------------------------
+        */
+
+        $slot_1_utc = $request->demoslotfirst
+            ? Carbon::createFromFormat('Y-m-d\TH:i', $request->demoslotfirst, $studentTz)->setTimezone('UTC')
+            : null;
+
+        $slot_2_utc = $request->demoslotsecond
+            ? Carbon::createFromFormat('Y-m-d\TH:i', $request->demoslotsecond, $studentTz)->setTimezone('UTC')
+            : null;
+
+        $slot_3_utc = $request->demoslotthird
+            ? Carbon::createFromFormat('Y-m-d\TH:i', $request->demoslotthird, $studentTz)->setTimezone('UTC')
+            : null;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Save Demo (UTC Stored)
+        |--------------------------------------------------------------------------
+        */
+
         $demo = new democlasses();
-        $demo->student_id = session('userid')->id;
+        $demo->student_id = $student->id;
         $demo->tutor_id = $request->demotutorid;
         $demo->subject_id = $request->demosubjectid;
-        // $demo->subject_id = $request->demosubjectid;
-        $demo->slot_1 = $request->demoslotfirst;
-        $demo->slot_2 = $request->demoslotsecond;
-        $demo->slot_3 = $request->demoslotthird;
+        $demo->slot_1 = $slot_1_utc?->toDateTimeString();
+        $demo->slot_2 = $slot_2_utc?->toDateTimeString();
+        $demo->slot_3 = $slot_3_utc?->toDateTimeString();
         $demo->remarks = $request->message;
-        // $demo->slot_confirmed = "";
-        // $demo->slot_confirmed_at = "";
-        // $demo->slot_confirmed_by = "";
         $demo->status = "1";
 
         $res = $demo->save();
 
-        // Send welcome mail
+        if (!$res) {
+            return redirect()->to('student/searchtutor')
+                ->with('fail', 'Something Went Wrong. Try Again Later');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Format Slots For Email (Student Timezone)
+        |--------------------------------------------------------------------------
+        */
+
+        $slot1Student = $slot_1_utc
+            ? TimezoneHelper::formatInUserTz($slot_1_utc, 'd M Y, h:i A', 'UTC', $student)
+            : 'N/A';
+
+        $slot2Student = $slot_2_utc
+            ? TimezoneHelper::formatInUserTz($slot_2_utc, 'd M Y, h:i A', 'UTC', $student)
+            : 'N/A';
+
+        $slot3Student = $slot_3_utc
+            ? TimezoneHelper::formatInUserTz($slot_3_utc, 'd M Y, h:i A', 'UTC', $student)
+            : 'N/A';
+
+        /*
+        |--------------------------------------------------------------------------
+        | Send Email (Student Timezone)
+        |--------------------------------------------------------------------------
+        */
+
         $details = [
-            'name' => session('userid')->name,
-            'slot_1' => $request->demoslotfirst,
-            'slot_2' => $request->demoslotsecond,
-            'slot_3' => $request->demoslotthird,
+            'name' => $student->name,
+            'slot_1' => $slot1Student,
+            'slot_2' => $slot2Student,
+            'slot_3' => $slot3Student,
             'tutor_name' => $tutor->name,
             'mailtype' => 2,
         ];
 
-       
         try {
-            Mail::to(session('userid')->email)->send(new SendMail($details));
-            // success response if needed
+            Mail::to($student->email)->send(new SendMail($details));
         } catch (\Exception $e) {
-            // log error for debugging
+            // Optional: log error
         }
 
-        if ($res) {
-            $notificationdata = new Notification();
-            $notificationdata->alert_type = 2;
-            $notificationdata->notification = 'New Trial Class Scheduled By ' . session('userid')->name;
-            $notificationdata->initiator_id = session('userid')->id;
-            $notificationdata->initiator_role = session('userid')->role_id;
-            $notificationdata->event_id = $demo->id;
-            // Sending to admin
-            // if($request->receiver_role_id == 1){
-            $notificationdata->show_to_admin = 1;
-            // $notificationdata->show_to_admin_id = $request->receiver_id;
-            $notificationdata->show_to_all_admin = 1;
-            $notificationdata->show_to_tutor = 1;
-            $notificationdata->show_to_tutor_id = $request->demotutorid;
-            $notificationdata->read_status = 0;
+        /*
+        |--------------------------------------------------------------------------
+        | Create Notification
+        |--------------------------------------------------------------------------
+        */
 
-            $notified = $notificationdata->save();
+        $notification = new Notification();
+        $notification->alert_type = 2;
+        $notification->notification = 'New Trial Class Scheduled By ' . $student->name;
+        $notification->initiator_id = $student->id;
+        $notification->initiator_role = $student->role_id;
+        $notification->event_id = $demo->id;
+        $notification->show_to_admin = 1;
+        $notification->show_to_all_admin = 1;
+        $notification->show_to_tutor = 1;
+        $notification->show_to_tutor_id = $tutor->id;
+        $notification->read_status = 0;
+        $notification->save();
 
-            // Format slots before sending WhatsApp
-            $formattedSlot1 = $request->demoslotfirst 
-            ? Carbon::parse($request->demoslotfirst)->format('d M Y, h:i A') 
+        /*
+        |--------------------------------------------------------------------------
+        | Format Slots For Tutor (Tutor Timezone)
+        |--------------------------------------------------------------------------
+        */
+
+        $slot1Tutor = $slot_1_utc
+            ? TimezoneHelper::formatInUserTz($slot_1_utc, 'd M Y, h:i A', 'UTC', $tutor)
             : 'N/A';
 
-            $formattedSlot2 = $request->demoslotsecond 
-            ? Carbon::parse($request->demoslotsecond)->format('d M Y, h:i A') 
+        $slot2Tutor = $slot_2_utc
+            ? TimezoneHelper::formatInUserTz($slot_2_utc, 'd M Y, h:i A', 'UTC', $tutor)
             : 'N/A';
 
-            $formattedSlot3 = $request->demoslotthird 
-            ? Carbon::parse($request->demoslotthird)->format('d M Y, h:i A') 
+        $slot3Tutor = $slot_3_utc
+            ? TimezoneHelper::formatInUserTz($slot_3_utc, 'd M Y, h:i A', 'UTC', $tutor)
             : 'N/A';
 
-            // Send WhatsApp to Tutor
-            if (!empty($tutor->mobile)) {
-                try {
-                    $templateIdTutor = 1634;
-                   $tutorNumber = $tutor->mobile;
-                    $bodyVariablesTutor = [
+        /*
+        |--------------------------------------------------------------------------
+        | Send WhatsApp - Tutor (Tutor TZ)
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($tutor->mobile)) {
+            try {
+                $whatsApp->sendMessage(
+                    $tutor->mobile,
+                    [
                         $tutor->name,
-                        $formattedSlot1,
-                        $formattedSlot2,
-                        $formattedSlot3,
+                        $slot1Tutor,
+                        $slot2Tutor,
+                        $slot3Tutor,
                         $student->name,
-                    ];
-                    $whatsApp->sendMessage($tutorNumber, $bodyVariablesTutor, $templateIdTutor);
-                } catch (\Exception $e) {
-                }
-            }
-        
-            // Send WhatsApp to Student
-            if (!empty($profchk->mobile)) {
-                try {
-                    $templateIdStudent = 1635;
-                    $studentNumber = $profchk->mobile;
-                    $bodyVariablesStudent = [
-                        $student->name,
-                        $tutor->name,
-                        $formattedSlot1,
-                        $formattedSlot2,
-                        $formattedSlot3,
-                    ];
-                    $whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdStudent);
-                } catch (\Exception $e) {
-                }
-            }
-            broadcast(new RealTimeMessage('$notification'));
-
-
-            return redirect()->to('student/trialsuccess')->with('success', 'Trial Scheduled Successfully. Please login to class using your registered Email Id.');
-        } else {
-            return redirect()->to('student/searchtutor')->with('fail', 'Something Went Wrong. Try Again Later');
+                    ],
+                    1634
+                );
+            } catch (\Exception $e) {}
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Send WhatsApp - Student (Student TZ)
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($profchk->mobile)) {
+            try {
+                $whatsApp->sendMessage(
+                    $profchk->mobile,
+                    [
+                        $student->name,
+                        $tutor->name,
+                        $slot1Student,
+                        $slot2Student,
+                        $slot3Student,
+                    ],
+                    1635
+                );
+            } catch (\Exception $e) {}
+        }
+
+        broadcast(new RealTimeMessage('notification'));
+
+        return redirect()->to('student/trialsuccess')
+            ->with('success', 'Trial Scheduled Successfully. Please login to class using your registered Email Id.');
     }
+
     public function trialsuccess()
     {
 
