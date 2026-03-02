@@ -430,13 +430,18 @@
                                                 <div class="tu-rangevalue" data-bs-target="#tu-rangecollapse"
                                                     role="list" aria-expanded="false">
                                                     <div class="tu-areasizebox">
-                                                        <input type="number" class="form-control tu-input-field"
-                                                            step="1" placeholder="Min price" id="tminprice"
-                                                            name="tminprice" />
-                                                        <input type="number" class="form-control tu-input-field"
-                                                            step="1" placeholder="Max price" id="tmaxprice"
-                                                            name="tmaxprice" />
+                                                        <div class="input-group mb-2">
+                                                            <span class="input-group-text">£</span>
+                                                            <input type="number" class="form-control tu-input-field" placeholder="Min" id="tminprice" name="tminprice" step="1">
+                                                        </div>
+
+                                                        <div class="input-group mb-2">
+                                                            <span class="input-group-text">£</span>
+                                                            <input type="number" class="form-control tu-input-field" placeholder="Max" id="tmaxprice" name="tmaxprice" step="1">
+                                                        </div>
                                                     </div>
+
+                                                    
                                                 </div>
                                             </div>
                                             <div class="tu-distanceholder">

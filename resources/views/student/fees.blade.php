@@ -69,7 +69,7 @@
                                         <td>{{$loop->iteration}}</td>
                                         <td><a href="#" class="" onclick="showinvoice('{{$payment->paymentdetails_id}}')"> {{$payment->transaction_id}}</a></td>
                                         {{-- <td>{{$payment->created_at}}</td> --}}
-                                        <td>{{ $payment->created_at ? \Carbon\Carbon::parse($payment->created_at)->format('d-m-Y h:i A') : 'N/A' }}</td>
+                                        <td>@userTz($payment->created_at)</td>
                                         <td>{{$payment->class}}</td>
                                         <td>{{$payment->subject}}</td>
                                         <td>{{$payment->tutor}}</td>

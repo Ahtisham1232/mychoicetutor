@@ -150,7 +150,7 @@
                                     {{-- <td>{{ $demo->slot_1 }}</td> --}}
                                     {{-- <td>{{ $demo->slot_2 }}</td> --}}
                                     {{-- <td>{{ $demo->slot_3 }}</td> --}}
-                                    <td>{{ $demo->slot_confirmed->timezone('Asia/Karachi')->format('d M Y, h:i A') ?? '' }}</td> 
+                                    <td> @userTz($demo->slot_confirmed)</td> 
                                     {{-- <td><a href="{{ $demo->demo_link }}">{{ $demo->demo_link }}</a></td> --}}
                                     <td>{{ $demo->remarks }}</td>
                                     <td>
@@ -435,7 +435,7 @@
 
                     // Format and display the slots
                     if (result.slot_1) {
-                        $('#slot_1').html(formatDate(result.slot_1)); // Format date
+                        $('#slot_1').html(result.slot_1_local);
                         $('#slot1').val(result.slot_1);
                         document.getElementById('slot1Div').style.display = 'block'; // Ensure visibility
                     } else {
@@ -443,16 +443,16 @@
                     }
 
                     if (result.slot_2) {
-                        $('#slot_2').html(formatDate(result.slot_2)); // Format date
-                        $('#slot2').val(result.slot_2);
+                      $('#slot_2').html(result.slot_2_local);
+                      $('#slot2').val(result.slot_2);
                         document.getElementById('slot2Div').style.display = 'block'; // Ensure visibility
                     } else {
                         document.getElementById('slot2Div').style.display = 'none'; // Hide if no data
                     }
 
                     if (result.slot_3) {
-                        $('#slot_3').html(formatDate(result.slot_3)); // Format date
-                        $('#slot3').val(result.slot_3);
+                       $('#slot_3').html(result.slot_3_local);
+                       $('#slot3').val(result.slot_3);
                         document.getElementById('slot3Div').style.display = 'block'; // Ensure visibility
                     } else {
                         document.getElementById('slot3Div').style.display = 'none'; // Hide if no data
@@ -468,28 +468,6 @@
             });
         }
 
-        // Helper function to format date into DD-MM-YYYY hh:mm AM/PM
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-
-            // Extract date components
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
-            const year = date.getFullYear();
-
-            // Extract time components
-            let hours = date.getHours();
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-
-            // Convert hours to 12-hour format
-            hours = hours % 12;
-            hours = hours ? hours : 12; // The hour '0' should be '12'
-
-            return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
-        }
-
-
         function openupdatemodal(id) {
             $.ajax({
                 url: "{{ url('tutor/demodetails') }}/" + id,
@@ -502,9 +480,10 @@
                     console.log(result)
                     result = result[0]
                     $('#demoupdateid').val(id)
-                    $('#slotupdate1').val(result.slot_1)
-                    $('#slotupdate2').val(result.slot_2)
-                    $('#slotupdate3').val(result.slot_3)
+                    $('#slotupdate1').val(result.slot_1_input);
+                    $('#slotupdate2').val(result.slot_2_input);
+                    $('#slotupdate3').val(result.slot_3_input);
+
                     $('#statusupdate').val(result.status)
 
                 }

@@ -110,7 +110,7 @@
                                     {{-- <td>{{ $demo->slot_2 }}</td> --}}
                                     {{-- <td>{{ $demo->slot_3 }}</td> --}}
                                     <td>
-                                        {{ $demo->slot_confirmed ? \Carbon\Carbon::parse($demo->slot_confirmed)->format('d-m-Y h:i A') : '' }}
+                                        @userTz($demo->slot_confirmed)
                                     </td>
 
                                     <td>{{ $demo->remarks }}</td>
