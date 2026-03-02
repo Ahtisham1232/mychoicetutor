@@ -15,10 +15,8 @@ class MyLearningController extends Controller
         $query = learningcontents::select('learningcontents.*')
             ->leftJoin('subjects', 'subjects.id', 'learningcontents.subject_id')
             ->where('learningcontents.is_active', 1)
-            ->where(function ($q) use ($studentId) {
-                $q->whereNull('learningcontents.student_ids')
-                    ->orWhereJsonContains('learningcontents.student_ids', $studentId);
-            });
+            ->whereNotNull('learningcontents.student_ids')
+            ->whereJsonContains('learningcontents.student_ids', (string) $studentId);
             
         if ($request->input('topic')) {
             $query->where('learningcontents.topic_name', 'like', '%' . $request->topic . '%');

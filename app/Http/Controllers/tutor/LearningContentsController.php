@@ -121,11 +121,11 @@ class LearningContentsController extends Controller
         $data->topic_name = $request->topicid;
         $data->tutor_id = session('userid')->id;
 
-        // Handle student_ids - if empty, set to null (means all students)
+        // Handle student_ids - assign to one or multiple students; empty = not assigned to anyone
         if ($request->student_ids && count($request->student_ids) > 0) {
-            $data->student_ids = json_encode($request->student_ids);
+            $data->student_ids = $request->student_ids;
         } else {
-            $data->student_ids = null; // null means visible to all students
+            $data->student_ids = null;
         }
 
         if ($request->uploadcontent) {

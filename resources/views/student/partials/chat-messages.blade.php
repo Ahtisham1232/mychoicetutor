@@ -42,7 +42,7 @@
                                 class="rounded-circle" alt="You" width="40" height="40">
                         @endif
                         <div class="text-muted small text-nowrap mt-2">
-                            @userTz($message->created_at, 'd M Y, h:i A')
+                            @userTz($message->created_at)
                         </div>
                     </div>
 
@@ -78,7 +78,7 @@
                                 width="40" height="40">
                         @endif
                         <div class="text-muted small text-nowrap mt-2">
-                            @userTz($message->created_at, 'd M Y, h:i A')
+                            @userTz($message->created_at)
                         </div>
                     </div>
                     <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3 shadow-sm"

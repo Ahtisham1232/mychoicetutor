@@ -84,21 +84,20 @@
                         </div>
                         <div class="row mt-3">
                             <div class="col-md-12 col-sm-12 col-12 mb-3">
-                                <label for="student_ids">Select Students <small class="text-muted">(Leave empty to show to all
-                                        students)</small></label>
+                                <label for="student_ids">Assign to Students <small class="text-muted">(Select one or more students)</small></label>
                                 <select class="form-control student-select" id="student_ids" name="student_ids[]" multiple>
                                     @foreach ($students as $student)
+                                        @php
+                                            $selectedIds = isset($ucontents) && $ucontents->student_ids
+                                                ? (is_array($ucontents->student_ids) ? $ucontents->student_ids : json_decode($ucontents->student_ids, true))
+                                                : [];
+                                        @endphp
                                         <option value="{{ $student->id }}"
-                                            @if (isset($ucontents) && $ucontents->student_ids) @php
-                                                        $selectedIds = json_decode($ucontents->student_ids, true);
-                                                    @endphp
-                                                    @if (is_array($selectedIds) && in_array($student->id, $selectedIds)) selected @endif
-                                            @endif
+                                            @if (is_array($selectedIds) && in_array($student->id, $selectedIds)) selected @endif
                                             >{{ $student->name }}</option>
                                     @endforeach
                                 </select>
-                                <small class="text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple students.
-                                    Leave empty to make content visible to all your students.</small>
+                                <small class="text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple. Only assigned students will see this under Study Materials.</small>
                             </div>
                         </div>
                         <div class="row mt-3">
