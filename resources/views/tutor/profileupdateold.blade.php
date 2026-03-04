@@ -203,7 +203,7 @@
                             </div>
                             {{-- Added new field for rate per hour based on profile starts here --}}
                             <div class="form-group col-md-6">
-                                <label for="name">Rate Per Hour(£)<i style="color:red">*</i></label>
+                                <label for="name">Rate Per Hour({{ config('common.currency.symbol') }})<i style="color:red">*</i></label>
                                 <input type="text" class="form-control" id="rateperhour" name="rateperhour"
                                     placeholder="0" disabled readonly
                                     value="{{ $tutorpd->rateperhour ?? 0}}" required>

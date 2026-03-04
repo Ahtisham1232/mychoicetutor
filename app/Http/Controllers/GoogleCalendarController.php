@@ -329,6 +329,7 @@ class GoogleCalendarController extends Controller
             }
 
             $demostudent = studentprofile::select('*')->where('student_id', $demodata->student_id)->first();
+            $studentReg = \App\Models\studentregistration::find($demodata->student_id);
             if (!$demostudent) {
                 return back()->with('fail', 'Student profile not found.');
             }
@@ -401,7 +402,7 @@ class GoogleCalendarController extends Controller
                             $bodyVariablesStudent = [
                                 $demostudent->name,
                                 $subjectName,
-                                TimezoneHelper::formatInUserTz($dcnf->slot_confirmed, 'd M Y h:i A', 'UTC', $demostudent),
+                                TimezoneHelper::formatInUserTz($dcnf->slot_confirmed, 'd M Y h:i A', 'UTC', $studentReg),
                                 session('userid')->name,
                                 $meeting['meeting_url'],
                             ];

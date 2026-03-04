@@ -47,7 +47,9 @@
                                             </div>
                                             <div class="tu-listinginfo_price"> 
                                                 <span>Starting from:</span>
-                                                <h4>£{{ ((float)$tutorpd->rateperhour * (float)$tutorpd->admin_commission / 100)+$tutorpd->rateperhour }}/hr</h4>
+                                                <h4>{{config('common.currency.symbol')}}
+                                                    {{ ((float)$tutorpd->rateperhour * (float)$tutorpd->admin_commission / 100)+$tutorpd->rateperhour }}/hr
+                                                </h4>
                                             </div>
                                         </div>
                                         <ul class="tu-tutorreview">

@@ -71,7 +71,7 @@
                                         <td>{{$payment->class}}</td>
                                         <td>{{$payment->subject}}</td>
                                         <td>{{$payment->tutor}}</td>
-                                        <td>£{{$payment->amount}}</td>
+                                        <td>{{ config('common.currency.symbol') }}{{$payment->amount}}</td>
                                     </tr>
                                     @php
                                     $totalAmount += $payment->amount; // Add the current payment amount to the total
