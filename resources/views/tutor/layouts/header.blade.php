@@ -100,9 +100,8 @@
                         <button type="button"
                         class="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger"
                         id="topnav-hamburger-icon">
-                        <a href="/" target="_blank">
-                            <div class="btn btn-sm" style="color: black; background-color:#F3F3F9">Visit Website</div>
-                        </a>
+                            <a href="{{route('tutor.messages')}}"> <button class="btn btn-sm fw-bold" style="color: white; background-color:#5353be; margin-right:10px">Open Chat</button></a>
+                            <a href="{{route('home')}}" target="_blank"> <button class="btn btn-sm" style="color: black; background-color:#F3F3F9">Visit Website</button></a>
                     </button>
                         <div class="dropdown d-md-none topbar-head-dropdown header-item" hidden>
                             <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
@@ -836,7 +835,7 @@
                                 <a class="dropdown-item" href="{{ route('tutor.notifications') }}"><i
                                     class="mdi mdi-message-text-outline text-muted fs-16 align-middle me-1"></i>
                                 <span class="align-middle">Notifications</span></a>
-                                <a class="dropdown-item" href="{{ route('logout') }}"><i
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal"><i
                                         class="mdi mdi-logout text-muted fs-16 align-middle me-1"></i> <span
                                         class="align-middle" data-key="t-logout">Logout</span></a>
                             </div>
@@ -846,6 +845,31 @@
             </div>
         </header>
 
+        <!-- logoutConfirmModal -->
+        <div id="logoutConfirmModal" class="modal fade zoomIn" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mt-2 text-center">
+                            <lord-icon src="https://cdn.lordicon.com/gsqxdxog.json" trigger="loop"
+                                colors="primary:#f7b84b,secondary:#f06548"
+                                style="width:100px;height:100px"></lord-icon>
+                            <div class="mt-4 pt-2 fs-15 mx-4 mx-sm-5">
+                                <h4>Are you sure?</h4>
+                                <p class="text-muted mx-4 mb-0">Are you sure you want to logout?</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 justify-content-center mt-4 mb-2">
+                           <button type="button" class="btn btn-light text-dark w-sm" data-bs-dismiss="modal">Cancel</button>
+                            <a href="{{ route('logout') }}" class="btn w-sm btn-danger">Yes, Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- removeNotificationModal -->
         <div id="removeNotificationModal" class="modal fade zoomIn" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
