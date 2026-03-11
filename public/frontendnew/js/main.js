@@ -50,7 +50,8 @@ $(function() {
 		  /* For each element, create a new DIV that will contain the option list: */
 		  b = document.createElement("DIV");
 		  b.setAttribute("class", "select-items select-hide");
-		  for (j = 1; j < ll; j++) {
+		  // include the placeholder (index 0) so user can re-select "Select ..." to clear
+		  for (j = 0; j < ll; j++) {
 			  /* For each option in the original select element, create a new DIV that will act as an option item: */
 			  c = document.createElement("DIV");
 			  c.innerHTML = selElmnt.options[j].innerHTML;

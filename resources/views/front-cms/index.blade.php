@@ -78,11 +78,14 @@
     .subject-list li {
         margin: 0 8px;           /* small margin instead */
     }
-}
-@media (min-width: 1200px) {
+
     .containerSubject {
         max-width: 1290px;
     }
+}
+
+.input-group-text{
+    height: 26px;
 }
 
 
@@ -105,7 +108,7 @@
                         @csrf
                         <div class="findtutor-btns">
 
-                            <div class="custom-select " style="width:300px;" class="dropdown-menu">
+                            <div class="custom-select" style="width:300px;" class="dropdown-menu">
                                 <select id="subject"  name="subject" >
                                     <option value="">Select a Subject </option>
                                     @foreach ($subjects as $subject)
@@ -137,12 +140,12 @@
                             <div class="advceAccordian">
                                 <div class="" id="headingTwo">
                                     <div class="advance-search">
-                                        <a href="" class="collapsed advSearTextLeft" data-toggle="collapse"
+                                        <a href="javascript:void(0)" class="collapsed advSearTextLeft" data-toggle="collapse"
                                             data-target="#collapseTwo" aria-expanded="false"
                                             aria-controls="collapseTwo">Find the tutor of your choice use advance
                                             search</a>
                                         <span>
-                                            <a href="" class="collapsed advSearch2" data-toggle="collapse"
+                                            <a href="javascript:void(0)" class="collapsed advSearch2" data-toggle="collapse"
                                                 data-target="#collapseTwo" aria-expanded="false"
                                                 aria-controls="collapseTwo">
                                                 <img src="{{ url('frontendnew/img/icons/magnifire.png') }}" alt="">
@@ -159,14 +162,15 @@
 
                                         <div class="row mb-3">
                                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mb-2">
+                                                    <label for="name">Tutor Name</label>
                                                 <div class="form-group">
-                                                    <input type="text" class="form-control" id="" aria-describedby=""
-                                                        placeholder="Search" id="name" name="name">
+                                                    <input type="text" class="form-control" aria-describedby=""
+                                                        placeholder="Search" id="name" name="name" maxlength="100">
                                                 </div>
                                             </div>
                                             <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12 mb-2">
                                                 <label for="">Subject</label>
-                                                <select class="form-control" id="subject" name="subject">
+                                                <select class="form-control" id="adv_subject" name="subject">
                                                     <option value="">Select a subject</option>
                                                     @foreach ($subjects as $subject)
                                                     <option value="{{ $subject->id }}">{{ $subject->name }}</option>
@@ -175,50 +179,37 @@
                                             </div>
                                             <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12 mb-2">
                                                 <label for="">Grade</label>
-                                                <select class="form-control" id="grade" name="grade">
+                                                <select class="form-control" id="adv_grade" name="grade">
                                                     <option value="">Select a grade</option>
                                                     @foreach ($gradelists as $grade)
                                                     <option value="{{ $grade->id }}">{{ $grade->name }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
+     
                                             <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12 mb-2">
-                                                <label for="">Min Price</label>
-                                                <input class="form-control" id="tminprice" name="tminprice">
+                                                <label for="tminprice">Min Price</label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">{{config('common.currency.symbol')}}</span>
+                                                    </div>
+                                                    <input type="text" class="form-control" id="tminprice" name="tminprice" placeholder="0.00">
+                                                </div>
                                             </div>
+
                                             <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12 mb-2">
-                                                <label for="">Max Price</label>
-                                                <input class="form-control" id="tmaxprice" name="tmaxprice">
+                                                <label for="tmaxprice">Max Price</label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">{{config('common.currency.symbol')}}</span>
+                                                    </div>
+                                                    <input type="text" class="form-control" id="tmaxprice" name="tmaxprice" placeholder="0.00">
+                                                </div>
                                             </div>
-                                            <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12" hidden>
-                                                <label for="">Rating</label>
-                                                <select class="form-control rating" id="ratings" name="ratings">
-                                                    <option value="">5 Star <span
-                                                            class="star-uni-code">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-                                                    </option>
-                                                    <option value="">4 Star &#9733;&#9733;&#9733;&#9733;</option>
-                                                    <option value="">3 Star &#9733;&#9733;&#9733;</option>
-                                                    <option value="">2 Star &#9733;&#9733;</option>
-                                                    <option value="">1 Star &#9733;</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div class="row">
-                                            <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12" hidden>
-                                                <label for="">Country</label>
-                                                <select class="form-control" id="country" name="country">
-                                                    <option value="">Select Country</option>
-                                                    @foreach ($countries as $country)
-                                                    <option value="{{$country->id}}">{{$country->name}}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
-
+                                           
                                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                 <div class="advSearchBtns">
-                                                    <button class="btn cancelBtn">Cancel</button>
+                                                    <button type="button" class="btn cancelBtn">Cancel</button>
                                                     <button type="submit" class="applyBtn">Apply</button>
                                                 </div>
                                             </div>
@@ -236,163 +227,41 @@
 
 
                 </div>
-                <div class="container subjContainer containerSubject">
-                <div class="subSec">
-                    <ul class="subject-list">
-                        <li>
-                            <form action="{{ url('toptutorsearch') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="subject" value="1">
-                                <button type="submit" class="subject-btn">
-                                    <img src="{{ url('frontendnew/img/icons/board-math.png') }}" alt="Maths">
-                                    <span>Maths</span>
-                                </button>
-                            </form>
-                        </li>
+              
+                    <div class="container subjContainer containerSubject">
+                        <div class="subSec">
+                            <ul class="subject-list">
 
-                        <li>
-                            <form action="{{ url('toptutorsearch') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="subject" value="2">
-                                <button type="submit" class="subject-btn">
-                                    <img src="{{ url('frontendnew/img/icons/book-03.png') }}" alt="English">
-                                    <span>English</span>
-                                </button>
-                            </form>
-                        </li>
+                                @php
+                                    $subjects = App\Helpers\CommonHelper::getPopularSubjects();
+                                @endphp
 
-                        <li>
-                            <form action="{{ url('toptutorsearch') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="subject" value="3">
-                                <button type="submit" class="subject-btn">
-                                    <img src="{{ url('frontendnew/img/icons/chemistry-03.png') }}" alt="Chemistry">
-                                    <span>Chemistry</span>
-                                </button>
-                            </form>
-                        </li>
+                                @foreach($subjects as $subject)
+                                <li>
+                                    <form action="{{ url('toptutorsearch') }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="subject" value="{{ $subject->id }}">
 
-                        <li>
-                            <form action="{{ url('toptutorsearch') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="subject" value="4">
-                                <button type="submit" class="subject-btn">
-                                    <img src="{{ url('frontendnew/img/icons/physics.png') }}" alt="Physics">
-                                    <span>Physics</span>
-                                </button>
-                            </form>
-                        </li>
+                                        <button type="submit" class="subject-btn">
+                                            <img src="{{ url('frontendnew/img/icons/physics.png') }}" alt="{{ $subject->name }}">
+                                            <span>{{ \Illuminate\Support\Str::limit($subject->name, 15, '...') }}</span>
+                                        </button>
+                                    </form>
+                                </li>
+                                @endforeach
 
-                        <li>
-                            <form action="{{ url('toptutorsearch') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="subject" value="5">
-                                <button type="submit" class="subject-btn">
-                                    <img src="{{ url('frontendnew/img/icons/geology-crust.png') }}" alt="Biology">
-                                    <span>Biology</span>
-                                </button>
-                            </form>
-                        </li>
-
-                        <li>
-                            <form action="{{ url('toptutorsearch') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="subject" value="6">
-                                <button type="submit" class="subject-btn">
-                                    <img src="{{ url('frontendnew/img/icons/submerge.png') }}" alt="Science">
-                                    <span>Science</span>
-                                </button>
-                            </form>
-                        </li>
-
-                        <li>
-                            <form action="{{ url('toptutorsearch') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="subject" value="8">
-                                <button type="submit" class="subject-btn">
-                                    <img src="{{ url('frontendnew/img/icons/translation.png') }}" alt="Spanish">
-                                    <span>Spanish</span>
-                                </button>
-                            </form>
-                        </li>
-
-                        <li>
-                            <form action="{{ url('toptutorsearch') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="subject" value="9">
-                                <button type="submit" class="subject-btn">
-                                    <img src="{{ url('frontendnew/img/icons/translation.png') }}" alt="French">
-                                    <span>French</span>
-                                </button>
-                            </form>
-                        </li>
-
-                        <li>
-                            <form action="{{ url('toptutorsearch') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="subject" value="10">
-                                <button type="submit" class="subject-btn">
-                                    <img src="{{ url('frontendnew/img/icons/translation.png') }}" alt="German">
-                                    <span>German</span>
-                                </button>
-                            </form>
-                        </li>
-
-                        <li>
-                            <form action="{{ url('toptutorsearch') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="subject" value="11">
-                                <button type="submit" class="subject-btn">
-                                    <img src="{{ url('frontendnew/img/icons/text-creation.png') }}" alt="History">
-                                    <span>History</span>
-                                </button>
-                            </form>
-                        </li>
-
-                        <li>
-                            <form action="{{ url('toptutorsearch') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="subject" value="12">
-                                <button type="submit" class="subject-btn">
-                                    <img src="{{ url('frontendnew/img/icons/music-note-03.png') }}" alt="Music">
-                                    <span>Music</span>
-                                </button>
-                            </form>
-                        </li>
-
-                        <li>
-                            <form action="{{ url('toptutorsearch') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="subject" value="13">
-                                <button type="submit" class="subject-btn">
-                                    <img src="{{ url('frontendnew/img/icons/global-education.png') }}" alt="Psychology">
-                                    <span>Psychology</span>
-                                </button>
-                            </form>
-                        </li>
-
-                        <li>
-                            <form action="{{ url('toptutorsearch') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="subject" value="14">
-                                <button type="submit" class="subject-btn">
-                                    <img src="{{ url('frontendnew/img/icons/school-tie.png') }}" alt="Politics">
-                                    <span>Politics</span>
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
-
-                </div>
+                            </ul>
+                        </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
 <!-- tutor section -->
 <section class=" mar-top-40">
     <div class="container tutor-card padd-80">
-        <h4>10 million evaluated private tutors</h4>
+        <h4>Explore our evaluated private tutors</h4>
         <br>
         <div class="row">
              @foreach ($tutors->slice(0, 12) as $tutor)
@@ -409,15 +278,18 @@
                             </span>
                             <span>&#163; {{ $tutor->rateperhour }}/h</span>
                         </div>
-                        <a href="tutor-details/{{$tutor->tutor_id}}" style="color: black;line-height: 0px;"> <span class="name">
+                        <a href="tutor-details/{{$tutor->tutor_id}}" style="color: black;line-height: 0px;"> 
+                            <span class="name">
                                 {{ $tutor->name }}
-                                
-                            </span></a> 
-                            <p style="line-height: 14px;">{{ $tutor->subject }}</p>
-                       <p class="desc-tutor" style="font-weight: 400;line-height: 14px;font-size: 13px;">
-    {{ strlen($tutor->headline) > 100 ? substr($tutor->headline, 0, 100) . '...' : $tutor->headline }}
-</p>
-  </div>
+                              
+                            </span>
+                        </a> 
+
+                        <p style="line-height: 14px;">{{ $tutor->subject }}</p>
+                        <p class="desc-tutor" style="font-weight: 400;line-height: 14px;font-size: 13px;">
+                                {{ strlen($tutor->headline) > 100 ? substr($tutor->headline, 0, 100) . '...' : $tutor->headline }}
+                        </p>
+                    </div>
                 </div>
             </a>
             @endforeach
@@ -614,7 +486,6 @@
     </div>
 </section>
 <!-- fact sector END -->
-<!-- fact sector END -->
 
 
 <section>
@@ -632,64 +503,9 @@
             </div>
         </div>
 
-        <script>
-        function redirect() {
-            window.location.href = "{{('/student/register')}}";
-        }
-        </script>
-    </div>
+     </div>
 </section>
 
-
-
-
-
-<!-- -----------blog---------- -->
-<!-- <section class="testimonial-sec">
-            <div class="container topheader">
-                <h3 class="">Resources / Blogs</h3>
-                <p class="para">Experience seamless learning with our online tuition app. We've simplified education, making
-                    it easy for students, parents, and tutors to connect and excel. Effortless, effective, and engaging learning
-                    awaits you.</p>
-                <div class="row">
-                    @foreach ($blogs as $blog)
-    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                        <div class="blog-card">
-
-                            <img src="{{ url('images/blogs') }}/{{ $blog->image }}" width="100%" height="230px" alt="">
-
-
-                            <div class="blogDetails">
-                                <span class="feature">
-    @if ($blog->is_featured)
-    Featured |
-    @endif {{ $blog->published_by }}
-    <span>
-                                        <h5 class="my-2">{{ $blog->name }}</h5>
-                                        <p class="bDesc">{{ $blog->description }}</p>
-
-                                        <a href="#">
-                                            Read more
-                                        </a>
-                            </div>
-
-                        </div>
-                    </div>
-    @endforeach
-
-
-                </div>
-                <div class="row mt-4">
-                    <div class="col-12 ">
-                        <div class="expMore">
-                            <a href="#" class="btn btn-lg">View all</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section> -->
-
-
-
+  <script src="{{ asset('js/tutor-filter.js') }}"></script>
 
 @endsection

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Helpers;
+use App\Models\subjects;
 
 class CommonHelper
 {
@@ -30,5 +31,20 @@ class CommonHelper
 
         // return in proper E.164 format
         return '+' . $countryCode . $mobile;
+    }
+
+    public static function getPopularSubjects($limit = null)
+    {
+        $query = subjects::where('is_active', 1)
+            ->select('name')
+            ->selectRaw('MIN(id) as id')
+            ->groupBy('name')
+            ->orderBy('name');
+
+        if ($limit) {
+            $query->limit($limit);
+        }
+
+        return $query->get();
     }
 }

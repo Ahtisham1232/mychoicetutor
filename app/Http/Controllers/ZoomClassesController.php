@@ -369,19 +369,19 @@ class ZoomClassesController extends Controller
     public function completed(Request $request, $id)
     {
 
-        $request->validate([
-            'video_link' => 'required',
-        ]);
+        // $request->validate([
+        //     'video_link' => 'required',
+        // ]);
         $data = zoom_classes::find($id);
         $data->is_completed = 1;
-        $data->recording_link = $request->video_link;
+        // $data->recording_link = $request->video_link;
         $data->topic_name = $request->video_topic;
         $data->status = 'Completed';
         $data->completed_at = Carbon::now();
-        if($request->student_status == 'present'){
+        if ($request->student_status == 'present') {
             $data->student_present = 1;
         }
-        if($request->student_status == 'absent'){
+        if ($request->student_status == 'absent') {
             $data->student_present = 0;
         }
 
@@ -402,7 +402,7 @@ class ZoomClassesController extends Controller
             //////////////// Here I need to pass notification into db
             $notificationdata = new Notification();
             $notificationdata->alert_type = 7;
-            $notificationdata->notification = 'Class has been marked as completed by ' . session('userid')->name .'& recording will be available shortly.';
+            $notificationdata->notification = 'Class has been marked as completed by ' . session('userid')->name . '& recording will be available shortly.';
             $notificationdata->initiator_id = session('userid')->id;
             $notificationdata->initiator_role = session('userid')->role_id;
             $notificationdata->event_id = $data->id;
@@ -420,9 +420,9 @@ class ZoomClassesController extends Controller
             // }
             // Sending to student
             // if($request->receiver_role_id == 3){
-                $notificationdata->show_to_student = 1;
-                $notificationdata->show_to_student_id = $data->student_id;
-                $notificationdata->show_to_all_student = 0;
+            $notificationdata->show_to_student = 1;
+            $notificationdata->show_to_student_id = $data->student_id;
+            $notificationdata->show_to_all_student = 0;
             // }
             // // Sending to parent
             // if($request->receiver_role_id == 3){
@@ -432,20 +432,23 @@ class ZoomClassesController extends Controller
             // }
             $notificationdata->read_status = 0;
 
-            $notified = $notificationdata->save();
+            $notificationdata->save();
             broadcast(new RealTimeMessage('$notification'));
 
             // return redirect()->to('student/trialsuccess')->with('success', 'Class Started Successfully. Please login to class using your registered Email Id.');
             // return json_encode(array('statusCode' => 200));
         } else {
             // return redirect()->to('student/searchtutor')->with('fail', 'Something Went Wrong. Try Again Later');
+            Log::error('Failed to mark class as completed (ZoomClassesController)', [
+                'class_id' => $id,
+                'request_data' => $request->all()
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to mark class as completed. Please try again.'
+            ], 500);
         }
         return response()->json($response, 200);
-        // if ($res) {
-        //     return back()->with('success', 'Status Updated Successfully!');
-        // } else {
-        //     return back()->with('fail', 'Something went wrong. Please try again later');
-        // }
     }
 
     public function liveclassstatusupdate(Request $request, TwilioWhatsAppService $whatsApp)
@@ -476,9 +479,9 @@ class ZoomClassesController extends Controller
             // }
             // Sending to student
             // if($request->receiver_role_id == 3){
-                $notificationdata->show_to_student = 1;
-                $notificationdata->show_to_student_id = $data->student_id;
-                $notificationdata->show_to_all_student = 0;
+            $notificationdata->show_to_student = 1;
+            $notificationdata->show_to_student_id = $data->student_id;
+            $notificationdata->show_to_all_student = 0;
             // }
             // // Sending to parent
             // if($request->receiver_role_id == 3){
@@ -584,5 +587,4 @@ class ZoomClassesController extends Controller
         $res = $data->save();
         return json_encode(array('statusCode' => 200));
     }
-
 }
