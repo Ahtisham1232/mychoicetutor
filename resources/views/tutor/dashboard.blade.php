@@ -212,7 +212,7 @@
                                             </td>
                                             <td>{{$demo->subject}}</td>
 
-                                            <td>{{ $demo->slot_confirmed ? $demo->slot_confirmed->format('d/m/Y h:i:s A') :  $demo->slot_1->format('d/m/Y h:i:s A') }}</td>
+                                            <td>{{ $demo->slot_confirmed ? \App\Helpers\TimezoneHelper::formatInUserTz($demo->slot_confirmed, 'd/m/Y h:i A', 'UTC') : ($demo->slot_1 ? $demo->slot_1->format('d/m/Y h:i A') : '') }}</td>
                                             <td>
                                             @if ($demo->status == 1)
                                             <span class="confirm">New</span>
@@ -1069,18 +1069,21 @@
                                 <div class="card-body pt-0">
                                     <ul class="list-group list-group-flush border-dashed">
                                         @foreach ($upcoming_demos as $demo)
+                                            @php
+                                                $demoSlotTz = $demo->slot_confirmed ? \App\Helpers\TimezoneHelper::toUserTz($demo->slot_confirmed, 'UTC') : $demo->slot_1;
+                                            @endphp
                                             <li class="list-group-item ps-0">
                                                 <div class="row align-items-center g-3">
                                                     <div class="col-auto">
                                                         <div class="avatar-sm p-1 py-2 h-auto bg-light rounded-3">
                                                             <div class="text-center">
-                                                                <h5 class="mb-0">{{ $demo->slot_confirmed ? $demo->slot_confirmed->format('d') : $demo->slot_1->format('d')}}</h5>
-                                                                <div class="text-muted">{{$demo->slot_confirmed ? $demo->slot_confirmed->format('M') : $demo->slot_1->format('M') }}</div>
+                                                                <h5 class="mb-0">{{ $demoSlotTz ? $demoSlotTz->format('d') : '' }}</h5>
+                                                                <div class="text-muted">{{ $demoSlotTz ? $demoSlotTz->format('M') : '' }}</div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="col">
-                                                        <h5 class="text-muted mt-0 mb-1 fs-13">{{ $demo->slot_confirmed ? $demo->slot_confirmed->format('Y/m/d h:i:s A') :  $demo->slot_1->format('Y/m/d h:i:s A') }}</h5>
+                                                        <h5 class="text-muted mt-0 mb-1 fs-13">{{ $demo->slot_confirmed ? \App\Helpers\TimezoneHelper::formatInUserTz($demo->slot_confirmed, 'Y/m/d h:i A', 'UTC') : ($demo->slot_1 ? $demo->slot_1->format('Y/m/d h:i A') : '') }}</h5>
                                                         <a href="#" class="text-reset fs-14 mb-0">{{ $demo->remarks ?? $demo->demo_link}}</a>
                                                     </div>
 

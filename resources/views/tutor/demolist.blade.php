@@ -61,7 +61,7 @@
                                 {{-- <td>{{ $demo->slot_1 }}</td>
                                 <td>{{ $demo->slot_2 }}</td>
                                 <td>{{ $demo->slot_3 }}</td> --}}
-                                <td>{{ $demo->slot_confirmed ? \Carbon\Carbon::parse($demo->slot_confirmed)->format('d-m-Y h:i A') : '' }}</td>
+                                <td>{{ $demo->slot_confirmed ? \App\Helpers\TimezoneHelper::formatInUserTz($demo->slot_confirmed, 'd-m-Y h:i A', 'UTC') : '' }}</td>
                                 <td><a href="{{ $demo->demo_link }}">{{ $demo->demo_link }}</a></td>
                                 <td>{{ $demo->remarks }}</td>
                                 <td>

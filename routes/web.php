@@ -60,9 +60,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Route::get('/deepesh', function(){
 //     event(new RealTimeMessage('uyuyyuy this is a sample broadcast'));
 // });
-Route::get('/listen', function(){
-    return view('listen');
-});
+
 Route::get('notifications',[HomeController::class,'notifications'])->name('notifications');
 Route::get('markAsRead/{id}',[HomeController::class,'markAsRead'])->name('markAsRead');
 Route::get('checkNotificationDetails/{id}',[HomeController::class,'checkNotificationDetails'])->name('checkNotificationDetails');
@@ -667,7 +665,11 @@ Route::get('contact', function(){
 // Optional: Success, cancel, and failed routes
 Route::get('/payment/success', function () {
     return 'Payment successful!';
-})->name('payment.success');
+})->name('payment');
+
+Route::get('/listen', function(){
+    return view('listen');
+});
 
 Route::get('/payment/cancel', function () {
     return 'Payment cancelled.';

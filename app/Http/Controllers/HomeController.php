@@ -38,10 +38,6 @@ class HomeController extends Controller
     // }
     public function index()
     {
-
-
-        // return 'Email has been sent!';
-
         $classes = classes::all('id', 'name');
 
         // $tutors = tutorprofile::select('tutorprofiles.*', 'subjects.name as subject', 'subjects.name as subject',DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'))
@@ -147,7 +143,6 @@ class HomeController extends Controller
         $blogs = Blogs::select('*')->where('is_active', 1)->orderby('created_at')->get();
         // dd($subjectcategories);
         return view('front-cms.index', get_defined_vars());
-        // return view('front-cms.index', compact('classes'));
     }
     public function indexresources()
     {
@@ -207,36 +202,38 @@ class HomeController extends Controller
             ->orderByRaw('profile_pic IS NOT NULL DESC, tutorregistrations.created_at DESC')
             ->get();
 
-        $subjectlists = DB::table('subjects')
-            ->join('subjectcategories', 'subjects.category', '=', 'subjectcategories.id')
-            ->select('subjectcategories.name as category_name', 'subjects.name as subject_name', 'subjects.id as subject_id')
-            ->where('subjects.is_active', 1)
-            ->orderBy('subjectcategories.name')
-            ->get();
+        // $subjectlists = DB::table('subjects')
+        //     ->join('subjectcategories', 'subjects.category', '=', 'subjectcategories.id')
+        //     ->select('subjectcategories.name as category_name', 'subjects.name as subject_name', 'subjects.id as subject_id')
+        //     ->where('subjects.is_active', 1)
+        //     ->orderBy('subjectcategories.name')
+        //     ->get();
 
         // Grades/Level
         $gradelists = Classes::where('is_active', 1)->get();
         $subjects = Subjects::where('is_active', 1)->get();
-        $countries = Country::where('is_active', 1)->get();
+        // $countries = Country::where('is_active', 1)->get();
 
         // Subject Categories with subjects count
-        $subjectcategories = DB::table('subjectcategories')
-            ->select('subjectcategories.*', DB::raw('COUNT(subjects.id) as subject_count'))
-            ->leftJoin('subjects', 'subjectcategories.id', '=', 'subjects.category')
-            ->where('subjectcategories.is_active', 1)
-            ->groupBy('subjectcategories.id', 'subjectcategories.name', 'subjectcategories.category_image', 'subjectcategories.is_active', 'subjectcategories.created_at', 'subjectcategories.updated_at')
-            ->get();
+        // $subjectcategories = DB::table('subjectcategories')
+        //     ->select('subjectcategories.*', DB::raw('COUNT(subjects.id) as subject_count'))
+        //     ->leftJoin('subjects', 'subjectcategories.id', '=', 'subjects.category')
+        //     ->where('subjectcategories.is_active', 1)
+        //     ->groupBy('subjectcategories.id', 'subjectcategories.name', 'subjectcategories.category_image', 'subjectcategories.is_active', 'subjectcategories.created_at', 'subjectcategories.updated_at')
+        //     ->get();
+            // dd($tutors->toArray());
 
         return view('front-cms.findatutor', get_defined_vars());
     }
     public function advancesearch(Request $request)
     {
+        // dd($request->all());
         $tutorname = $request->name;
         $subjectid = $request->subject;
         $classid = $request->grade;
         $minPrice = $request->tminprice;
         $maxPrice = $request->tmaxprice;
-
+        // dd($minPrice, $maxPrice);s
         $classes = classes::all('id', 'name');
 
         $tutors = tutorprofile::select(
@@ -274,7 +271,7 @@ class HomeController extends Controller
         if (!is_null($maxPrice)) {
             $tutors->where(DB::raw('(tutorprofiles.rateperhour + (tutorprofiles.rateperhour * tutorprofiles.admin_commission / 100))'), '<=', $maxPrice);
         }
-
+        // dd($tutors->toSql(), $tutors->getBindings(),$minPrice, $maxPrice);
         $tutors = $tutors->groupBy(
             'tutorprofiles.tutor_id',
             'tutorprofiles.name',

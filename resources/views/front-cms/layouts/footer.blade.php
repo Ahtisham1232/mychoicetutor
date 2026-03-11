@@ -117,11 +117,6 @@
                     </span>
                 </div>
 
-                <hr>
-                
-                <p class="text-muted small text-center mb-3">
-                    <strong>Note for Parents:</strong> Please enter mobile number in the password field with the correct country code (e.g., +44, +92) to login.
-                </p>
 
                 <hr>
                 <button type="submit" class="btn brand-bg-Color popuplogin mb-3">Login</button>
@@ -382,115 +377,23 @@
             <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
                 <h5 class="mb-4">Popular Subjects</h5>
 
+                @php
+                    $footerSubjects = App\Helpers\CommonHelper::getPopularSubjects(12);
+                @endphp
+
+                @if($footerSubjects->isNotEmpty())
                 <ul>
-                    <form action="{{ url('toptutorsearch') }}" method="POST">
-                        @csrf
-                        <input type="hidden" id="subject" name="subject" value="1">
-                        <button type="submit" style="background:none;border:none;padding:0;">
-
-                            <li>Maths</li>
-                        </button>
-                    </form>
-
-                    <form action="{{ url('toptutorsearch') }}" method="POST">
-                        @csrf
-                        <input type="hidden" id="subject" name="subject" value="2">
-                        <button type="submit" style="background:none;border:none;padding:0;">
-
-                            <li>English</li>
-                        </button>
-                    </form>
-
-                    <form action="{{ url('toptutorsearch') }}" method="POST">
-                        @csrf
-                        <input type="hidden" id="subject" name="subject" value="3">
-                        <button type="submit" style="background:none;border:none;padding:0;">
-
-                            <li>Chemistry</li>
-                        </button>
-                    </form>
-
-                    <form action="{{ url('toptutorsearch') }}" method="POST">
-                        @csrf
-                        <input type="hidden" id="subject" name="subject" value="4">
-                        <button type="submit" style="background:none;border:none;padding:0;">
-
-                            <li>Physics</li>
-                        </button>
-                    </form>
-
-                    <form action="{{ url('toptutorsearch') }}" method="POST">
-                        @csrf
-                        <input type="hidden" id="subject" name="subject" value="5">
-                        <button type="submit" style="background:none;border:none;padding:0;">
-
-                            <li>Biology</li>
-                        </button>
-                    </form>
-
-                    <form action="{{ url('toptutorsearch') }}" method="POST">
-                        @csrf
-                        <input type="hidden" id="subject" name="subject" value="6">
-                        <button type="submit" style="background:none;border:none;padding:0;">
-
-                            <li>Science</li>
-                        </button>
-                    </form>
-
-                    <form action="{{ url('toptutorsearch') }}" method="POST">
-                        @csrf
-                        <input type="hidden" id="subject" name="subject" value="7">
-                        <button type="submit" style="background:none;border:none;padding:0;">
-
-                            <li>Spanish</li>
-                        </button>
-                    </form>
-
-                    <form action="{{ url('toptutorsearch') }}" method="POST">
-                        @csrf
-                        <input type="hidden" id="subject" name="subject" value="8">
-                        <button type="submit" style="background:none;border:none;padding:0;">
-
-                            <li>French</li>
-                        </button>
-                    </form>
-
-                    <form action="{{ url('toptutorsearch') }}" method="POST">
-                        @csrf
-                        <input type="hidden" id="subject" name="subject" value="9">
-                        <button type="submit" style="background:none;border:none;padding:0;">
-
-                            <li>German</li>
-                        </button>
-                    </form>
-
-                    <form action="{{ url('toptutorsearch') }}" method="POST">
-                        @csrf
-                        <input type="hidden" id="subject" name="subject" value="10">
-                        <button type="submit" style="background:none;border:none;padding:0;">
-
-                            <li>History</li>
-                        </button>
-                    </form>
-
-                    <form action="{{ url('toptutorsearch') }}" method="POST">
-                        @csrf
-                        <input type="hidden" id="subject" name="subject" value="11">
-                        <button type="submit" style="background:none;border:none;padding:0;">
-
-                            <li>Music</li>
-                        </button>
-                    </form>
-
-                    <form action="{{ url('toptutorsearch') }}" method="POST">
-                        @csrf
-                        <input type="hidden" id="subject" name="subject" value="12">
-                        <button type="submit" style="background:none;border:none;padding:0;">
-
-                            <li>Psychology</li>
-                        </button>
-                    </form>
+                    @foreach ($footerSubjects as $footerSubject)
+                        <form action="{{ url('toptutorsearch') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="subject" value="{{ $footerSubject->id }}">
+                            <button type="submit" style="background:none;border:none;padding:0;">
+                                <li>{{ \Illuminate\Support\Str::limit($footerSubject->name, 15, '...') }}</li>
+                            </button>
+                        </form>
+                    @endforeach
                 </ul>
+                @endif
             </div>
 
 
