@@ -73,7 +73,7 @@
                                 <a class="nav-link {{ Request::is('aboutus') ? 'active' : '' }}" href="{{ url('/aboutus') }}" style="padding-left: 6px; padding-right: 6px;">Why choose us?</a>
                             </li>
                             <li class="" style="margin-right: 10px;">
-                                <a class="nav-link {{ Request::is('resources') ? 'active' : '' }}" href="{{ url('/resources') }}" style="padding-left: 6px; padding-right: 6px;">Resources</a>
+                                <a class="nav-link {{ Request::is('blogs') ? 'active' : '' }}" href="{{ url('/blogs') }}" style="padding-left: 6px; padding-right: 6px;">Blogs</a>
                             </li>
                             <li class="" style="margin-right: 10px;">
                                 <a class="nav-link {{ Request::is('howitworks') ? 'active' : '' }}" href="{{ url('/howitworks') }}" style="padding-left: 6px; padding-right: 6px;">How it works</a>

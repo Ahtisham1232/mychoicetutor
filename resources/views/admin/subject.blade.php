@@ -3,7 +3,7 @@
         
     <!-- partial -->
     <div class="main-content">
-    <style>
+            <style>
                 .listHeader {
                     display: flex;
                     justify-content: space-between;
@@ -12,10 +12,10 @@
         <div class="page-content">
             <div class="container-fluid">
                 @if (Session::has('success'))
-                        <div class="alert alert-success">{{Session::get('success')}}</div>
+                        <div class="alert alert-success mb-5">{{Session::get('success')}}</div>
                         @endif
                         @if (Session::has('fail'))
-                        <div class="alert alert-danger">{{Session::get('fail')}}</div>
+                        <div class="alert alert-danger mb-5">{{Session::get('fail')}}</div>
                         @endif
                 <!-- <h3 class="text-center"></h3> -->
                 <div  class="mb-3 listHeader page-title-box">
@@ -31,7 +31,7 @@
                             <th scope="col">S.No.</th>
                             <th scope="col">Grade</th>
                             <th scope="col">Subject</th>
-                            <th scope="col">Category</th>
+                            {{-- <th scope="col">Category</th> --}}
                             <th scope="col">Image</th>
                             <th scope="col">Status</th>
                             <th scope="col">Update</th>
@@ -48,10 +48,9 @@
                             <td>{{$loop->iteration}}</td>
                             <td>{{$subject->class_name}}</td>
                             <td>{{$subject->subject_name}}</td>
-                            <td>{{$subject->category}}</td>
+                            {{-- <td>{{$subject->category}}</td> --}}
                             <td>
                                 <img src="{{ asset('/images/subjects/'.$subject->subject_image) }}" width= '50' height='50' class="img img-responsive" />
-                        
                         
                             </td>
                             <td>
@@ -114,15 +113,6 @@
                             </div>
                             </div>
                             <div class="row">
-                            <!-- <div class="form-group col-md-6">
-                                <label for="">Subject Category<i style="color:red">*</i></label>
-                                <select type="text" class="form-control" id="categoryid" name="categoryid" required>
-                                    <option value="">--Select--</option>
-                                    @foreach ($scategories as $category)
-                                        <option value="{{$category->id}}">{{$category->name}}</option>
-                                    @endforeach
-                                </select>
-                            </div> -->
                             <div class=" col-md-6 col-12 col-sm-6 form-group">
                                 <label class="ml-2">Upload Image<i style="color:red">*</i></label>
                                 <input type="file" class="form-control" id="uploadimage" value="" name="uploadimage">
@@ -136,7 +126,7 @@
                             <div class="img-holder"></div>
                         </div>
                         <div class="float-right">
-                        <button type="button" class="btn btn-sm btn-danger mr-1 float-right mt-2" data-dismiss="modal"> Close</button>
+                        <button type="button" class="btn btn-sm btn-danger mr-1 float-right mt-2" data-bs-dismiss="modal"> Close</button>
                         <button type="submit" id="" class="btn btn-sm btn-success float-right mt-2"> Submit</button>
                         </div>
                     </form>
@@ -215,7 +205,7 @@
                     $(img_holder).empty();
                 }
             });
-        </script>
+    </script>
     
     
 @endsection

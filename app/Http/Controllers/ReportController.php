@@ -6,9 +6,9 @@ use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
-    public function admin_class_report(){
-        return view('admin.class-report');
-    }
+    // public function admin_class_report(){
+    //     return view('admin.class-report');
+    // }
     public function  admin_chat_report(){
         // User role : 1 = Admin | 2 = Tutor | 3 = Student | 4 = Parent |
         $chatlist = ChMessage::select('ch_messages.*', 'tutors.name as tutor_name', 'students.name as student_name')

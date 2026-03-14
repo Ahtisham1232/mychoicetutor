@@ -433,7 +433,9 @@
                   </ul> --}}
 
                 <div class="social my-5">
-                    <img src="{{ url('frontendnew/img/footer-logo.png') }}" width="160px" alt="">
+                    <a href="{{ route('home') }}">
+                        <img src="{{ url('frontendnew/img/footer-logo.png') }}" width="160px" alt="Home">
+                    </a>
                 </div>
             </div>
         </div>

@@ -67,10 +67,8 @@ class DashboardController extends Controller
 
 
 
-
-
         $upcomingQuizes = OnlineTests::where('test_start_date', '>', Carbon::now())->orderBy('test_start_date', 'asc')
-                                       ->take(5)->get();
+                ->take(5)->get();
         $upcomingQuizes->transform(function ($quiz) {
             $quiz->test_start_date = Carbon::parse($quiz->test_start_date);
             $quiz->test_end_date = Carbon::parse($quiz->test_end_date);
@@ -78,8 +76,8 @@ class DashboardController extends Controller
         });
 
         $tUpcomingClasses = zoom_classes::where('start_time', '>', Carbon::now())
-    ->orderBy('start_time', 'asc')
-    ->get();
+        ->orderBy('start_time', 'asc')
+        ->get();
 
         $totalUpcomingClasses = $tUpcomingClasses->count();
 

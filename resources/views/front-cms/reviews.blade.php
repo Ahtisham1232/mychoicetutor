@@ -50,13 +50,13 @@
         <div class="subj-bottom-banner">
 
             <div class="row">
-                <div class="col-md-6 banncol">
+                <div class="col-md-6 banncol" style="height: 240px">
 
                     <div class="bannText">
                         <h2>Is MCT the right fit for you?<br>
                             There is only one way to find out.</h2>
 
-                        <button class="orange-btn mb-4">Register Now</button>
+                        <a class="orange-btn mb-4" href="{{ route('std_tutor_registration') }}">Register Now</a>
                     </div>
 
                 </div>

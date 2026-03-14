@@ -18,7 +18,6 @@ class StudentProfileController extends Controller
 {
     public function index()
     {
-
         $student = studentregistration::select('*', 'studentregistrations.name as name', 'studentregistrations.mobile as mobile', 'studentregistrations.email as email', 'classes.name as gradename')
             ->join('studentprofiles', 'studentprofiles.student_id', '=', 'studentregistrations.id')
             ->leftJoin('classes', 'classes.id', '=', 'studentregistrations.class_id')
@@ -31,11 +30,6 @@ class StudentProfileController extends Controller
         $reviews = studentreviews::select('studentreviews.id', 'studentreviews.name', 'studentreviews.ratings', 'studentreviews.subject_id', 'studentreviews.student_id', 'subjects.name as subject')
             ->join('subjects', 'subjects.id', '=', 'studentreviews.subject_id')
             ->where('studentreviews.student_id', '=', session('userid')->id)->get();
-        //     foreach($reviews as $achievement){
-
-        //     echo $achievement;
-        //     dd($achievement);
-        // }
 
         if (!$student) {
 
@@ -83,9 +77,6 @@ class StudentProfileController extends Controller
 
     public function updateprofiledata(Request $request)
     {
-        // echo session('userid')->id;
-        // echo $request->profileid;
-        // dd($request->all());
         $student = studentprofile::where('student_id', '=', session('userid')->id)->first();
 
         if ($student) {

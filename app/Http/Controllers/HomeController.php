@@ -144,14 +144,13 @@ class HomeController extends Controller
         // dd($subjectcategories);
         return view('front-cms.index', get_defined_vars());
     }
-    public function indexresources()
+    public function indexblogs()
     {
         $blogs = Blogs::select('*')->where('is_active', 1)->get();
-        return view('front-cms.resources', compact('blogs'));
+        return view('front-cms.blogs', compact('blogs'));
     }
-    public function indexresourcesdetails($id)
+    public function indexblogsdetails($id)
     {
-
         $blog = Blogs::select('*')->where('id', $id)->where('is_active', 1)->first();
         return view('front-cms.blogdetails', compact('blog'));
     }
@@ -1051,7 +1050,7 @@ class HomeController extends Controller
         return redirect()->route('home')->with('success', 'Password updated successfully!');
     }
 
-    public function std_registration()
+    public function std_tutor_registration()
     {
 
         // return view('common.student-register');
