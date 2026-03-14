@@ -107,7 +107,7 @@
 
                                     <button type="submit" id="" class="btn btn-sm btn-success float-right"> Submit</button>
                                     <button type="button" class="btn btn-sm btn-danger mr-1 moveRight"
-                                        data-dismiss="modal">Close</button>
+                                        data-bs-dismiss="modal">Close</button>
 
 
 

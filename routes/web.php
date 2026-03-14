@@ -67,15 +67,15 @@ Route::get('checkNotificationDetails/{id}',[HomeController::class,'checkNotifica
 Route::get('findatutor',[HomeController::class,'findatutor'])->name('findatutor');
 Route::get('tutor-details/{id}',[HomeController::class,'tutordetails'])->name('tutordetails');
 Route::get('index/slots/search', [SlotBookingController::class, 'indexslotsearch'])->name('index.slots.search');
-Route::get('resources', [HomeController::class, 'indexresources'])->name('index.resources');
-Route::get('resources/{id}', [HomeController::class, 'indexresourcesdetails'])->name('index.resources.details');
+Route::get('blogs', [HomeController::class, 'indexblogs'])->name('blogs');
+Route::get('blogs/{id}', [HomeController::class, 'indexblogsdetails'])->name('blog_details');
 Route::post('toptutorsearch',[HomeController::class, 'toptutorsearch'])->name('toptutorsearch');
 Route::post('advancesearch',[HomeController::class, 'advancesearch'])->name('advancesearch');
-Route::get('reviews',[HomeController::class,'reviewslist'])->name('revieweslist');
+Route::get('reviews',[HomeController::class,'reviewslist'])->name('reviews_list');
 
 
 // Changed to new UI for Students
-Route::get('/student/register', [HomeController::class, 'std_registration'])->name('std_registration');
+Route::get('/student/register', [HomeController::class, 'std_tutor_registration'])->name('std_tutor_registration');
 Route::post('/student/register',[HomeController::class,'student_tutor_registration_form'])->name('student_tutor_registration_form');
 Route::get('/student/login', [HomeController::class, 'std_login'])->name('studentlogin');
 Route::get('/student/mobile-verify',[HomeController::class,'student_mobile_verify'])->name('student_mobile_verify');
@@ -374,7 +374,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], funct
     Route::post('messages/student/search', [MessagesController::class, 'chatstudentsearch'])->name('admin.chat.student.search');
     Route::post('messages/tutor/search', [MessagesController::class, 'chattutorsearch'])->name('admin.chat.tutor.search');
     // Admin Reports
-    Route::get('classes-report',[ReportController::class, 'admin_class_report'])->name('admin.reports.class-list');
+    // Route::get('classes-report',[ReportController::class, 'admin_class_report'])->name('admin.reports.class-list');
     Route::get('chat-report',[ReportController::class, 'admin_chat_report'])->name('admin.reports.chat-list');
     Route::post('payouts-search',[PaymentsController::class,'adminPayoutsSearch'])->name('admin.payouts-search');
     Route::get('blogs', [BlogsController::class, 'index'])->name('admin.blogs.list');

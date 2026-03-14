@@ -14,14 +14,16 @@ class SubjectController extends Controller
     public function index(){
 
         $classes = classes::select('*')
-                    ->where('is_active',1)->get();
-                    $subjects = subjects::select('classes.id as class_id','classes.name as class_name','subjects.name as subject_name','subjects.id as subject_id','subjects.is_active as subject_status','subjects.image as subject_image','subjectcategories.name as category')
-                    ->join('classes','classes.id','=','subjects.class_id')
-                    ->join('subjectcategories','subjectcategories.id','subjects.category')
-                    ->orderBy('subjects.id','desc')
-                    ->get();
-        $scategories = subjectcategory::select('*')->where('is_active',1)->get();
-        return view('admin.subject',compact('subjects','classes','scategories'));
+            ->where('is_active',1)->get();
+
+        $subjects = subjects::select('classes.id as class_id','classes.name as class_name','subjects.name as subject_name','subjects.id as subject_id','subjects.is_active as subject_status','subjects.image as subject_image')
+        ->join('classes','classes.id','=','subjects.class_id')
+        // ->join('subjectcategories','subjectcategories.id','subjects.category')
+        ->orderBy('subjects.id','desc')
+        ->get();
+
+        // $scategories = subjectcategory::select('*')->where('is_active',1)->get();
+        return view('admin.subject',compact('subjects','classes'));
     }
 
     public function store(Request $request){

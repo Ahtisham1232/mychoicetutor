@@ -744,9 +744,9 @@
                                             </ul>
                                         </div>
                                     </li>
-                                    <li class="nav-item">
+                                    {{-- <li class="nav-item">
                                         <a href="{{route('admin.reports.class-list')}}" class="nav-link {{ Request::is('admin/classes-report') ? 'active' : '' }}" data-key="t-chartjs"> Classes </a>
-                                    </li>
+                                    </li> --}}
                                     {{-- <li class="nav-item">
                                         <a href="{{route('admin.reports.chat-list')}}" class="nav-link {{ Request::is('admin/') ? 'active' : '' }}" data-key="t-chartjs"> Chat Report </a>
                                     </li> --}}

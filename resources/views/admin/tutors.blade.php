@@ -138,8 +138,11 @@
 
                                         </div>
                                     </td>
-                                    <td><a href="tutordelete/{{ $ttrlist->tutor_id }}"><span
-                                        class="btn btn-sm btn-danger ml-3" style="background-color: red">Delete</span> </a></td>
+                                    <td>
+                                        <a href="#" onclick="deleteTutor('{{ $ttrlist->tutor_id }}')">
+                                            <span class="btn btn-sm btn-danger ml-3">Delete</span>
+                                        </a>
+                                    </td>
                                     {{-- @else
                                         <td class="text-danger">Profile Not Updated</td>
                                         @endif --}}
@@ -240,7 +243,36 @@
             </div>
         </div>
     </div>
+
+
+
+  <!-- Tutor Delete Confirmation -->
+    <div id="deleteTutorModal" class="modal fade zoomIn" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mt-2 text-center">
+                        <lord-icon src="https://cdn.lordicon.com/gsqxdxog.json" trigger="loop"
+                            colors="primary:#f7b84b,secondary:#f06548" style="width:100px;height:100px"></lord-icon>
+                        <div class="mt-4 pt-2 fs-15 mx-4 mx-sm-5">
+                            <h4>Are you sure?</h4>
+                            <p class="text-muted mx-4 mb-0">Are you sure you want to Delete this Tutor?</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-center mt-4 mb-2">
+                        <button type="button" class="btn btn-light text-dark w-sm" data-bs-dismiss="modal">Cancel</button>
+                        <a href="#" class="btn w-sm btn-danger" id ="confirmDeleteBtn">Yes, Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- content-wrapper ends -->
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
         function changestatus(id, status) {
@@ -340,7 +372,6 @@
         }
 
     </script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function updateTableAndPagination(data) {
             // $('#tableContainer').html(data.table);
@@ -401,5 +432,13 @@
 
 
         });
+    </script>
+    <script>
+    function deleteTutor(id)
+    {
+        var deleteUrl = "tutordelete/" + id;
+        $('#confirmDeleteBtn').attr('href', deleteUrl);
+        $('#deleteTutorModal').modal('show');
+    }
     </script>
 @endsection

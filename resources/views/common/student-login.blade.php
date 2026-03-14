@@ -124,7 +124,7 @@
                     </style>
 
                     <div class="mt-4 text-center bottom">
-                        <p class="mb-0">Don't have an account ? <a href="{{ route('std_registration') }}"
+                        <p class="mb-0">Don't have an account ? <a href="{{ route('std_tutor_registration') }}"
                                 class="fw-semibold text-primary text-decoration-underline"> Signup </a> </p>
                         <p class="mb-0">Sign in as <a href="{{route('tutorlogin')}}"
                                 class="fw-semibold text-primary text-decoration-underline"> Tutor </a> </p>

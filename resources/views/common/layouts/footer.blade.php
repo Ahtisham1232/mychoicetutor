@@ -6,7 +6,7 @@
                     <div class="col-lg-12">
                         <div class="text-center">
                             <p class="mb-0 text-muted">&copy;
-                                <script>document.write(new Date().getFullYear())</script> Online Tuition. Crafted with <i class="mdi mdi-heart text-danger"></i> by DGL Digital
+                                <script>document.write(new Date().getFullYear())</script> Online Tuition Platform.       
                             </p>
                         </div>
                     </div>

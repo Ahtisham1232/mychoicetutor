@@ -102,7 +102,7 @@
                                 <div class="dashCard">
                                     <p class="fw-medium  mb-0"><b>Total Earnings</b></p>
                                     <div class="topCradCount">
-                                        <h2 class="pt-2" style="color: #59C069">£<span class="counter-value" data-target="{{$moneyEarned->total_earned ?? "0"}}">{{$moneyEarned->total_earned ?? "0"}}</span>
+                                        <h2 class="pt-2" style="color: #59C069">{{config('common.currency.symbol')}}<span class="counter-value" data-target="{{$moneyEarned->total_earned ?? "0"}}">{{$moneyEarned->total_earned ?? "0"}}</span>
                                         </h2>
                                     </div>
                                 </div>
