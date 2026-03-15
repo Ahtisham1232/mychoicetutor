@@ -117,49 +117,49 @@
                     </div>
                 </div>
                 
-<script>
-    function openmodal(){
+    <script>
+        function openmodal(){
 
-        $('#id').val('');
-        $('#classname').val('');
-        $('#newClassModal').modal('show');
-    }
-    
-    function edit(id,classname){
-        $('#id').val(id);
-        $('#classname').val(classname);
-        $('#newClassModal').modal('show');
-    }
-    function changestatus(id,status){
+            $('#id').val('');
+            $('#classname').val('');
+            $('#newClassModal').modal('show');
+        }
         
-        var url = "{{URL('admin/class/status')}}";
-        // var id= 
-		$.ajax({
-			url: url,
-			type: "GET",
-			cache: false,
-			data:{
-                _token:'{{ csrf_token() }}',
-				id:id,
-                status:status
-			},
-			success: function(dataResult){
-                dataResult = JSON.parse(dataResult);
-                
-             if(dataResult.statusCode)
-             {
-                
-                toastr.success('status changed')
-                window.location = "{{URL('admin/class')}}";
-             }
-             else{
-                 alert("Something went wrong. Please try again later");
-             }
-				
-			}
-		});
-        
-    }
+        function edit(id,classname){
+            $('#id').val(id);
+            $('#classname').val(classname);
+            $('#newClassModal').modal('show');
+        }
+        function changestatus(id,status){
+            
+            var url = "{{URL('admin/class/status')}}";
+            // var id= 
+            $.ajax({
+                url: url,
+                type: "GET",
+                cache: false,
+                data:{
+                    _token:'{{ csrf_token() }}',
+                    id:id,
+                    status:status
+                },
+                success: function(dataResult){
+                    dataResult = JSON.parse(dataResult);
+                    
+                if(dataResult.statusCode)
+                {
+                    
+                    toastr.success('status changed')
+                    window.location = "{{URL('admin/class')}}";
+                }
+                else{
+                    alert("Something went wrong. Please try again later");
+                }
+                    
+                }
+            });
+            
+        }
     </script>
 
 

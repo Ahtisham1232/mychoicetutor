@@ -31,6 +31,9 @@ class ClassController extends Controller
         $request->validate([
             'classname' => 'required',
         ]);
+        if(classes::where('name',$request->classname)->exists()){
+            return back()->with('fail', 'Class Already Exist');
+        }
         if ($request->id) {
             $data = classes::find($request->id);
             $msg = 'Class updated successfully';
@@ -493,7 +496,7 @@ class ClassController extends Controller
             $query->where('classes.id', $request->class_name);
         }
         if ($request->subject_name) {
-            $query->where('democlasses.subject_id', $request->subject_name);
+            $query->where('subjects.id', $request->subject_name);
         }
 
         if ($request->start_date) {
