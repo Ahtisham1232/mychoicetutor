@@ -108,7 +108,7 @@
                         @csrf
                         <div class="findtutor-btns">
 
-                            <div class="custom-select" style="width:300px;" class="dropdown-menu">
+                            <div class="custom-select dropdown-menu" style="width:300px;">
                                 <select id="subject"  name="subject" >
                                     <option value="">Select a Subject </option>
                                     @foreach ($subjects as $subject)
@@ -287,7 +287,7 @@
 
                         <p style="line-height: 14px;">{{ $tutor->subject }}</p>
                         <p class="desc-tutor" style="font-weight: 400;line-height: 14px;font-size: 13px;">
-                                {{ strlen($tutor->headline) > 100 ? substr($tutor->headline, 0, 100) . '...' : $tutor->headline }}
+                                {{ \Illuminate\Support\Str::limit($tutor->headline, 100) }}
                         </p>
                     </div>
                 </div>
@@ -298,7 +298,7 @@
         <div class="row mt-4">
             <div class="col-12">
                 <div class="expMore">
-                    <a href="findatutor" class="btn btn-lg mb-4">View ALL</a>
+                    <a href="{{route('findatutor')}}" class="btn btn-lg mb-4">View ALL</a>
                 </div>
             </div>
         </div>
@@ -333,7 +333,7 @@
         <div class="row mt-4">
             <div class="col-12 ">
                 <div class="expMore">
-                    <a href="/reviews" class="btn btn-lg">View all</a>
+                    <a href="{{route('reviews_list')}}" class="btn btn-lg">View all</a>
                 </div>
             </div>
         </div>
@@ -350,9 +350,8 @@
         <div class="row">
             <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
                 <div class="how-card card1">
-                    <span class="nameTo">Find the best tutor</span>
-                    <p class="mt-4 pb-5">MCT offers a selection of in-house trained tutors to elevate your academic
-                        career...</p>
+                    <span class="nameTo">Create Your Profile</span>
+                    <p class="mt-4 pb-5">Students and tutors sign up, set up their profiles, and add details such as subjects, availability, and learning goals.</p>
                 </div>
                 <div class="imgNumber">
                     <img class="shaddow" src="{{ url('frontendnew/img/icons/Vector 1.png') }}" alt="">
@@ -361,9 +360,8 @@
             </div>
             <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
                 <div class="how-card card2">
-                    <span class="nameTo">Find the best tutor</span>
-                    <p class="mt-4 pb-5">MCT offers a selection of in-house trained tutors to elevate your academic
-                        career...</p>
+                    <span class="nameTo">Find Your Match</span>
+                    <p class="mt-4 pb-5">Students can search and connect with qualified tutors that fit their needs, while tutors receive requests based on their expertise.</p>
                 </div>
                 <div class="imgNumber">
                     <img class="shaddow" src="{{ url('frontendnew/img/icons/Vector 2.png') }}" alt="">
@@ -372,9 +370,8 @@
             </div>
             <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
                 <div class="how-card card3">
-                    <span class="nameTo">Find the best tutor</span>
-                    <p class="mt-4 pb-5">MCT offers a selection of in-house trained tutors to elevate your academic
-                        career...</p>
+                    <span class="nameTo">Learn & Grow</span>
+                    <p class="mt-4 pb-5">Schedule sessions, attend interactive classes online, and track progress ,making learning flexible, effective, and personalized.</p>
                 </div>
                 <div class="imgNumber">
                     <img class="shaddow" src="{{ url('frontendnew/img/icons/Vector 3.png') }}" alt="">

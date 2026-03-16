@@ -441,8 +441,8 @@
         </div>
     </div>
     <div class="footer-bottom">
-        <p>Copyright © 2024 MyChoiceTutor. All rights reserved. &nbsp; | &nbsp; Proudly powered by <a
-                href="https://thenexteck.com/" target="_blank" style="color: white">Nexteck</p>
+        <p>Copyright © 2026 MyChoiceTutor. All rights reserved. &nbsp; | &nbsp; Proudly powered by <a
+                href="https://thenexteck.com/" target="_blank" style="color: white">Nexteck</a></p>
     </div>
 </footer>
 

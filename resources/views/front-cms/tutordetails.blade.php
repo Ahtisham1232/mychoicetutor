@@ -28,6 +28,7 @@
                         <p class="charcol">{{ $tutorpd->detail_1  ?? '' }}</p>
 
                     </div>
+
                     <div class="aboutTutor">
 
                         <h5>Qualification</h5>
@@ -66,8 +67,6 @@
                         </div>
                     </div>
 
-
-
                     <div class="row mt-4">
                         @if(isset($reviews))
                         @foreach ($reviews->take(10) as $review)
@@ -94,9 +93,6 @@
                     </div>
 
 
-
-
-
                     <div class="aboutTutor">
                         <h5>Introduction Video</h5>
 
@@ -108,6 +104,7 @@
 
                         </div>
                     </div>
+
                     <br>
                     <h6 class="mb-2">Skills</h6>
 
@@ -122,7 +119,7 @@
                 </div>
 
                 <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12">
-                    <div class="tutorDetails tutorProfPic mar-top-40" style="padding: 30px !important">
+                    <div class="tutorDetails tutorProfPic mt-5" style="padding: 30px !important">
                         <div class="row">
                             <div class="col-lg-12 col-md-5">
                             @if(isset($tutorpd->profile_pic))
@@ -135,7 +132,7 @@
                         </div>
                         <div class="col-lg-12 col-md-7">
 
-                            <p class="name mt-3">{{ $tutorpd->name  ?? '' }}</p>
+                            <p class="name mt-3" style="line-height: 27px">{{ $tutorpd->name  ?? '' }}</p>
                             <div class="star">
                                 <span>
                                     {{-- Loop to display the average number of stars --}}
@@ -189,8 +186,6 @@
                         </div>
 
 
-
-
                     </div>
                 </div>
             </div>
@@ -199,9 +194,11 @@
 
 
     <div class="container tutor-card">
+
         <div class="aboutTutor">
             <h5 class="my-5">Other tutors in {{ $primarysubjects->subject_name  ?? '' }}</h5>
         </div>
+
         <div class="row">
             @if(isset($othertutors))
             @foreach ($othertutors->slice(0, 4) as $othertutor)
@@ -231,13 +228,10 @@
                     </div>
                 </a>
             @endforeach
-@endif
+            @endif
         </div>
 
-
-        </div>
-
-
+    </div>
 
     </section>
 @endsection

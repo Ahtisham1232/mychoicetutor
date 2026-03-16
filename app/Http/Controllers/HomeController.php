@@ -38,7 +38,6 @@ class HomeController extends Controller
     // }
     public function index()
     {
-        $classes = classes::all('id', 'name');
 
         // $tutors = tutorprofile::select('tutorprofiles.*', 'subjects.name as subject', 'subjects.name as subject',DB::raw('(tutorsubjectmappings.rate + (tutorsubjectmappings.rate * tutorsubjectmappings.admin_commission / 100)) as rate'))
         //     ->leftjoin('tutorsubjectmappings', 'tutorsubjectmappings.tutor_id', '=', 'tutorprofiles.tutor_id')
@@ -126,6 +125,10 @@ class HomeController extends Controller
         $gradelists = Classes::where('is_active', 1)->get();
         $subjects = Subjects::where('is_active', 1)->get();
         $countries = Country::where('is_active', 1)->get();
+        $classes = classes::all('id', 'name');
+        $blogs = Blogs::select('*')->where('is_active', 1)->orderby('created_at')->get();
+
+
         // Subject Categories with subjects count
         // $subjectcategories = DB::table('subjectcategories')
         //     ->select('subjectcategories.*', DB::raw('COUNT(subjects.id) as subject_count'))
@@ -140,7 +143,6 @@ class HomeController extends Controller
             ->leftJoin('studentregistrations', 'studentregistrations.id', 'tutorreviews.student_id')
             ->where('tutorreviews.ratings', '>', 3)->get();
 
-        $blogs = Blogs::select('*')->where('is_active', 1)->orderby('created_at')->get();
         // dd($subjectcategories);
         return view('front-cms.index', get_defined_vars());
     }
