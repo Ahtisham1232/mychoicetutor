@@ -10,7 +10,6 @@
 
                 <div class="text-center">
                     <p class="charcol">grades while you sit back and study</p>
-
                 </div>
 
             </div>
@@ -81,22 +80,9 @@
             </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
         </div>
 
     </section>
-
-
 
 
     <section>
@@ -105,13 +91,11 @@
             <div class="row">
                 <div class="col-md-6 banncol">
 
-
-
                     <div class="bannText">
                         <h2>Is MCT the right fit for you?<br>
                             There is only one way to find out.</h2>
 
-                        <a href="/student/register"><button class="orange-btn">Register Now</button></a>
+                        <a href="{{route('std_tutor_registration')}}"><button class="orange-btn">Register Now</button></a>
                     </div>
 
                 </div>
@@ -121,8 +105,6 @@
             </div>
 
         </div>
-
-
 
     </section>
 @endsection

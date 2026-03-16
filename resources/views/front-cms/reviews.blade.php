@@ -4,14 +4,13 @@
     <section class="bannerSec tutBann">
         <div class="container-fluid">
             <div class="tutorHeader">
+
                 <h1 class="mt-4">
                     Learn whatever you want
                 </h1>
                 <p class="charcol text-center mb-5">Our Subjects</p>
 
-
             </div>
-        </div>
         </div>
     </section>
 
