@@ -70,7 +70,7 @@
                                 <a class="nav-link {{ Request::is('findatutor') ? 'active' : '' }}" href="{{ url('/findatutor') }}" style="padding-left: 6px; padding-right: 6px;">Find a tutor</a>
                             </li>
                             <li class="" style="margin-right: 10px;">
-                                <a class="nav-link {{ Request::is('aboutus') ? 'active' : '' }}" href="{{ url('/aboutus') }}" style="padding-left: 6px; padding-right: 6px;">Why choose us?</a>
+                                <a class="nav-link {{ Request::is('aboutus') ? 'active' : '' }}" href="{{ url('/aboutus') }}" style="padding-left: 6px; padding-right: 6px;">About Us</a>
                             </li>
                             <li class="" style="margin-right: 10px;">
                                 <a class="nav-link {{ Request::is('blogs') ? 'active' : '' }}" href="{{ url('/blogs') }}" style="padding-left: 6px; padding-right: 6px;">Blogs</a>
