@@ -223,7 +223,7 @@
 
                 <div class="rightside">
                     <h2>Experience our free trial classes today!</h2>
-                    <button onclick="redirect();">Book free trial class today</button>
+                    <a href="{{route('std_tutor_registration')}}"><button>Book free trial class today</button></a>
                 </div>
 
             </div>

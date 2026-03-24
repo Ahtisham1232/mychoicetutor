@@ -905,7 +905,6 @@ class HomeController extends Controller
 
     public function forget_password(Request $request)
     {
-
         if ($request->requestAs == 'student') {
             $user = studentregistration::where('email', '=', $request->email,)->first();
         } else if ($request->requestAs == 'tutor') {
@@ -915,6 +914,13 @@ class HomeController extends Controller
         } else {
             return back()->with('fail', 'No User Found!');
         }
+        
+        if (!$user) {
+            return back()->with('fail', 'Email not found!');
+            }
+
+        // Remove old tokens
+        DB::table('password_resets')->where('email', $request->email)->delete();
 
         $token = Str::random(64);
 

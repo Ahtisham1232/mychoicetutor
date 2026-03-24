@@ -630,11 +630,11 @@ Route::get('courses', function(){
 });
 
 Route::get('why-choose-us', function(){
-    return view('front-cms/aboutus');
+    return view('front-cms/whychooseus');
 });
 
 Route::get('aboutus', function(){
-    return view('front-cms/why_choose_us');
+    return view('front-cms/about_us');
 });
 
 Route::get('contact', function(){
