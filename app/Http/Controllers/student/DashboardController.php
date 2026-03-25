@@ -111,7 +111,7 @@ class DashboardController extends Controller
             ->take(5)
             ->get()
             ->each(function ($item) {
-                $item->slot_confirmed = Carbon::parse($item->slot_confirmed)->format('Y-m-d H:i:s');
+                $item->slot_confirmed_local = TimezoneHelper::toUserTz($item->slot_confirmed, 'UTC');
             });
 
 

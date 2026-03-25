@@ -117,7 +117,7 @@
                                     <td>{{$demo->slot_1}}</td>
                                     <td>{{$demo->slot_2}}</td>
                                     <td>{{$demo->slot_3}}</td>
-                                    <td>{{$demo->slot_confirmed}}</td>
+                                    <td>{{ $demo->slot_confirmed ? \App\Helpers\TimezoneHelper::formatInUserTz($demo->slot_confirmed, 'd-m-Y h:i A', 'UTC') : '' }}</td>
                                     <td>{{$demo->remarks}}</td>
                                     {{-- <td><a href="{{$demo->demo_link}}">{{$demo->demo_link}}</a></td> --}}
 

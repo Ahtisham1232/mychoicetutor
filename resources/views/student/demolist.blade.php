@@ -14,7 +14,19 @@
 
         <div class="page-content">
             <div class="container-fluid">
-
+                <div class="alert alert-light border shadow-sm mb-4" style="border-left: 5px solid #28a745 !important;">
+                    <div class="d-flex align-items-center">
+                        <i class="fa fa-video-camera text-success me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <h5 class="mb-1" style="font-size: 1rem; font-weight: 600;">How to Join Your Class</h5>
+                            <p class="mb-0 text-muted" style="font-size: 0.85rem;">
+                                Click <strong>'Join Class'</strong> to enter the room. If it doesn't open, please
+                                <strong>Allow Pop-ups</strong> in your browser settings. When prompted, select
+                                <strong>'Allow'</strong> for your Camera and Microphone.
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
                 @if (Session::has('success'))
                     <div class="alert alert-success">{{ Session::get('success') }}</div>
@@ -30,7 +42,8 @@
                 <form id="payment-search">
                     <div class="row ">
 
-                        <div class="col-md-2 mt-4">
+                        <div class="col-md-2">
+                            <label for="tutor">Tutor</label>
                             <select class="form-control" name="tutor" id="tutor">
                                 <option value="">Select Tutor</option>
                                 @foreach ($tutors as $tutor)
@@ -39,7 +52,8 @@
                             </select>
                         </div>
 
-                        <div class="col-md-2 mt-4">
+                        <div class="col-md-2">
+                            <label for="subject">Subject</label>
 
                             <select name="subject_name" class="form-control" id="subject">
                                 <option value="">Select Subject</option>
@@ -61,7 +75,9 @@
                             <input type="date" class="form-control" name="end_date" id="smob"
                                 placeholder="Student Mobile">
                         </div>
-                        <div class="col-md-2 mt-4">
+                        <div class="col-md-2">
+                            <label for="status">Status</label>
+
                             <select class="form-control" name="status" id="ststus">
                                 <option value="">-- Status --</option>
                                 @foreach ($statuses as $status)
@@ -147,24 +163,36 @@
                                                 <a href="democancel/{{ $demo->demo_id }}"><button class="badge bg-danger">
                                                         Cancel</button></a>
                                             </td>
-                                        @elseif ($demo->status == 8)
+                                            {{-- @elseif ($demo->status == 8)
                                             <td>
-                                                {{-- <button class="btn btn-sm mr-1 btn-primary" disabled><i class="fa fa-calendar" aria-hidden="true"></i> Reschedule</button> --}}
                                                 <a href="{{ $demo->demo_link }}" target="_blank"><button
                                                         class="badge bg-success"> Join Class</button></a>
+                                            </td> --}}
+                                        @elseif ($demo->status == 8 && $demo->can_join)
+                                            <td>
+                                                <a href="{{ $demo->demo_link }}" target="_blank">
+                                                    <button class="badge bg-success"> Join Class</button>
+                                                </a>
+                                            </td>
+                                        @elseif ($demo->status == 8)
+                                            <td>
+                                                <button class="badge bg-secondary" disabled>
+                                                    Join Expired
+                                                </button>
                                             </td>
                                         @else
                                             <td>
                                                 {{-- <button class="btn btn-sm mr-1 btn-primary" disabled><i class="fa fa-calendar" aria-hidden="true"></i> Reschedule</button> --}}
-                                                <button class="badge" style="background-color: rgb(215, 215, 215)" disabled>
+                                                <button class="badge" style="background-color: rgb(215, 215, 215)"
+                                                    disabled>
                                                     Cancelled</button>
                                             </td>
                                         @endif
                                         <td>
                                             @if ($demo->status == 4)
-                                            <a href="enrollnow/{{ $demo->tutor_id }}"><button class="badge bg-success">
-                                                Book Now</button></a>
-                                                @endif
+                                                <a href="enrollnow/{{ $demo->tutor_id }}"><button class="badge bg-success">
+                                                        Book Now</button></a>
+                                            @endif
                                         </td>
                                     @endif
 

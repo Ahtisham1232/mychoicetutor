@@ -195,7 +195,7 @@
 
                                     <td>
                                         @if ($demo->slot_confirmed)
-                                            <span style="color: black;">{{ date('d-m-Y', strtotime($demo->slot_confirmed)) }}</span> <span style="color: #299CDB;">{{ date('h:i A', strtotime($demo->slot_confirmed)) }}</span>
+                                            {{ \App\Helpers\TimezoneHelper::formatInUserTz($demo->slot_confirmed, 'd-m-Y', 'UTC') }} <span style="color: #299CDB;">{{ \App\Helpers\TimezoneHelper::formatInUserTz($demo->slot_confirmed, 'h:i A', 'UTC') }}</span>
                                         @endif
                                     </td>
                                     {{-- <td><a href="{{ $demo->demo_link }}">{{ $demo->demo_link }}</a></td> --}}
