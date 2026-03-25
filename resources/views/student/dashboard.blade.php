@@ -294,8 +294,8 @@
                                             <td>
                                                 <div class="dayTime">
                                                     @php
-                                                    $startDateTime = $democlass->slot_confirmed_local ?? \Carbon\Carbon::parse($democlass->slot_confirmed);
-                                                    $now = \Carbon\Carbon::now($startDateTime->timezone);
+                                                    $startDateTime = $democlass->slot_confirmed_local ?? \App\Helpers\TimezoneHelper::toUserTz($democlass->slot_confirmed, 'UTC');
+                                                    $now = \Carbon\Carbon::now($startDateTime->timezone ?? 'UTC');
 
                                                     if ($startDateTime->isToday()) {
                                                     $message = 'Today';
@@ -1227,7 +1227,7 @@ aria-labelledby="exampleModalLabel" aria-hidden="true">
     <script>
     // Get the start time and calculate the remaining time
     var startDateTime = new Date("{{ $upcomingclass->start_time ?? '' }}"); // Replace with your PHP variable
-    var startDateTime2 = new Date("{{ $democlass->slot_confirmed ?? '' }}"); // Replace with your PHP variable
+    var startDateTime2 = new Date("{{ isset($democlass) && $democlass->slot_confirmed ? \Carbon\Carbon::parse($democlass->slot_confirmed)->utc()->toIso8601String() : '' }}"); // UTC for countdown
 
     var currentTime = new Date();
     var timeRemaining = startDateTime - currentTime;

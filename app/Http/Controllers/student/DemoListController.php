@@ -33,6 +33,31 @@ class DemoListController extends Controller
             ->orderBy('democlasses.created_at', 'desc')
             ->paginate(100);
 
+
+            $demos->getCollection()->transform(function ($demo) {
+
+                if ($demo->slot_confirmed) {
+
+                    //  Convert to user timezone
+                    $startDateTime = TimezoneHelper::toUserTz($demo->slot_confirmed, 'UTC');
+
+                    $endDateTime = $startDateTime->copy()->addMinutes(15);
+                    $now = Carbon::now(TimezoneHelper::userTimezone());
+
+                    //  Control join button
+                    $demo->can_join = $now->between($startDateTime, $endDateTime);
+
+                    // Optional (for display if needed)
+                    // $demo->formatted_time = $startDateTime->format('d M Y h:i A');
+
+                } else {
+                    $demo->can_join = false;
+                    // $demo->formatted_time = '';
+                }
+
+                return $demo;
+            });
+
         $subjects = subjects::where('is_active', 1)->where('class_id', session('userid')->class_id)->get();
         $statuses = status::select('*')->get();
         $tutors = tutorregistration::select('*')->get();
@@ -342,4 +367,3 @@ class DemoListController extends Controller
     }
 }
 
-// democlasses

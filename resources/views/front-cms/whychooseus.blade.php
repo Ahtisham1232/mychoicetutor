@@ -16,11 +16,10 @@
                         <div class="charcol">Lecture Recording</div>
                     </div>
                 </div>
-                <a href="/findatutor"> <button class="btn search-tutor mt-4">Book free trial class today</button></a>
+                <a href="{{route('std_tutor_registration')}}"> <button class="btn search-tutor mt-4">Book free trial class today</button></a>
             </div>
 
         </div>
-    </div>
     </div>
 </section>
 <!-- tutor section -->
@@ -41,9 +40,9 @@
                     </div>
 
                     <div class="col-lg-8 col-md-6 col-sm-12 col-xs-12 getstartedBtnPosition">
-                        <div class="whyChooseUsCol">
-                            <a href="student/register"> <button>Get started</button></a>
-                        </div>
+                        {{-- <div class="whyChooseUsCol">
+                            <a href="{{route('std_tutor_registration')}}"> <button>Get started</button></a>
+                        </div> --}}
                     </div>
 
                     <!-- <div class="Bg_purple1">
@@ -76,7 +75,7 @@
                             allows you to familiarize yourself with the tutor’s teaching style. Students typically
                             spend this free trial class planning lessons, identifying weak areas to address, and
                             discussing various strategies to improve grades in any subject.</p>
-                        <a href="findatutor"> <button class="btn search-tutor">Book now</button></a>
+                        <a href="{{route('std_tutor_registration')}}"> <button class="btn search-tutor">Book now</button></a>
 
                     </div>
 
