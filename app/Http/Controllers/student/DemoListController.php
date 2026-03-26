@@ -34,29 +34,29 @@ class DemoListController extends Controller
             ->paginate(100);
 
 
-            $demos->getCollection()->transform(function ($demo) {
+            // $demos->getCollection()->transform(function ($demo) {
 
-                if ($demo->slot_confirmed) {
+            //     if ($demo->slot_confirmed) {
 
-                    //  Convert to user timezone
-                    $startDateTime = TimezoneHelper::toUserTz($demo->slot_confirmed, 'UTC');
+            //         //  Convert to user timezone
+            //         $startDateTime = TimezoneHelper::toUserTz($demo->slot_confirmed, 'UTC');
 
-                    $endDateTime = $startDateTime->copy()->addMinutes(15);
-                    $now = Carbon::now(TimezoneHelper::userTimezone());
+            //         $endDateTime = $startDateTime->copy()->addMinutes(15);
+            //         $now = Carbon::now(TimezoneHelper::userTimezone());
 
-                    //  Control join button
-                    $demo->can_join = $now->between($startDateTime, $endDateTime);
+            //         //  Control join button
+            //         $demo->can_join = $now->between($startDateTime, $endDateTime);
 
-                    // Optional (for display if needed)
-                    // $demo->formatted_time = $startDateTime->format('d M Y h:i A');
+            //         // Optional (for display if needed)
+            //         // $demo->formatted_time = $startDateTime->format('d M Y h:i A');
 
-                } else {
-                    $demo->can_join = false;
-                    // $demo->formatted_time = '';
-                }
+            //     } else {
+            //         $demo->can_join = false;
+            //         // $demo->formatted_time = '';
+            //     }
 
-                return $demo;
-            });
+            //     return $demo;
+            // });
 
         $subjects = subjects::where('is_active', 1)->where('class_id', session('userid')->class_id)->get();
         $statuses = status::select('*')->get();

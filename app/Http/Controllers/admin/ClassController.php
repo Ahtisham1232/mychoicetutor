@@ -134,43 +134,43 @@ class ClassController extends Controller
         ->orderBy('zoom_classes.id','desc')->get();
 
         // Convert slot dates and times from UTC to viewer's timezone for display
-        // $classes->each(function ($class) {
-        //     if (isset($class->slotdate) && $class->slotdate) {
-        //         $class->slotdate = TimezoneHelper::dateToUserTz($class->slotdate);
-        //     }
-        //     if (isset($class->slottime) && $class->slottime) {
-        //         $class->slottime = TimezoneHelper::timeToUserTz($class->slottime);
-        //     }
-        // });
-
-
-
         $classes->each(function ($class) {
-
-            if ($class->slotdate && $class->slottime) {
-
-                //  Correct way: combine date + time with timezone
-                $startDateTime = TimezoneHelper::slotToUserTz(
-                    $class->slotdate,
-                    $class->slottime
-                );
-
-                $endDateTime = $startDateTime->copy()->addMinutes(15);
-                $now = Carbon::now(TimezoneHelper::userTimezone());
-
-                //  This controls button
-                $class->can_join = $now->between($startDateTime, $endDateTime);
-
-                //  Send formatted values to blade (for display)
-                $class->formatted_date = $startDateTime->toDateString();
-                $class->formatted_time = $startDateTime->format('h:i A');
-
-            } else {
-                $class->can_join = false;
-                $class->formatted_date = '';
-                $class->formatted_time = '';
+            if (isset($class->slotdate) && $class->slotdate) {
+                $class->slotdate = TimezoneHelper::dateToUserTz($class->slotdate);
+            }
+            if (isset($class->slottime) && $class->slottime) {
+                $class->slottime = TimezoneHelper::timeToUserTz($class->slottime);
             }
         });
+
+
+
+        // $classes->each(function ($class) {
+
+        //     if ($class->slotdate && $class->slottime) {
+
+        //         //  Correct way: combine date + time with timezone
+        //         $startDateTime = TimezoneHelper::slotToUserTz(
+        //             $class->slotdate,
+        //             $class->slottime
+        //         );
+
+        //         $endDateTime = $startDateTime->copy()->addMinutes(15);
+        //         $now = Carbon::now(TimezoneHelper::userTimezone());
+
+        //         //  This controls button
+        //         $class->can_join = $now->between($startDateTime, $endDateTime);
+
+        //         //  Send formatted values to blade (for display)
+        //         $class->formatted_date = $startDateTime->toDateString();
+        //         $class->formatted_time = $startDateTime->format('h:i A');
+
+        //     } else {
+        //         $class->can_join = false;
+        //         $class->formatted_date = '';
+        //         $class->formatted_time = '';
+        //     }
+        // });
 
             // dd($classes);
         $subjects = subjects::where('is_active', 1)->get();
