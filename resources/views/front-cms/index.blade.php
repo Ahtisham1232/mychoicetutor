@@ -108,7 +108,7 @@
                         @csrf
                         <div class="findtutor-btns">
 
-                            <div class="custom-select dropdown-menu" style="width:300px;">
+                            <div class="custom-select" style="width:300px;">
                                 <select id="subject"  name="subject" >
                                     <option value="">Select a Subject </option>
                                     @foreach ($subjects as $subject)
