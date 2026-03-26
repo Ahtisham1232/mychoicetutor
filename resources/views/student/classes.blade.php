@@ -175,12 +175,12 @@
                                     {{-- <td>{{ $class->duration }} min</td> --}}
                                     <td>
 
-                                        {{-- @if ($class->status == 'started' || $class->status == 'Started')
+                                        @if ($class->status == 'started' || $class->status == 'Started')
                                             <button class="btn btn-sm btn-success"
                                                 onclick="joinclass('{{ $class->class_id }}','{{ $class->join_url }}')">Join
                                                 Class</button>
-                                        @endif --}}
-                                        @if (($class->status == 'started' || $class->status == 'Started') && $class->can_join)
+                                        @endif
+                                        {{-- @if (($class->status == 'started' || $class->status == 'Started') && $class->can_join)
                                             <button class="btn btn-sm btn-success"
                                                 onclick="joinclass('{{ $class->class_id }}','{{ $class->join_url }}')">
                                                 Join Class
@@ -189,7 +189,7 @@
                                             <button class="btn btn-sm btn-secondary" disabled>
                                                 Join Expired
                                             </button>
-                                        @endif
+                                        @endif --}}
                                         @if ($class->is_completed == 1 || $class->status == 'completed' || $class->status == 'Completed')
                                             @if (session('usertype') != 'Parent')
                                                 @if ($class->status == 'completed' || $class->status == 'Completed')

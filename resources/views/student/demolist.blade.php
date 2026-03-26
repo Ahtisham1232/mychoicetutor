@@ -163,12 +163,12 @@
                                                 <a href="democancel/{{ $demo->demo_id }}"><button class="badge bg-danger">
                                                         Cancel</button></a>
                                             </td>
-                                            {{-- @elseif ($demo->status == 8)
+                                            @elseif ($demo->status == 8)
                                             <td>
                                                 <a href="{{ $demo->demo_link }}" target="_blank"><button
                                                         class="badge bg-success"> Join Class</button></a>
-                                            </td> --}}
-                                        @elseif ($demo->status == 8 && $demo->can_join)
+                                            </td>
+                                        {{-- @elseif ($demo->status == 8 && $demo->can_join)
                                             <td>
                                                 <a href="{{ $demo->demo_link }}" target="_blank">
                                                     <button class="badge bg-success"> Join Class</button>
@@ -179,7 +179,7 @@
                                                 <button class="badge bg-secondary" disabled>
                                                     Join Expired
                                                 </button>
-                                            </td>
+                                            </td> --}}
                                         @else
                                             <td>
                                                 {{-- <button class="btn btn-sm mr-1 btn-primary" disabled><i class="fa fa-calendar" aria-hidden="true"></i> Reschedule</button> --}}
