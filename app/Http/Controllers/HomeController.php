@@ -843,8 +843,10 @@ class HomeController extends Controller
                             dd($user->role_id);
                             break;
                         case 2:
+                            if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('tutor/dashboard')]);
                             return redirect('tutor/dashboard');
                         case 3:
+                            if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('student/dashboard')]);
                             return redirect('student/dashboard');
                         case 4:
                             echo "Parent";
@@ -854,8 +856,10 @@ class HomeController extends Controller
                     }
                     // return redirect(RouteServiceProvider::HOME);
                 }
+                if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Password does not match']);
                 return back()->with('fail', 'Password does not match');
             } else {
+                if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Mobile No. Not Registered']);
                 return back()->with('fail', 'Mobile No. Not Registered');
             }
         }
@@ -869,10 +873,13 @@ class HomeController extends Controller
                 if (Hash::check($request->password, $user->parent_password)) {
                     $request->session()->put('userid', $user);
                     $request->session()->put('usertype', 'Parent');
+                    if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('student/dashboard')]);
                     return redirect('student/dashboard');
                 }
+                if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Password does not match']);
                 return back()->with('fail', 'Password does not match');
             } else {
+                if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Mobile No. Not Registered']);
                 return back()->with('fail', 'Mobile No. Not Registered');
             }
         }
@@ -892,8 +899,10 @@ class HomeController extends Controller
                             dd($user->role_id);
                             break;
                         case 2:
+                            if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('tutor/dashboard')]);
                             return redirect('tutor/dashboard');
                         case 3:
+                            if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('student/dashboard')]);
                             return redirect('student/dashboard');
                         case 4:
                             echo "Parent";
@@ -903,8 +912,10 @@ class HomeController extends Controller
                     }
                     // return redirect(RouteServiceProvider::HOME);
                 }
+                if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Password does not match']);
                 return back()->with('fail', 'Password does not match');
             } else {
+                if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Mobile No. Not Registered']);
                 return back()->with('fail', 'Mobile No. Not Registered');
             }
         }
@@ -913,18 +924,24 @@ class HomeController extends Controller
     public function forget_password(Request $request)
     {
         if ($request->requestAs == 'student') {
-            $user = studentregistration::where('email', '=', $request->email,)->first();
+            $user = studentregistration::where('email', '=', $request->email)->first();
         } else if ($request->requestAs == 'tutor') {
-            $user = tutorregistration::where('email', '=', $request->email,)->first();
+            $user = tutorregistration::where('email', '=', $request->email)->first();
         } else if ($request->requestAs == 'parent') {
             $user = studentregistration::where('email', '=', $request->email)->first();
         } else {
+            if ($request->ajax()) {
+                return response()->json(['status' => 'error', 'message' => 'No User Found!']);
+            }
             return back()->with('fail', 'No User Found!');
         }
         
         if (!$user) {
-            return back()->with('fail', 'Email not found!');
+            if ($request->ajax()) {
+                return response()->json(['status' => 'error', 'message' => 'Email not found!']);
             }
+            return back()->with('fail', 'Email not found!');
+        }
 
         // Remove old tokens
         DB::table('password_resets')->where('email', $request->email)->delete();
@@ -951,6 +968,10 @@ class HomeController extends Controller
 
             $message->subject('Reset Password');
         });
+        
+        if ($request->ajax()) {
+            return response()->json(['status' => 'success', 'message' => 'Token send successfully!']);
+        }
         return redirect()->route('home')->with('success', 'Token send successfully!');
     }
 

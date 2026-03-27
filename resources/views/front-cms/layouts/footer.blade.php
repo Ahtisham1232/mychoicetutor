@@ -43,9 +43,10 @@
             </div>
             <h3 class="text-center">Login</h3>
 
-            <form class="loginForm" action="{{ url('/student-login') }}" method="GET">
+            <form class="loginForm" id="loginFormAjax" action="{{ url('/student-login') }}" method="GET">
                 @csrf
                 <div class="form-group">
+                    <div id="loginAlert" style="display:none;" class="alert"></div>
                     @if (Session::has('success'))
                         <div class="alert alert-success">{{ Session::get('success') }}</div>
                         <input type="hidden" id="showloginpopup" name="showloginpopup" value="0">
@@ -69,7 +70,7 @@
                             placeholder="Your Number" required value="{{ old('mobile') }}" oninput="this.value=this.value.slice(0,20)">
                     </div>
                 </div>
-                <span class="text-danger  login-errorMessage">
+                <span class="text-danger  login-errorMessage" id="mobileError">
                     @error('mobile')
                         {{ $message }}
                     @enderror
@@ -81,7 +82,7 @@
                     <i class="fa fa-eye-slash toggle-password mt-2" data-target="password"></i>
 
                 </div>
-                <span class="text-danger login-errorMessage">
+                <span class="text-danger login-errorMessage" id="passwordError">
                     @error('password')
                         {{ $message }}
                     @enderror
@@ -110,7 +111,7 @@
                         </div>
                     </div>
 
-                    <span class="text-danger login-errorMessage">
+                    <span class="text-danger login-errorMessage" id="loginAsError">
                         @error('loginAs')
                             {{ $message }}
                         @enderror
@@ -119,7 +120,7 @@
 
 
                 <hr>
-                <button type="submit" class="btn brand-bg-Color popuplogin mb-3">Login</button>
+                <button type="submit" id="loginBtnAjax" class="btn brand-bg-Color popuplogin mb-3">Login</button>
 
                 <br>
                 {{-- <a href="#">
@@ -134,7 +135,7 @@
 
                 <div class="forgotPwd mt-3">
                     <p> Don't have an account? <a href="{{ '/student/register' }}" class="register">Register</a></p>
-                    <button class="btn btn-sm" data-toggle="modal" data-target="#forgetPasswordPopup">Forgot
+                    <button type="button" class="btn btn-sm" data-toggle="modal" data-target="#forgetPasswordPopup">Forgot
                         password?</button>
                 </div>
             </form>
@@ -154,9 +155,10 @@
             </div>
             <h3 class="text-center">Forget Password</h3>
 
-            <form class="loginForm" action="{{ url('/forget-password') }}" method="POST">
+            <form class="loginForm" id="forgetPasswordFormAjax" action="{{ url('/forget-password') }}" method="POST">
                 @csrf
                 <div class="form-group">
+                    <div id="forgetPasswordAlert" style="display:none;" class="alert"></div>
                     @if (Session::has('success'))
                         <div class="alert alert-success">{{ Session::get('success') }}</div>
                         <input type="hidden" id="showForgetPasswordPopup" name="showForgetPasswordPopup"
@@ -172,7 +174,7 @@
                         placeholder="Your Email" required>
                 </div>
                 <span class="text-danger login-errorMessage">
-                    @error('password')
+                    @error('email')
                         {{ $message }}
                     @enderror
                 </span>
@@ -200,14 +202,14 @@
                     </div>
 
                     <span class="text-danger login-errorMessage">
-                        @error('loginAs')
+                        @error('requestAs')
                             {{ $message }}
                         @enderror
                     </span>
                 </div>
 
                 <hr>
-                <button type="submit" class="btn brand-bg-Color popuplogin mb-3 ml-auto">Send Code</button>
+                <button type="submit" id="forgetPasswordBtnAjax" class="btn brand-bg-Color popuplogin mb-3 ml-auto">Send Code</button>
 
                 <br>
                 {{-- <a href="#">
@@ -303,6 +305,109 @@
         // Optional: When Login modal opens, hide Forget Password modal
         $('#loginPopup').on('show.bs.modal', function() {
             $('#forgetPasswordPopup').modal('hide');
+        });
+
+        // Re-open modals on validation or session errors
+        @if(Session::has('fail'))
+            var failMsg = @json(Session::get('fail'));
+            if (failMsg === 'Email not found!' || failMsg === 'No User Found!') {
+                $('#forgetPasswordPopup').modal('show');
+            } else if (failMsg === 'Password does not match' || failMsg === 'Mobile No. Not Registered') {
+                $('#loginPopup').modal('show');
+            }
+        @endif
+
+        @if(Session::has('success'))
+            var successMsg = @json(Session::get('success'));
+            if (successMsg === 'Token send successfully!') {
+                $('#forgetPasswordPopup').modal('show');
+            }
+        @endif
+
+        @if($errors->has('email') || $errors->has('requestAs'))
+            $('#forgetPasswordPopup').modal('show');
+        @endif
+
+        @if($errors->has('mobile') || $errors->has('password') || $errors->has('loginAs'))
+            $('#loginPopup').modal('show');
+        @endif
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        $('#loginFormAjax').on('submit', function(e) {
+            e.preventDefault();
+            
+            var $form = $(this);
+            var $btn = $('#loginBtnAjax');
+            var $alert = $('#loginAlert');
+            
+            // Clear previous errors
+            $('#loginFormAjax .login-errorMessage').text('');
+            $alert.hide().removeClass('alert-success alert-danger').text('');
+            $btn.prop('disabled', true).text('Logging in...');
+            
+            $.ajax({
+                url: $form.attr('action'),
+                type: $form.attr('method') || 'GET',
+                data: $form.serialize(),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        $alert.addClass('alert-success').text('Login successful! Redirecting...').show();
+                        window.location.href = response.redirectUrl;
+                    } else if (response.status === 'error') {
+                        $alert.addClass('alert-danger').text(response.message).show();
+                        $btn.prop('disabled', false).text('Login');
+                    }
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        var errors = xhr.responseJSON.errors;
+                        if (errors.mobile) $('#mobileError').text(errors.mobile[0]);
+                        if (errors.password) $('#passwordError').text(errors.password[0]);
+                        if (errors.loginAs) $('#loginAsError').text(errors.loginAs[0]);
+                    } else {
+                        $alert.addClass('alert-danger').text('An error occurred. Please try again.').show();
+                    }
+                    $btn.prop('disabled', false).text('Login');
+                }
+            });
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        $('#forgetPasswordFormAjax').on('submit', function(e) {
+            e.preventDefault();
+            
+            var $form = $(this);
+            var $btn = $('#forgetPasswordBtnAjax');
+            var $alert = $('#forgetPasswordAlert');
+            
+            $btn.prop('disabled', true).text('Sending...');
+            $alert.hide().removeClass('alert-success alert-danger').text('');
+            
+            $.ajax({
+                url: $form.attr('action'),
+                type: 'POST',
+                data: $form.serialize(),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        $alert.addClass('alert-success').text(response.message).show();
+                        $form[0].reset();
+                    } else {
+                        $alert.addClass('alert-danger').text(response.message).show();
+                    }
+                },
+                error: function(xhr) {
+                    $alert.addClass('alert-danger').text('An error occurred. Please try again.').show();
+                },
+                complete: function() {
+                    $btn.prop('disabled', false).text('Send Code');
+                }
+            });
         });
     });
 </script>
