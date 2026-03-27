@@ -54,14 +54,67 @@
                     </div>
                     </div>
                     <div class="collapse navbar-collapse" id="navbarsExample05">
+                        @php
+                            $isUserLoggedIn = session()->has('userid') || Auth::check();
+                            $userName = '';
+                            $dashboardRoute = url('/');
+                            
+                            if ($isUserLoggedIn) {
+                                if (session()->has('userid')) {
+                                    $userObj = session('userid');
+                                    $userName = $userObj->name ?? 'User';
+                                    $userType = session('usertype');
+                                    
+                                    if ($userType == 'Parent') {
+                                        $dashboardRoute = route('parent.dashboard');
+                                    } elseif ($userType == 'Student' || (isset($userObj->role_id) && $userObj->role_id == 3)) {
+                                        $dashboardRoute = route('student.dashboard');
+                                    } elseif ($userType == 'Tutor' || (isset($userObj->role_id) && $userObj->role_id == 2)) {
+                                        $dashboardRoute = route('tutor.dashboard');
+                                    } elseif (isset($userObj->role_id) && $userObj->role_id == 1) {
+                                        $dashboardRoute = route('admin.dashboard');
+                                    }
+                                } elseif (Auth::check()) {
+                                    $userObj = Auth::user();
+                                    $userName = $userObj->name;
+                                    
+                                    if ($userObj->role_id == 1) {
+                                        $dashboardRoute = route('admin.dashboard');
+                                    } elseif ($userObj->role_id == 2) {
+                                        $dashboardRoute = route('tutor.dashboard');
+                                    } elseif ($userObj->role_id == 3) {
+                                        $dashboardRoute = route('student.dashboard');
+                                    } elseif ($userObj->role_id == 4) {
+                                        $dashboardRoute = route('parent.dashboard');
+                                    }
+                                }
+                            }
+                        @endphp
                         <ul class="navbar-nav ml-auto">
                             <li class="nav-item cta-btn mobBtn">
-                                <div class="mobLogin">
-                                    <button class="btn btn-sm" data-toggle="modal" data-target="#loginPopup">Login</button>
-                                </div>
-                                <div >
-                                <a href="{{('/student/register')}}" class="btn btn-sm ">Get Started</a>
-                                </div>
+                                @if(!$isUserLoggedIn)
+                                    <div class="mobLogin">
+                                        <button class="btn btn-sm" data-toggle="modal" data-target="#loginPopup">Login</button>
+                                    </div>
+                                    <div >
+                                        <a href="{{ url('/student/register') }}" class="btn btn-sm ">Get Started</a>
+                                    </div>
+                                @else
+                                    <div class="dropdown d-inline-block">
+                                        <button class="btn btn-sm dropdown-toggle" type="button" id="profileMenuMob" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="color: #666; background: transparent; border: 1px solid #ccc;">
+                                            <i class="fa fa-user-circle"></i> {{ $userName }}
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="profileMenuMob">
+                                            <a class="dropdown-item" href="{{ $dashboardRoute }}">
+                                                <i class="fa fa-dashboard mr-2"></i> Dashboard
+                                            </a>
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item text-danger" href="{{ route('logout') }}">
+                                                <i class="fa fa-sign-out mr-2"></i> Logout
+                                            </a>
+                                        </div>
+                                    </div>
+                                @endif
                             </li>
                         </ul>
 
@@ -87,12 +140,25 @@
                         <ul class="navbar-nav ml-auto mr-4 deskBtn">
                             <li class="nav-item cta-btn">
                                 <div class="btnSec">
-                                    <button class="btn btn-sm " data-toggle="modal" data-target="#loginPopup">Login</button>
-                                    <a href="{{('/student/register')}}" class="btn btn-sm ">Get Started</a>
-                                    <span style="display:none;" >
-                                        En
-                                        <i class="fa fa-angle-down "></i>
-                                    </span>
+                                    @if(!$isUserLoggedIn)
+                                        <button class="btn btn-sm" data-toggle="modal" data-target="#loginPopup">Login</button>
+                                        <a href="{{ url('/student/register') }}" class="btn btn-sm">Get Started</a>
+                                    @else
+                                        <div class="dropdown d-inline-block">
+                                            <button class="btn btn-sm dropdown-toggle" type="button" id="profileMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <i class="fa fa-user-circle"></i> {{ $userName }}
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="profileMenu">
+                                                <a class="dropdown-item" href="{{ $dashboardRoute }}">
+                                                    <i class="fa fa-dashboard mr-2"></i> Dashboard
+                                                </a>
+                                                <div class="dropdown-divider"></div>
+                                                <a class="dropdown-item text-danger" href="{{ route('logout') }}">
+                                                    <i class="fa fa-sign-out mr-2"></i> Logout
+                                                </a>
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
                             </li>
                         </ul>

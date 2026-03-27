@@ -228,9 +228,16 @@ class HomeController extends Controller
         ->when($subjectid, fn($q) => $q->where('subjects.id', $subjectid))
         ->when($classid, fn($q) => $q->where('classes.id', $classid))
         ->when($tutorname, fn($q) => $q->where('tutorprofiles.name', 'like', "%$tutorname%"))
-        ->when($minPrice, fn($q) => $q->havingRaw('rateperhour >= ?', [$minPrice]))
-        ->when($maxPrice, fn($q) => $q->havingRaw('rateperhour <= ?', [$maxPrice]))
+        // ->when($minPrice, fn($q) => $q->havingRaw('rateperhour >= ?', [$minPrice]))
+        // ->when($maxPrice, fn($q) => $q->havingRaw('rateperhour <= ?', [$maxPrice]))
+        ->when($minPrice, function ($q) use ($minPrice) {
+        $q->havingRaw('(tutorprofiles.rateperhour + (tutorprofiles.rateperhour * tutorprofiles.admin_commission / 100)) >= ?', [$minPrice]);
+        })
+        ->when($maxPrice, function ($q) use ($maxPrice) {
+            $q->havingRaw('(tutorprofiles.rateperhour + (tutorprofiles.rateperhour * tutorprofiles.admin_commission / 100)) <= ?', [$maxPrice]);
+        })
         ->get();
+        // dd($tutors->toArray());
 
         // Grades/Level
         $gradelists = Classes::where('is_active', 1)->get();

@@ -85,7 +85,7 @@
 
 
 
-                        <div class="col-md-2">
+                        {{-- <div class="col-md-2">
                             <label>Start Date</label>
                             <input type="date" class="form-control" name="start_date" id="smob"
                                 placeholder="Student Mobile">
@@ -95,7 +95,7 @@
                             <label>End Date</label>
                             <input type="date" class="form-control" name="end_date" id="smob"
                                 placeholder="Student Mobile">
-                        </div>
+                        </div> --}}
                         <div class="col-md-2">
                             <label>Select Status</label>
                             <select class="form-control" name="status" id="class">
@@ -107,12 +107,18 @@
                             </select>
                         </div>
 
+                        <div class="col-md-4">
+                            <label>&nbsp;</label> <div class="d-flex align-items-center">
+                                <a href="{{ url()->current() }}" class="btn btn-primary rounded-pill px-4 me-3">
+                                    <span class="fa fa-refresh"></span> Reset
+                                </a>
 
-                        <div class="col-md-2 mt-4">
-                            <button type="submit" class="btn btn-primary" style="float:right"> <span
-                                    class="fa fa-search"></span>
-                                Search</button>
+                                <button type="submit" class="btn rounded-pill px-4 text-white" style="background-color: #43518c;">
+                                    <span class="fa fa-search"></span> Search
+                                </button>
+                            </div>
                         </div>
+                        
                     </div>
                 </form>
                 <hr>
