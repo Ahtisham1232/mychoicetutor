@@ -26,10 +26,11 @@
                 </div>
                 <form action="{{ route('tutor.demolist-search') }}" method="POST">
                     @csrf
-                    <div class="row py-3">
+                    <div class="row py-3 align-items-end">
 
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="form-group">
+                                <label for="name">Student Name</label>
                                 <input type="text" class="form-control" name="student_name" id="sname"
                                     placeholder="Student Name">
 
@@ -37,15 +38,17 @@
                             </div>
                         </div>
                         <!-- <div class="col-md-3">
-                                        <div class="form-group">
-                                            <input type="text" class="form-control" name="student_mobile" id="smob" placeholder="Student Mobile">
+                                            <div class="form-group">
+                                                <input type="text" class="form-control" name="student_mobile" id="smob" placeholder="Student Mobile">
 
-                                        </div>
-                                    </div> -->
+                                            </div>
+                                        </div> -->
 
 
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="form-group">
+                                <label for="classname">Class Name</label>
+
                                 <select name="class_name" class="form-control" id="classname" onchange="fetchSubjects()">
                                     <option value="">Select Class</option>
                                     @foreach ($classes as $class)
@@ -54,8 +57,10 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="form-group">
+                                <label for="subject">Subject Name</label>
+
                                 <select name="subject_name" class="form-control" id="subject">
                                     <option value="">Select Subject</option>
                                     @foreach ($subjects as $subject)
@@ -64,8 +69,10 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-3 ">
+                        <div class="col-md-2">
                             <div class="form-group">
+                                <label for="status">Status</label>
+
                                 <select class="form-control" name="status" id="ststus">
                                     <option value="">-- Status --</option>
                                     @foreach ($statuses as $status)
@@ -75,8 +82,21 @@
                             </div>
                         </div>
 
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <a href="{{ url()->current() }}" class="btn btn-primary rounded-pill px-4 me-2">
+                                    <span class="fa fa-refresh"></span> Reset
+                                </a>
+
+                                <button type="submit" class="btn rounded-pill px-4 text-white"
+                                    style="background-color: #43518c;">
+                                    <span class="fa fa-search"></span> Search
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
-                    <div class="row">
+                    {{-- <div class="row">
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label>Start Date</label>
@@ -102,7 +122,19 @@
                                     Search</button>
                             </div>
                         </div>
-                    </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <a href="{{ url()->current() }}" class="btn btn-primary rounded-pill px-4 me-2">
+                                    <span class="fa fa-refresh"></span> Reset
+                                </a>
+
+                                <button type="submit" class="btn rounded-pill px-4 text-white"
+                                    style="background-color: #43518c;">
+                                    <span class="fa fa-search"></span> Search
+                                </button>
+                            </div>
+                        </div>
+                    </div> --}}
 
                 </form>
                 <hr>
@@ -150,7 +182,7 @@
                                     {{-- <td>{{ $demo->slot_1 }}</td> --}}
                                     {{-- <td>{{ $demo->slot_2 }}</td> --}}
                                     {{-- <td>{{ $demo->slot_3 }}</td> --}}
-                                    <td> @userTz($demo->slot_confirmed)</td> 
+                                    <td> @userTz($demo->slot_confirmed)</td>
                                     {{-- <td><a href="{{ $demo->demo_link }}">{{ $demo->demo_link }}</a></td> --}}
                                     <td>{{ $demo->remarks }}</td>
                                     <td>
@@ -384,13 +416,13 @@
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
-    <script>   
-        $(document).ready(function () {
+
+    <script>
+        $(document).ready(function() {
 
             let isSubmitting = false;
 
-            $('#confirmModal form').on('submit', function (e) {
+            $('#confirmModal form').on('submit', function(e) {
 
                 if (isSubmitting) {
                     e.preventDefault();
@@ -443,16 +475,16 @@
                     }
 
                     if (result.slot_2) {
-                      $('#slot_2').html(result.slot_2_local);
-                      $('#slot2').val(result.slot_2);
+                        $('#slot_2').html(result.slot_2_local);
+                        $('#slot2').val(result.slot_2);
                         document.getElementById('slot2Div').style.display = 'block'; // Ensure visibility
                     } else {
                         document.getElementById('slot2Div').style.display = 'none'; // Hide if no data
                     }
 
                     if (result.slot_3) {
-                       $('#slot_3').html(result.slot_3_local);
-                       $('#slot3').val(result.slot_3);
+                        $('#slot_3').html(result.slot_3_local);
+                        $('#slot3').val(result.slot_3);
                         document.getElementById('slot3Div').style.display = 'block'; // Ensure visibility
                     } else {
                         document.getElementById('slot3Div').style.display = 'none'; // Hide if no data

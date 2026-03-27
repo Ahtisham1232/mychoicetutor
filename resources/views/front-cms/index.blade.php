@@ -493,7 +493,7 @@
                     <div class="trial">
                         <h2>Begin your tutoring journey now!<br> Join us as a tutor.</h2>
                         <div class="trialBtn">
-                            <button onclick="redirect();">Get Started</button>
+                            <a href="{{route('std_tutor_registration')}}"><button>Get Started</button></a>
                         </div>
                     </div>
                 </div>

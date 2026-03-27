@@ -40,7 +40,7 @@
                 </div>
 
                 <form id="payment-search">
-                    <div class="row ">
+                    <div class="row align-items-end">
 
                         <div class="col-md-2">
                             <label for="tutor">Tutor</label>
@@ -63,18 +63,6 @@
                             </select>
                         </div>
 
-
-                        <div class="col-md-2">
-                            <label>Start Date</label>
-                            <input type="date" class="form-control" name="start_date" id="smob"
-                                placeholder="Student Mobile">
-                        </div>
-
-                        <div class="col-md-2">
-                            <label>End Date</label>
-                            <input type="date" class="form-control" name="end_date" id="smob"
-                                placeholder="Student Mobile">
-                        </div>
                         <div class="col-md-2">
                             <label for="status">Status</label>
 
@@ -86,10 +74,30 @@
                             </select>
                         </div>
 
+                        {{-- <div class="col-md-2">
+                            <label>Start Date</label>
+                            <input type="date" class="form-control" name="start_date" id="smob"
+                                placeholder="Student Mobile">
+                        </div>
 
-                        <div class="col-md-2 mt-4">
-                            <button class="btn btn-primary" style="float:right"> <span class="fa fa-search"></span>
-                                Search</button>
+                        <div class="col-md-2">
+                            <label>End Date</label>
+                            <input type="date" class="form-control" name="end_date" id="smob"
+                                placeholder="Student Mobile">
+                        </div> --}}
+                      
+
+
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <a href="{{ url()->current() }}" class="btn btn-primary rounded-pill px-4 me-2">
+                                    <span class="fa fa-refresh"></span> Reset
+                                </a>
+
+                                <button type="submit" class="btn rounded-pill px-4 text-white" style="background-color: #43518c;">
+                                    <span class="fa fa-search"></span> Search
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -154,7 +162,7 @@
                                         @if ($demo->status == 1)
                                             <td>
                                                 {{-- <a href="demoreschedule"><button class="btn btn-sm mr-1 btn-primary"><i class="fa fa-calendar" aria-hidden="true"></i> Reschedule</button></a> --}}
-                                                <a href="democancel/{{ $demo->demo_id }}"><button class="badge bg-danger">
+                                                <a href="democancel/{{ $demo->demo_id }}"><button class="badge bg-danger" >
                                                         Cancel</button></a>
                                             </td>
                                         @elseif ($demo->status == 2)
