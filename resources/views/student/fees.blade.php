@@ -22,11 +22,12 @@
 
                     <form action="{{route('student.payments-search')}}" method="POST">
                         @csrf
-                        <div class="row ">
+                        <div class="row align-items-end">
                             <div class="col-md-3 mt-4">
+                                <label for="transaction_id">Transaction ID</label>
                                 <input type="text" class="form-control" name="transaction_id" placeholder="Transaction Id">
                             </div>
-                            <div class="col-md-3">
+                            {{-- <div class="col-md-3">
                                 <label>Start Date</label>
                                 <input type="date" class="form-control" name="start_date" id="smob" placeholder="Student Mobile">
                             </div>
@@ -34,14 +35,24 @@
                             <div class="col-md-3">
                                 <label>End Date</label>
                                     <input type="date" class="form-control" name="end_date" id="smob" placeholder="Student Mobile">
+                            </div> --}}
+
+                            <div class="col-md-4">
+                                <label>&nbsp;</label> <div class="d-flex align-items-center">
+                                    <a href="{{ url()->current() }}" class="btn btn-primary rounded-pill px-4 me-3">
+                                        <span class="fa fa-refresh"></span> Reset
+                                    </a>
+
+                                    <button type="submit" class="btn rounded-pill px-4 text-white" style="background-color: #43518c;">
+                                        <span class="fa fa-search"></span> Search
+                                    </button>
+                                </div>
                             </div>
 
-
-
-                            <div class="col-md-3 mt-4">
+                            {{-- <div class="col-md-3 mt-4">
                                 <button class="btn  btn-primary" type="submit" style="float:right"> <span
                                     class="fa fa-search"></span> Search</button>
-                            </div>
+                            </div> --}}
                         </div>
 
                     </form>
