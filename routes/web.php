@@ -84,7 +84,7 @@ Route::get('/student-login',[HomeController::class, 'userLogin'])->name('userLog
 Route::post('/forget-password',[HomeController::class, 'forget_password'])->name('forget_password');
 Route::get('reset-password/{token}', [HomeController::class, 'reset_password_form'])->name('reset.password.get');
 // Handle reset
-Route::post('/reset-password/reset_password_submit', [HomeController::class, 'reset_password_submit'])->name('reset.password.post');
+Route::post('/reset-password/reset_password_submit', [HomeController::class, 'reset_password_submit'])->name('reset.password');
 
 Route::get('/free-trial-class/student-login/{id}',[HomeController::class, 'free_trial_class_student_login_form'])->name('student_login_trial');
 Route::get('/free-trial-class-student-login',[HomeController::class, 'free_trial_class_student_login'])->name('student_login_trial_post');
@@ -656,6 +656,10 @@ Route::get('termsandconditions', function(){
 Route::get('contact', function(){
     return view('front-cms/contact');
 });
+
+Route::get('password-change-confirmation', function(){
+    return view('front-cms/password-change-confirmation');
+})->name('password.change.confirmation');
 
 // WorldPay Payment Gateway
 // Route::get('/worldpay/payment/', [WorldPayController::class, 'showPaymentPage'])->name('worldpay.payment.page');

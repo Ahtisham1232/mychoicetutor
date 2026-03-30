@@ -19,7 +19,7 @@
                             @if (Session::has('fail'))
                                 <div class="alert alert-danger">{{ Session::get('fail') }}</div>
                             @endif
-                        <form action="{{url('/reset-password/reset_password_submit')}}" method="POST" class="">
+                        <form action="{{route('reset.password')}}" method="POST" class="">
                             @csrf
                              <input type="hidden" name="token" value="{{ $token }}">
 
@@ -61,7 +61,6 @@
                 </div>
             </div>
 
-        </div>
         </div>
     </section>
 @endsection
