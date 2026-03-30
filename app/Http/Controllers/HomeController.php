@@ -923,60 +923,64 @@ class HomeController extends Controller
 
     public function forget_password(Request $request)
     {
-        if ($request->requestAs == 'student') {
-            $user = studentregistration::where('email', '=', $request->email)->first();
+        // 1. User Lookup Logic
+        if ($request->requestAs == 'student' || $request->requestAs == 'parent') {
+            $user = studentregistration::where('email', $request->email)->first();
         } else if ($request->requestAs == 'tutor') {
-            $user = tutorregistration::where('email', '=', $request->email)->first();
-        } else if ($request->requestAs == 'parent') {
-            $user = studentregistration::where('email', '=', $request->email)->first();
+            $user = tutorregistration::where('email', $request->email)->first();
         } else {
-            if ($request->ajax()) {
-                return response()->json(['status' => 'error', 'message' => 'No User Found!']);
-            }
-            return back()->with('fail', 'No User Found!');
+            $msg = 'No User Found!';
+            return $request->ajax() ? response()->json(['status' => 'error', 'message' => $msg]) : back()->with('fail', $msg);
         }
-        
+
         if (!$user) {
-            if ($request->ajax()) {
-                return response()->json(['status' => 'error', 'message' => 'Email not found!']);
-            }
-            return back()->with('fail', 'Email not found!');
+            $msg = 'Email not found!';
+            return $request->ajax() ? response()->json(['status' => 'error', 'message' => $msg]) : back()->with('fail', $msg);
         }
 
-        // Remove old tokens
+        // 2. Token Management
         DB::table('password_resets')->where('email', $request->email)->delete();
-
         $token = Str::random(64);
-
         $email = $request->email;
 
         DB::table('password_resets')->insert([
-
             'email' => $request->email,
-
             'token' => $token,
-
             'created_at' => Carbon::now()
-
         ]);
 
+        // 3. The Mail Attempt (The problematic part)
+        try {
+            Mail::send('emails.forgetPassword', ['token' => $token], function ($message) use ($email) {
+                $message->to($email);
+                $message->subject('Reset Password');
+            });
 
+            if ($request->ajax()) {
+                return response()->json(['status' => 'success', 'message' => 'Token sent successfully! Check mail inbox and spam both']);
+            }
+            return redirect()->route('home')->with('success', 'Token sent successfully!');
 
-        Mail::send('emails.forgetPassword', ['token' => $token], function ($message) use ($email) {
-
-            $message->to($email);
-
-            $message->subject('Reset Password');
-        });
-        
-        if ($request->ajax()) {
-            return response()->json(['status' => 'success', 'message' => 'Token send successfully!']);
+        } catch (\Exception $e) {
+            // This catches the SMTP/SendGrid error and returns it to your AJAX
+            if ($request->ajax()) {
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => 'Mail Error: ' . $e->getMessage()
+                ]);
+            }
+            return back()->with('fail', 'Mail Error: ' . $e->getMessage());
         }
-        return redirect()->route('home')->with('success', 'Token send successfully!');
     }
 
     public function reset_password_form($token)
     {
+        $validToken = DB::table('password_resets')->where('token', $token)->first();
+
+        if (!$validToken) {
+            return redirect()->route('home')->with('fail', 'This password reset link is invalid or has already been used.');
+        }
+
         return view('front-cms.forgetpassword', ['token' => $token]);
     }
     public function reset_password_submit(Request $request)
@@ -1013,7 +1017,7 @@ class HomeController extends Controller
             ->where('email', $updatePassword->email)
             ->delete();
 
-        return redirect()->route('home')->with('success', 'Password updated successfully!');
+        return redirect()->route('password.change.confirmation');
     }
 
     public function std_tutor_registration()
