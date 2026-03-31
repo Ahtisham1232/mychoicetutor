@@ -986,10 +986,20 @@ class HomeController extends Controller
     public function reset_password_submit(Request $request)
     {
         // Validate new password
-        $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'password' => 'required|min:6|confirmed', // expects password_confirmation
             'token'    => 'required',
         ]);
+
+        if ($validator->fails()) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'errors' => $validator->errors()
+                ]);
+            }
+            return back()->withErrors($validator)->withInput();
+        }
 
         // Check if token exists in password_resets table
         $updatePassword = DB::table('password_resets')
@@ -997,6 +1007,9 @@ class HomeController extends Controller
             ->first();
 
         if (!$updatePassword) {
+            if ($request->ajax()) {
+                return response()->json(['status' => 'error', 'message' => 'Invalid or expired token!']);
+            }
             return back()->with('fail', 'Invalid or expired token!');
         }
 
@@ -1005,6 +1018,9 @@ class HomeController extends Controller
             ?? tutorregistration::where('email', $updatePassword->email)->first();
 
         if (!$user) {
+            if ($request->ajax()) {
+                return response()->json(['status' => 'error', 'message' => 'User not found!']);
+            }
             return back()->with('fail', 'User not found!');
         }
 
@@ -1016,6 +1032,14 @@ class HomeController extends Controller
         DB::table('password_resets')
             ->where('email', $updatePassword->email)
             ->delete();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Password reset successfully!',
+                'redirect_url' => route('password.change.confirmation')
+            ]);
+        }
 
         return redirect()->route('password.change.confirmation');
     }
