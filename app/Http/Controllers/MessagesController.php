@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 use App\Models\User;
 use App\Models\admin\admin;
 use App\Models\tutorregistration;
@@ -16,6 +18,7 @@ use App\Models\ChMessage;
 use App\Models\Notification;
 use App\Events\NewMessage;
 use App\Events\MessageNotification;
+use App\Services\TwilioWhatsAppService;
 
 class MessagesController extends Controller
 {
@@ -421,12 +424,28 @@ class MessagesController extends Controller
             'receiver_role_id' => 'required|integer',
         ]);
 
+        $senderId = session('userid')->id;
+        $senderRoleId = session('userid')->role_id;
+        $receiverId = (int) $request->receiver_id;
+        $receiverRoleId = (int) $request->receiver_role_id;
+
+        // Determine WhatsApp eligibility before saving so the new row does not block itself.
+        $shouldSendWhatsApp = false;
+        if ($receiverRoleId === 2) {
+            $shouldSendWhatsApp = $this->isFirstMessageInWindow(
+                $senderId,
+                $senderRoleId,
+                $receiverId,
+                $receiverRoleId
+            );
+        }
+
         // Create new message
         $message = new ChMessage();
-        $message->from_id = session('userid')->id;
-        $message->from_role_id = session('userid')->role_id;
-        $message->to_id = $request->receiver_id;
-        $message->to_role_id = $request->receiver_role_id;
+        $message->from_id = $senderId;
+        $message->from_role_id = $senderRoleId;
+        $message->to_id = $receiverId;
+        $message->to_role_id = $receiverRoleId;
         $message->body = $request->message;
         $message->seen = 0;
         $message->save();
@@ -436,9 +455,29 @@ class MessagesController extends Controller
 
         // Send notification to receiver
         $senderName = session('userid')->name;
-        broadcast(new MessageNotification($message, $senderName, session('userid')->role_id));
+        $senderRoleId = session('userid')->role_id;
+        broadcast(new MessageNotification($message, $senderName, $senderRoleId));
 
         $this->createMessageNotification($message, $senderName);
+
+        // Send WhatsApp notification to tutor only for student's first outbound message in 30 minutes.
+        if ($receiverRoleId === 2) {
+            if ($shouldSendWhatsApp) {
+                $tutor = tutorregistration::find($receiverId);
+                if ($tutor) {
+                    Log::info('First student->tutor message in window - sending WhatsApp to tutor', [
+                        'student_id' => $senderId,
+                        'tutor_id' => $receiverId,
+                    ]);
+                    $this->sendWhatsAppNotification($tutor, $senderName);
+                }
+            } else {
+                Log::info('Not first student->tutor message in window - skipping WhatsApp to tutor', [
+                    'student_id' => $senderId,
+                    'tutor_id' => $receiverId,
+                ]);
+            }
+        }
 
         // Check if this is an AJAX request
         if (request()->ajax()) {
@@ -1069,12 +1108,28 @@ class MessagesController extends Controller
             'receiver_role_id' => 'required|integer',
         ]);
 
+        $senderId = session('userid')->id;
+        $senderRoleId = session('userid')->role_id;
+        $receiverId = (int) $request->receiver_id;
+        $receiverRoleId = (int) $request->receiver_role_id;
+
+        // Determine WhatsApp eligibility before saving so the new row does not block itself.
+        $shouldSendWhatsApp = false;
+        if ($receiverRoleId === 3) {
+            $shouldSendWhatsApp = $this->isFirstMessageInWindow(
+                $senderId,
+                $senderRoleId,
+                $receiverId,
+                $receiverRoleId
+            );
+        }
+
         // Create new message
         $message = new ChMessage();
-        $message->from_id = session('userid')->id;
-        $message->from_role_id = session('userid')->role_id;
-        $message->to_id = $request->receiver_id;
-        $message->to_role_id = $request->receiver_role_id;
+        $message->from_id = $senderId;
+        $message->from_role_id = $senderRoleId;
+        $message->to_id = $receiverId;
+        $message->to_role_id = $receiverRoleId;
         $message->body = $request->message;
         $message->seen = 0;
         $message->save();
@@ -1084,9 +1139,29 @@ class MessagesController extends Controller
 
         // Send notification to receiver
         $senderName = session('userid')->name;
-        broadcast(new MessageNotification($message, $senderName, session('userid')->role_id));
+        $senderRoleId = session('userid')->role_id;
+        broadcast(new MessageNotification($message, $senderName, $senderRoleId));
 
         $this->createMessageNotification($message, $senderName);
+
+        // Send WhatsApp notification to student only for tutor's first outbound message in 30 minutes.
+        if ($receiverRoleId === 3) {
+            if ($shouldSendWhatsApp) {
+                $student = studentregistration::find($receiverId);
+                if ($student) {
+                    Log::info('First tutor->student message in window - sending WhatsApp to student', [
+                        'tutor_id' => $senderId,
+                        'student_id' => $receiverId,
+                    ]);
+                    $this->sendWhatsAppNotification($student, $senderName);
+                }
+            } else {
+                Log::info('Not first tutor->student message in window - skipping WhatsApp to student', [
+                    'tutor_id' => $senderId,
+                    'student_id' => $receiverId,
+                ]);
+            }
+        }
 
         // Check if this is an AJAX request
         if (request()->ajax()) {
@@ -1137,6 +1212,85 @@ class MessagesController extends Controller
             $notificationdata->save();
         } catch (\Exception $e) {
             \Log::error('Failed to create message notification: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Check if this is the first outbound message in the last 30 minutes.
+     * created_at is stored in UTC, so no timezone conversion is required.
+     *
+     * @param int $fromId Sender ID
+     * @param int $fromRoleId Sender role ID (2 tutor, 3 student)
+     * @param int $toId Receiver ID
+     * @param int $toRoleId Receiver role ID (2 tutor, 3 student)
+     * @return bool True if this is the first message within the 30-minute window
+     */
+    protected function isFirstMessageInWindow(int $fromId, int $fromRoleId, int $toId, int $toRoleId): bool
+    {
+        $windowStartUtc = Carbon::now('UTC')->subMinutes(30);
+
+        // Directional check: only sender->receiver messages count for the "first message" rule.
+        return !ChMessage::where('from_id', $fromId)
+            ->where('from_role_id', $fromRoleId)
+            ->where('to_id', $toId)
+            ->where('to_role_id', $toRoleId)
+            ->where('created_at', '>=', $windowStartUtc)
+            ->exists();
+    }
+
+    /**
+     * Send WhatsApp notification for new message.
+     * Only sends to students and tutors, not admins.
+     *
+     * @param object $recipient The recipient user model
+     * @param string $senderName The name of the sender
+     * @return void
+     */
+    protected function sendWhatsAppNotification($recipient, string $senderName): void
+    {
+        // Only send WhatsApp to students and tutors, not admins
+        if (!in_array($recipient->role_id, [2, 3])) {
+            Log::info('Skipping WhatsApp notification for admin recipient', [
+                'role_id' => $recipient->role_id,
+            ]);
+            return;
+        }
+
+        if (empty($recipient->mobile)) {
+            Log::warning('Recipient has no mobile number for WhatsApp notification', [
+                'recipient_id' => $recipient->id,
+                'role_id' => $recipient->role_id,
+            ]);
+            return;
+        }
+
+        try {
+            Log::info('Sending "New Message" WhatsApp notification', [
+                'recipient_id' => $recipient->id,
+                'recipient_role_id' => $recipient->role_id,
+                'mobile' => $recipient->mobile,
+                'sender_name' => $senderName,
+            ]);
+
+            $whatsApp = new TwilioWhatsAppService();
+            
+            // Template ID 2219 is the "new message" template
+            $sent = $whatsApp->sendMessage(
+                $recipient->mobile,
+                [],   // Empty array because the template is static
+                2219
+            );
+
+            if ($sent) {
+                Log::info("WhatsApp message sent successfully to recipient: {$recipient->mobile}");
+            } else {
+                Log::warning("Failed to send WhatsApp message to {$recipient->mobile}");
+            }
+        } catch (\Exception $e) {
+            Log::error('WhatsApp notification exception', [
+                'recipient_id' => $recipient->id,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 }
