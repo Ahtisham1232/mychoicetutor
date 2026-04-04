@@ -23,6 +23,9 @@ use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\Events\RealTimeMessage;
 use App\Models\Notification;
+use App\Services\TwilioWhatsAppService;
+use Illuminate\Support\Facades\Log;
+use App\Helpers\TimezoneHelper;
 
 class OnlineTestController extends Controller
 {
@@ -30,7 +33,7 @@ class OnlineTestController extends Controller
     {
         $testlists = OnlineTests::select('*', 'online_tests.id as test_id', 'online_tests.name as test_name', 'online_tests.description as test_description', 'online_tests.is_active as test_status', 'classes.name as class_name', 'subjects.name as subject_name', 'online_tests.topic_name as topic_name')
             ->join('classes', 'classes.id', 'online_tests.class_id')
-            ->join('subjects', 'subjects.id', 'online_tests.subject_id')->orderby('online_tests.created_at','desc')
+            ->join('subjects', 'subjects.id', 'online_tests.subject_id')->orderby('online_tests.created_at', 'desc')
             ->paginate(10);
         $classes = classes::where('is_active', 1)->get();
         $subjects = subjects::where('is_active', 1)->get();
@@ -133,6 +136,7 @@ class OnlineTestController extends Controller
         $data->test_start_date = $request->tstartdate;
         $data->test_end_date = $request->testenddate;
         $data->question_id = json_encode($request->questiondata);
+        $data->tutor_id = session('userid')->id;
         $res = $data->save();
 
         if ($res) {
@@ -148,7 +152,7 @@ class OnlineTestController extends Controller
         $classes = (new CommonController)->classes();
         $subjects = subjects::select('*')->where('class_id', $tdata->class_id)->where('is_active', 1)->get();
         $topics = topics::select('*')->where('subject_id', $tdata->subject_id)->where('is_active', 1)->get();
-        $questions = questionbank::select('*')->where('subject_id', $tdata->subject_id)->where('type',$tdata->test_type)->where('is_active', 1)->get();
+        $questions = questionbank::select('*')->where('subject_id', $tdata->subject_id)->where('type', $tdata->test_type)->where('is_active', 1)->get();
         $questiondatas = OnlineTests::select('question_id')->where('id', $tdata->id)->first();
 
         // $questiondata = explode(',', $tdata->question_id);
@@ -174,8 +178,6 @@ class OnlineTestController extends Controller
 
     public function studentexams()
     {
-
-        
         $classes = (new CommonController)->classes();
         $subjects = subjects::where('is_active', 1)->get();
         // $exams = OnlineTests::select('online_tests.*', 'classes.name as class', 'subjects.name as subject', 'topics.name as topic')
@@ -187,7 +189,7 @@ class OnlineTestController extends Controller
             ->where('assign_tests.status', 1)
             ->where('assign_tests.is_attempted', 0)
             ->where('assign_tests.student_id', session('userid')->id)
-             ->orderBy('online_tests.created_at', 'asc')
+            ->orderBy('online_tests.created_at', 'asc')
             // ->paginate(10);
             ->get();
         // dd($exams);
@@ -389,43 +391,43 @@ class OnlineTestController extends Controller
             ->where('student_id', session('userid')->id)
             ->update(['is_attempted' => 1]);
 
-            $tutor_id = AssignTest::select('*')->where('test_id',$test_id)->where('student_id',session('userid')->id)->first();
+        $tutor_id = AssignTest::select('*')->where('test_id', $test_id)->where('student_id', session('userid')->id)->first();
 
-            //////////////// Here I need to pass notification into db
-            $notificationdata = new Notification();
-            $notificationdata->alert_type = 4;
-            $notificationdata->notification = 'Test Attempted By '.session('userid')->name;
-            $notificationdata->initiator_id = session('userid')->id;
-            $notificationdata->initiator_role = session('userid')->role_id;
-            $notificationdata->event_id = $test_id;
-            // Sending to admin
-            // if($request->receiver_role_id == 1){
-            //     $notificationdata->show_to_admin = 1;
-            //     $notificationdata->show_to_admin_id = $request->receiver_id;
-            //     // $notificationdata->show_to_all_admin = 1;
-            // }
-            // Sending to tutor
-            // if($request->receiver_role_id == 2){
-                $notificationdata->show_to_tutor = 1;
-                $notificationdata->show_to_tutor_id = $tutor_id->tutor_id;
-                // $notificationdata->show_to_all_tutor = 0;
-            // }
-            // Sending to student
-            // if($request->receiver_role_id == 3){
-            //     $notificationdata->show_to_student = 1;
-            //     $notificationdata->show_to_student_id = $request->receiver_id;
-            //     // $notificationdata->show_to_all_student = 0;
-            // }
-            // // Sending to parent
-            // if($request->receiver_role_id == 3){
-            //     $notificationdata->show_to_parent = 1;
-            //     $notificationdata->show_to_parent_id = $request->receiver_id;
-            //     // $notificationdata->show_to_all_parent = 0;
-            // }
-            $notificationdata->read_status = 0;
+        //////////////// Here I need to pass notification into db
+        $notificationdata = new Notification();
+        $notificationdata->alert_type = 4;
+        $notificationdata->notification = 'Test Attempted By ' . session('userid')->name;
+        $notificationdata->initiator_id = session('userid')->id;
+        $notificationdata->initiator_role = session('userid')->role_id;
+        $notificationdata->event_id = $test_id;
+        // Sending to admin
+        // if($request->receiver_role_id == 1){
+        //     $notificationdata->show_to_admin = 1;
+        //     $notificationdata->show_to_admin_id = $request->receiver_id;
+        //     // $notificationdata->show_to_all_admin = 1;
+        // }
+        // Sending to tutor
+        // if($request->receiver_role_id == 2){
+        $notificationdata->show_to_tutor = 1;
+        $notificationdata->show_to_tutor_id = $tutor_id->tutor_id;
+        // $notificationdata->show_to_all_tutor = 0;
+        // }
+        // Sending to student
+        // if($request->receiver_role_id == 3){
+        //     $notificationdata->show_to_student = 1;
+        //     $notificationdata->show_to_student_id = $request->receiver_id;
+        //     // $notificationdata->show_to_all_student = 0;
+        // }
+        // // Sending to parent
+        // if($request->receiver_role_id == 3){
+        //     $notificationdata->show_to_parent = 1;
+        //     $notificationdata->show_to_parent_id = $request->receiver_id;
+        //     // $notificationdata->show_to_all_parent = 0;
+        // }
+        $notificationdata->read_status = 0;
 
-            $notified = $notificationdata->save();
-            broadcast(new RealTimeMessage('$notification'));
+        $notified = $notificationdata->save();
+        broadcast(new RealTimeMessage('$notification'));
 
         return response()->json(['message' => 'Test Submitted Successfully']);
     }
@@ -434,7 +436,7 @@ class OnlineTestController extends Controller
         $testId = $request->testId;
         $questionIds = $request->questionIds;
         $savedId = [];
-        $tutor_id = AssignTest::select('*')->where('test_id',$testId)->where('student_id',session('userid')->id)->first();
+        $tutor_id = AssignTest::select('*')->where('test_id', $testId)->where('student_id', session('userid')->id)->first();
 
         if (count($questionIds) > 0) {
             foreach ($questionIds as $questionId) {
@@ -476,7 +478,7 @@ class OnlineTestController extends Controller
 
             $notificationdata = new Notification();
             $notificationdata->alert_type = 4;
-            $notificationdata->notification = 'Test Submitted By '.session('userid')->name;
+            $notificationdata->notification = 'Test Submitted By ' . session('userid')->name;
             $notificationdata->initiator_id = session('userid')->id;
             $notificationdata->initiator_role = session('userid')->role_id;
             $notificationdata->event_id = $testId;
@@ -502,7 +504,7 @@ class OnlineTestController extends Controller
         // $testid = testattempted::where('test_id', $assigntdata->test_id)->first();
         $testid = testattempted::find($id);
         // $onlineTest = OnlineTests::where('id', $testid->test_id)->orderBy('id','desc')->first();
-        $onlineTest = OnlineTests::where('id', $testid->test_id)->orderBy('created_at','asc')->first();
+        $onlineTest = OnlineTests::where('id', $testid->test_id)->orderBy('created_at', 'asc')->first();
 
         if ($onlineTest->test_type == 1) {
 
@@ -583,15 +585,15 @@ class OnlineTestController extends Controller
         $subs = tutorsubjectmapping::pluck('subject_id')->toArray();
         if ($subs) {
             $onlineTests = OnlineTests::select('online_tests.*', 'subjects.name as sub_name', 'classes.name as class_name', 'online_tests.topic_name as topic_name')
-            ->join('classes', 'classes.id', 'online_tests.class_id')
-            ->join('subjects', 'subjects.id', 'online_tests.subject_id')
-            ->join('testattempteds','testattempteds.test_id','online_tests.id')
-            ->join('paymentstudents','paymentstudents.student_id','testattempteds.student_id')
-            ->where('online_tests.subject_id', 'paymentstudents.subject_id')
-            ->where('online_tests.test_type', 2)
-            ->where('paymentstudents.tutor_id', session('userid')->id)
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+                ->join('classes', 'classes.id', 'online_tests.class_id')
+                ->join('subjects', 'subjects.id', 'online_tests.subject_id')
+                ->join('testattempteds', 'testattempteds.test_id', 'online_tests.id')
+                ->join('paymentstudents', 'paymentstudents.student_id', 'testattempteds.student_id')
+                ->where('online_tests.subject_id', 'paymentstudents.subject_id')
+                ->where('online_tests.test_type', 2)
+                ->where('paymentstudents.tutor_id', session('userid')->id)
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
             $classes = classes::where('is_active', 1)->get();
             $subjects = subjects::where('is_active', 1)->get();
             $topics = topics::where('is_active', 1)->get();
@@ -622,15 +624,16 @@ class OnlineTestController extends Controller
                 'classes.name as class_name',
                 'online_tests.topic_name as topic_name'
             )
-            ->join('classes', 'classes.id', '=', 'online_tests.class_id')
-            ->join('subjects', 'subjects.id', '=', 'online_tests.subject_id')
-            ->join('testattempteds', 'testattempteds.test_id', '=', 'online_tests.id')
-            ->join('paymentstudents', 'paymentstudents.student_id', '=', 'testattempteds.student_id')
-            ->where('online_tests.test_type', 2)
-            ->where('paymentstudents.tutor_id', session('userid')->id)
-            ->groupBy('online_tests.id') // Group by the test ID to ensure uniqueness
-            ->orderBy('online_tests.created_at', 'desc')
-            ->paginate(10);
+                ->join('classes', 'classes.id', '=', 'online_tests.class_id')
+                ->join('subjects', 'subjects.id', '=', 'online_tests.subject_id')
+                ->join('testattempteds', 'testattempteds.test_id', '=', 'online_tests.id')
+                ->join('paymentstudents', 'paymentstudents.student_id', '=', 'testattempteds.student_id')
+                ->where('online_tests.test_type', 2)
+                ->where('paymentstudents.tutor_id', session('userid')->id)
+                // ->groupBy('online_tests.id') // Group by the test ID to ensure uniqueness
+                ->distinct()
+                ->orderBy('online_tests.created_at', 'desc')
+                ->paginate(10);
 
             $classes = Classes::where('is_active', 1)->get();
             $subjects = Subjects::where('is_active', 1)->get();
@@ -640,7 +643,6 @@ class OnlineTestController extends Controller
         } else {
             return back()->with('fail', 'No tests Found');
         }
-
     }
 
     public function subjTestsSearch(Request $request)
@@ -788,11 +790,11 @@ class OnlineTestController extends Controller
             $response->status = 1;
             $response->save();
 
-            $student_id = AssignTest::select('*')->where('test_id',$response->test_id)->first();
+            $student_id = AssignTest::select('*')->where('test_id', $response->test_id)->first();
 
             $notificationdata = new Notification();
             $notificationdata->alert_type = 4;
-            $notificationdata->notification = 'Report Submited By '.session('userid')->name;
+            $notificationdata->notification = 'Report Submited By ' . session('userid')->name;
             $notificationdata->initiator_id = session('userid')->id;
             $notificationdata->initiator_role = session('userid')->role_id;
             $notificationdata->event_id = $response->test_id;
@@ -813,9 +815,14 @@ class OnlineTestController extends Controller
 
     public function tutorindex()
     {
+        $tutorId = session('userid')->id;
+        if (!$tutorId) {
+            return redirect()->route('home')->with('fail', 'Please login to access the tutor dashboard.');
+        }
         $testlists = OnlineTests::select('*', 'online_tests.id as test_id', 'online_tests.name as test_name', 'online_tests.description as test_description', 'online_tests.is_active as test_status', 'classes.name as class_name', 'subjects.name as subject_name', 'online_tests.topic_name as topic_name')
             ->join('classes', 'classes.id', 'online_tests.class_id')
             ->join('subjects', 'subjects.id', 'online_tests.subject_id')
+            ->where('online_tests.tutor_id', $tutorId)
             ->orderby('online_tests.created_at', 'desc')
             ->paginate(10);
         $classes = classes::where('is_active', 1)->get();
@@ -851,7 +858,7 @@ class OnlineTestController extends Controller
             ->get();
 
         $test_id = $id;
-        
+
         $studentdata = AssignTest::select('assign_tests.*', 'online_tests.name as test_name', 'studentregistrations.name as student_name')
             ->join('online_tests', 'online_tests.id', 'assign_tests.test_id')
             ->join('studentregistrations', 'studentregistrations.id', 'assign_tests.student_id')
@@ -859,24 +866,26 @@ class OnlineTestController extends Controller
             ->where('assign_tests.tutor_id', session('userid')
                 ->id)->where('assign_tests.is_active', 1)
             ->get();
-// dd($studentdata);
+        // dd($studentdata);
         return view('tutor.assigntest', get_defined_vars());
     }
-    function assigntestdata(Request $request)
+
+    public function assigntestdata(Request $request, TwilioWhatsAppService $whatsApp)
     {
-        // dd($request->all());
         $request->validate([
             'testid' => 'required',
             'student' => 'required',
             'starttime' => 'required',
             'endtime' => 'required',
         ]);
+
         $datachk = AssignTest::select('*')
             ->where('test_id', $request->testid)
             ->where('student_id', $request->student)
             ->where('tutor_id', session('userid')->id)
             ->first();
         // dd($datachk);
+
         if ($datachk) {
             return back()->with('fail', 'Test already assigned to this student');
         }
@@ -893,7 +902,7 @@ class OnlineTestController extends Controller
             //////////////// Here I need to pass notification into db
             $notificationdata = new Notification();
             $notificationdata->alert_type = 4;
-            $notificationdata->notification = 'Test Assigned By '.session('userid')->name;
+            $notificationdata->notification = 'Test Assigned By ' . session('userid')->name;
             $notificationdata->initiator_id = session('userid')->id;
             $notificationdata->initiator_role = session('userid')->role_id;
             $notificationdata->event_id = $request->testid;
@@ -905,14 +914,14 @@ class OnlineTestController extends Controller
             // }
             // Sending to tutor
             // if($request->receiver_role_id == 2){
-                // $notificationdata->show_to_tutor = 1;
-                // $notificationdata->show_to_tutor_id = $tutor_id->tutor_id;
-                // $notificationdata->show_to_all_tutor = 0;
+            // $notificationdata->show_to_tutor = 1;
+            // $notificationdata->show_to_tutor_id = $tutor_id->tutor_id;
+            // $notificationdata->show_to_all_tutor = 0;
             // }
             // Sending to student
             // if($request->receiver_role_id == 3){
-                $notificationdata->show_to_student = 1;
-                $notificationdata->show_to_student_id = $request->student;
+            $notificationdata->show_to_student = 1;
+            $notificationdata->show_to_student_id = $request->student;
             //     // $notificationdata->show_to_all_student = 0;
             // }
             // // Sending to parent
@@ -923,13 +932,68 @@ class OnlineTestController extends Controller
             // }
             $notificationdata->read_status = 0;
 
-            $notified = $notificationdata->save();
+            $notificationdata->save();
+
+
+            // 2. WhatsApp Alert Logic
+            try {
+                $student = studentregistration::find($request->student);
+                $test = OnlineTests::find($request->testid);
+                $tutor = session('userid');
+
+
+                if ($student && !empty($student->mobile)) {
+                    $templateId = 2262;
+                    $studentNumber = $student->mobile;
+
+                    // Format the start time for the student's timezone
+                    // 1. Format both times
+                    $formattedStart = TimezoneHelper::formatInUserTz(
+                        $request->starttime,
+                        'd M Y h:i A',
+                        'UTC',
+                        $student
+                    );
+
+                    $formattedEnd = TimezoneHelper::formatInUserTz(
+                        $request->endtime,
+                        'd M Y h:i A',
+                        'UTC',
+                        $student
+                    );
+
+                    // 2. Map to variables (Ensure your Template ID 2071 has 5 variables now)
+                    $bodyVariables = [
+                        $student->name,    // {{2}}
+                        $tutor->name,      // {{1}}
+                        $test->name,       // {{3}}
+                        $formattedStart,   // {{4}}
+                        $formattedEnd      // {{5}}
+                    ];
+
+                    $sent = $whatsApp->sendMessage(
+                        $studentNumber,
+                        $bodyVariables,
+                        $templateId
+                    );
+
+                    if ($sent) {
+                        Log::info("WhatsApp Test Alert sent to Student", [
+                            'student_id' => $student->id,
+                            'test_id' => $test->id
+                        ]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::error("WhatsApp Student Notification Error: " . $e->getMessage());
+            }
             broadcast(new RealTimeMessage('$notification'));
             return back()->with('success', 'Student assigned to test successfully!');
         } else {
             return back()->with('fail', 'Something went wrong. Please try again later');
         }
     }
+
     function assigntestdelete(Request $request)
     {
         $request->validate([
@@ -1000,12 +1064,15 @@ class OnlineTestController extends Controller
             $data = new OnlineTests();
             $msg = 'Test added successfully';
         }
+        $tutorid = session('userid')->id;
+        // dd($tutorid);
         $data->name = $request->testname;
         $data->test_type = $request->test_type;
         $data->description = $request->testdescription;
+        $data->tutor_id = $tutorid;
         $data->class_id = $request->classname;
         $data->subject_id = $request->subject;
-        $data->topic_name= $request->topic;
+        $data->topic_name = $request->topic;
         $data->max_attempt = 1;
         $data->test_duration = $request->duration;
         $data->test_start_date = Carbon::now();
@@ -1050,7 +1117,7 @@ class OnlineTestController extends Controller
         $classes = (new CommonController)->classes();
         $subjects = subjects::select('*')->where('class_id', $tdata->class_id)->where('is_active', 1)->get();
         $topics = topics::select('*')->where('subject_id', $tdata->subject_id)->where('is_active', 1)->get();
-        $questions = questionbank::select('*')->where('subject_id', $tdata->subject_id)->where('type',$tdata->test_type)->where('is_active', 1)->get();
+        $questions = questionbank::select('*')->where('subject_id', $tdata->subject_id)->where('type', $tdata->test_type)->where('is_active', 1)->get();
         $questiondatas = OnlineTests::select('question_id')->where('id', $tdata->id)->first();
 
         // $questiondata = explode(',', $tdata->question_id);
@@ -1195,7 +1262,7 @@ class OnlineTestController extends Controller
         $assigntdata = AssignTest::find($id);
         $testid = testattempted::where('test_id', $assigntdata->test_id)->first();
         $onlineTest = OnlineTests::where('id', $testid->test_id)->first();
-       
+
         if ($onlineTest->test_type == 1) {
             $questionIds = json_decode($onlineTest->question_id);
             $responseIds = json_decode($testid->response_id);
@@ -1247,9 +1314,9 @@ class OnlineTestController extends Controller
                 $responseIds = json_decode($firstResponse->response_id);
 
                 $finalResponses = SubjectiveResponse::select('subjective_responses.*', 'questionbanks.question')
-                                    ->join('questionbanks', 'questionbanks.id', 'subjective_responses.question_id')
-                                    ->whereIn('subjective_responses.id', $responseIds)
-                                    ->get();
+                    ->join('questionbanks', 'questionbanks.id', 'subjective_responses.question_id')
+                    ->whereIn('subjective_responses.id', $responseIds)
+                    ->get();
 
                 $uncheckedResponses = $finalResponses->first(function ($response) {
                     return $response->checked == 0;
@@ -1259,11 +1326,11 @@ class OnlineTestController extends Controller
                     return back()->with('fail', 'Test not yet checked. Please wait or contact tutor');
                 } else {
                     $test = OnlineTests::find($firstResponse->test_id);
-                   
+
                     $questionIds = json_decode($test->question_id);
                     $questions = questionbank::whereIn('id', $questionIds)->get();
                     $student = studentregistration::find($assigntdata->student_id);
-                    
+
                     return view('tutor.onlinetestresponsesreport-tutor', get_defined_vars());
                 }
                 // iuiuiuuii //
@@ -1271,7 +1338,6 @@ class OnlineTestController extends Controller
 
 
             }
-
         }
     }
 
@@ -1322,10 +1388,10 @@ class OnlineTestController extends Controller
 
         // Apply search
         if ($search) {
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('question', 'like', '%' . $search . '%')
-                  ->orWhere('topic_name', 'like', '%' . $search . '%')
-                  ->orWhere('remarks', 'like', '%' . $search . '%');
+                    ->orWhere('topic_name', 'like', '%' . $search . '%')
+                    ->orWhere('remarks', 'like', '%' . $search . '%');
             });
         }
 
@@ -1376,7 +1442,7 @@ class OnlineTestController extends Controller
         ]);
 
         $questionType = (int)$request->type;
-        
+
         if ($questionType == 1) {
             $request->validate([
                 'optiona' => 'required',
@@ -1412,7 +1478,7 @@ class OnlineTestController extends Controller
                 $data->correct_option = $request->optiond;
             }
         }
-
+        $data->tutor_id = session('userid')->id;
         $res = $data->save();
 
         if ($res) {
