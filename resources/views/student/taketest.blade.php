@@ -71,6 +71,13 @@
                     background-color: #6c757d !important;
                     border-color: #6c757d !important;
                 }
+                .timer{
+                    background: #6161c9;
+                    color: white;
+                    padding: 11px;
+                    border: none;
+                    border-radius: 20px;
+                }
             </style>
 
             <div class="page-content">

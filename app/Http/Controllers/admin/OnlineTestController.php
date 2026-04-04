@@ -26,6 +26,7 @@ use App\Models\Notification;
 use App\Services\TwilioWhatsAppService;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\TimezoneHelper;
+use App\Models\tutorregistration;
 
 class OnlineTestController extends Controller
 {
@@ -275,19 +276,12 @@ class OnlineTestController extends Controller
     {
 
         $onlineTest = OnlineTests::where('id', $id)
-            // ->where('class_id', session('userid')->class_id)
             ->first();
 
-        // echo session('userid')->class_id;
-        // echo $id;
-        // dd($onlineTest);
         // Decode the JSON string to an array
-
         $questionIds = json_decode($onlineTest->question_id);
-
         // Fetch the related questions using the decoded question_ids array
         $questions = Questionbank::whereIn('id', $questionIds)->get();
-
 
         return view('student.taketest', compact('onlineTest', 'questions'));
     }
@@ -312,9 +306,8 @@ class OnlineTestController extends Controller
 
 
 
-    public function saveResponses(Request $request)
+    public function saveResponses(Request $request, TwilioWhatsAppService $whatsApp)
     {
-
         $responses = $request->input('responses'); // Assuming the responses are sent as an array
 
         $savedId = [];
@@ -323,10 +316,6 @@ class OnlineTestController extends Controller
         foreach ($responses as $response) {
             if ($response) {
                 $values = explode(',', $response);
-
-                // Question ID = $values[0]
-                // Selection Option = $values[1]
-                // Test ID = $values[2]
 
                 $copt = questionbank::select('*')->where('id', $values[0])->first();
                 $correctOption = $copt['correct_option'];
@@ -363,10 +352,6 @@ class OnlineTestController extends Controller
                 $savedId[] = $data->id;
                 $test_id = $values[2];
 
-
-
-
-                // dd();
             }
         }
         // calculating the total marks
@@ -426,11 +411,59 @@ class OnlineTestController extends Controller
         // }
         $notificationdata->read_status = 0;
 
-        $notified = $notificationdata->save();
+        $notificationdata->save();
+
+        // 2. WhatsApp Alert Logic to Tutor
+        try {
+            // We already have $tutor_id from your AssignTest query
+            $tutor = tutorregistration::find($tutor_id->tutor_id); 
+            $student = session('userid'); // The logged-in student
+            $test = OnlineTests::find($test_id);
+
+            if ($tutor && !empty($tutor->mobile)) {
+                // Use the new Template ID you created for Submissions (e.g., 2263)
+                $templateId = 2263; 
+                $tutorNumber = $tutor->mobile;
+
+                // Note: For tutors, we usually show the time in their local timezone
+                $submittedAt = TimezoneHelper::formatInUserTz(
+                    now(), 
+                    'd M Y h:i A', 
+                    'UTC', 
+                    $tutor
+                );
+
+                // Map to variables based on: 
+                $bodyVariables = [
+                    $student->name,    // {{1}}
+                    $test->name,       // {{2}}
+                    $submittedAt,      // {{3}}
+                ];
+
+                // Ensure $whatsApp is initialized (e.g., $whatsApp = new VeevoTechService())
+                $sent = $whatsApp->sendMessage(
+                    $tutorNumber,
+                    $bodyVariables,
+                    $templateId
+                );
+
+                if ($sent) {
+                    Log::info("WhatsApp Submission Alert sent to Tutor", [
+                        'tutor_id' => $tutor->id,
+                        'student_id' => $student->id
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // We log it so the student doesn't see a 500 error if WhatsApp fails
+            Log::error("WhatsApp Tutor Submission Notification Error: " . $e->getMessage());
+        }
+
         broadcast(new RealTimeMessage('$notification'));
 
         return response()->json(['message' => 'Test Submitted Successfully']);
     }
+
     public function saveSubjectiveResponses(Request $request)
     {
         $testId = $request->testId;
