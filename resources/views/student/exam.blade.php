@@ -29,7 +29,7 @@
                     <div class="alert alert-danger">{{ Session::get('fail') }}</div>
                 @endif
            <form action="{{route('student.exams-search')}}" method="POST">
-            @csrf
+                 @csrf
                     <div class="row ">
                         <div class="col-md-3 mt-4">
                             <select name="class_name" class="form-control" id="classname" onchange="fetchSubjects()">
@@ -51,11 +51,16 @@
                             <input type="text" class="form-control" placeholder="Enter Topic" name="topic">
                         </div>
 
-
-
                         <div class="col-md-3 mt-4">
-                            <button class="btn  btn-primary" type="submit" style="float:right"> <span
-                                class="fa fa-search"></span> Search</button>
+                            <div class="form-group d-flex gap-1 justify-content-end">
+                                <button class="btn btn-primary" type="submit">
+                                    <span class="fa fa-search"></span> Search
+                                </button>
+
+                                <a href="{{ url()->current() }}" class="btn btn-primary rounded-pill">
+                                    <span class="fa fa-refresh"></span> Reset
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -65,7 +70,6 @@
                 <div id="" class="mt-3 listHeader page-title-box">
                     <h3>My Examination</h3>
                 </div>
-
 
 
                 <div class="table-responsive">
@@ -110,8 +114,6 @@
                                     <td>{{ \Carbon\Carbon::parse($exam->test_start_date)->format('d-m-Y h:i A') }}</td>
                                     <td>{{ \Carbon\Carbon::parse($exam->test_end_date)->format('d-m-Y h:i A') }}</td>
 
-                                    {{-- <td><a href="{{ url('student/taketest') }}/{{ $exam->id }}"
-                                            class="badge bg-success">Start Test</a></td> --}}
                                         @if (session('usertype') == 'Parent')
                                             @else
                                             <td><a @if($exam->test_type ==1) href="{{ url('student/taketest') }}/{{ $exam->id }}" @elseif($exam->test_type ==2)href="{{ url('student/taketest-subjective') }}/{{ $exam->id }} @endif"
@@ -122,7 +124,6 @@
                                 @php
                                     $i++;
                                 @endphp
-                            {{-- @endif --}}
                         @endforeach
 
 

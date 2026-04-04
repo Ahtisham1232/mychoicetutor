@@ -993,7 +993,7 @@
                             ` : ''}
                         </div>
                         <button type="button" class="btn btn-sm btn-danger remove-created-question" data-question-id="${question.id}">
-                            <i class="fas fa-times"></i>
+                            <i class="fa fa-times"></i>
                         </button>
                     </div>
                 </div>

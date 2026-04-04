@@ -14,27 +14,32 @@
                     justify-content: space-between;
                 }
             </style>
+            <style>
+                .newclass td,
+                .newclass th {
+                    padding: 2px !important
+                }
+            </style>
 
             <div class="page-content">
                 <div class="container-fluid">
-            <!-- <h3 class="text-center"></h3> -->
-            @if (Session::has('success'))
-            <div class="alert alert-success">{{ Session::get('success') }}</div>
-            <br>
-            @endif
-            @if (Session::has('fail'))
-            <div class="alert alert-danger">{{ Session::get('fail') }}</div>
-            <br>
-            @endif
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+                @if (Session::has('success'))
+                <div class="alert alert-success">{{ Session::get('success') }}</div>
+                <br>
+                @endif
+                @if (Session::has('fail'))
+                <div class="alert alert-danger">{{ Session::get('fail') }}</div>
+                <br>
+                @endif
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
             <div id="listHeader" class="mb-3 listHeader page-title-box">
                 <h3>Online Test Assignments</h3>
                 
@@ -44,9 +49,10 @@
             </div>
             <form action="{{route('tutor.assigntestdata')}}" method="POST">
                 @csrf
-            <div class="row">
+            <div class="row align-items-end">
                 <input type="hidden" id="testid" name="testid" value="{{$test_id}}" required>
                 <div class="col-md-3">
+                    <label for="testid">Select Student</label>
                     <select class="form-control" id="student" name="student" required>
                         <option value="">Select Student</option>
                         @foreach ($students as $student)
@@ -55,9 +61,11 @@
                     </select>
                 </div>
                 <div class="col-md-3">
+                    <label for="starttime">Test Start Time</label>
                     <input class="form-control" type="datetime-local" id="starttime" name="starttime" required>
                 </div>
                 <div class="col-md-3">
+                    <label for="endtime">Test End Time</label>
                     <input class="form-control" type="datetime-local" id="endtime" name="endtime" required>
                 </div>
                 <div class="col-md-3 mt-1">
@@ -158,14 +166,8 @@
                             <th scope="col">S.No</th>
                             <th>Test Name</th>
                             <th>Student Name</th>
-                            {{-- <th scope="col">Class</th> --}}
-                            {{-- <th scope="col">Subject</th> --}}
-                            {{-- <th scope="col">Topic</th> --}}
-                            {{-- <th>Duration(min)</th> --}}
-                            {{-- <th>Max Attempt</th> --}}
                             <th>Test Start Date</th>
                             <th>Test End Date</th>
-                            {{-- <th>Assign Test</th> --}}
                             <th>Attempted?</th>
                             <th>Status</th>
                             <th scope="col">Action</th>
@@ -229,13 +231,11 @@
         </div>
          <!--Student List modal -->
          <div class="modal fade" id="studentlistmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-         aria-hidden="true">
-         <div class="modal-dialog">
+            aria-hidden="true">
+            <div class="modal-dialog">
              <div class="modal-content">
 
-
                  <div class="modal-body">
-
 
                      <header>
                          <h3 class="text-center mb-4">Student List</h3>
@@ -246,12 +246,7 @@
                          <div class="row">
                              <div class="col-12 col-md-12 col-ms-12 mb-3">
                                  <input type="hidden" id="assigntestid" name="assigntestid">
-                                 <style>
-                                 .newclass td,
-                                 .newclass th {
-                                     padding: 2px !important
-                                 }
-                                 </style>
+
                                  <table class="table table-bordered newclass" style="margin: 0%;">
                                      <thead>
                                          <tr>
@@ -262,13 +257,13 @@
                                      </thead>
                                      <tbody id="studentlist">
                                         <tr>
-                                       @foreach ($students as $student)
-                                           <td>{{$loop->iteration}}</td>
-                                           <td>{{$student->name}}</td>
-                                           <td>
-                                            <input type="checkbox" name="selected_students[]" value="{{$student->id}}">
-                                        </td>
-                                       @endforeach
+                                            @foreach ($students as $student)
+                                                <td>{{$loop->iteration}}</td>
+                                                <td>{{$student->name}}</td>
+                                                <td>
+                                                    <input type="checkbox" name="selected_students[]" value="{{$student->id}}">
+                                                </td>
+                                            @endforeach
                                         </tr>
                                     </tbody>
                                  </table>
@@ -280,41 +275,39 @@
                          <button type="button" class="btn btn-sm btn-danger mr-1 moveRight" style="margin-right: 5px"
                              data-dismiss="modal" onclick="closeassignmodal()"><span class="fa fa-times"></span> Close</button>
 
-
-
                      </form>
                  </div>
              </div>
-         </div>
-     </div>
-     <!--recording warning modal -->
-     <div class="modal fade" id="warningModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
-     <div class="modal-dialog">
-         <div class="modal-content">
+            </div>
+        </div>
+        <!--recording warning modal -->
+        <div class="modal fade" id="warningModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
 
-             <form action="{{route('tutor.assigntest.delete')}}" method="POST">
-                 @csrf
-                 <input id="assigntestdeleteid" name="assigntestdeleteid" type="hidden">
-             <div class="modal-body">
+                    <form action="{{route('tutor.assigntest.delete')}}" method="POST">
+                        @csrf
+                        <input id="assigntestdeleteid" name="assigntestdeleteid" type="hidden">
+                            <div class="modal-body">
 
-                 <header>
-                     <h3 class="text-center mb-4 text-danger"><u>Warning!</u></h3>
-                 </header>
+                                <header>
+                                    <h3 class="text-center mb-4 text-danger"><u>Warning!</u></h3>
+                                </header>
 
-                 <h4 class="">Are you sure to <span style="color: red"> Delete</span> this record?</h4>
-                 <p>Once the record is deleted, it cannot be recovered, and any student to whom this test was assigned will also no longer be able to access this test.</p>
-                 <br>
-                 
-                 <div id='warningbtn' style="float:right; margin-bottom:10px">
-                     <button class="btn btn-success btn-sm" type="submit">Delete</button>
-                     <button class="btn btn-danger btn-sm" type="button" onclick="hidewarning()">Cancel</button>
-                 </div>
-             </div>
-             </form>
-         </div>
-     </div>
- </div>
+                                <h4 class="">Are you sure to <span style="color: red"> Delete</span> this record?</h4>
+                                <p>Once the record is deleted, it cannot be recovered, and any student to whom this test was assigned will also no longer be able to access this test.</p>
+                                <br>
+                                
+                                <div id='warningbtn' style="float:right; margin-bottom:10px">
+                                    <button class="btn btn-success btn-sm" type="submit">Delete</button>
+                                    <button class="btn btn-danger btn-sm" type="button" onclick="hidewarning()">Cancel</button>
+                                </div>
+                            </div>
+                    </form>
+                </div>
+            </div>
+        </div>
         <!-- content-wrapper ends -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script>
@@ -406,14 +399,14 @@
 
         </script>
         <script>
-        function studentlistmodal(id){
-       document.getElementById('assigntestid').value = id;
-        $('#studentlistmodal').modal('show');
-        }
+            function studentlistmodal(id){
+            document.getElementById('assigntestid').value = id;
+            $('#studentlistmodal').modal('show');
+            }
 
-        function closeassignmodal(){
-            $('#studentlistmodal').modal('hide');
-        }
+            function closeassignmodal(){
+                $('#studentlistmodal').modal('hide');
+            }
 
         </script>
     @endsection

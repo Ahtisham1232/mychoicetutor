@@ -70,19 +70,76 @@
             }
             @endif
         </style>
+        <style>
+            .listHeader {
+                display: flex;
+                justify-content: space-between;
+            }
 
+            .studentpop tr td {
+                margin: 0;
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+
+
+            }
+
+            .my-custom-scrollbar {
+                position: relative;
+                height: 200px;
+                overflow: auto;
+            }
+
+            .table-wrapper-scroll-y {
+                display: block;
+            }
+
+            select option:nth-child(odd) {
+                background: rgb(227, 226, 226);
+            }
+
+            select option:checked {
+                background-color: rgb(47, 255, 0);
+                /* color:white; */
+            }
+
+            select option:hover {
+                background-color: rgb(47, 255, 0);
+            }
+
+            .select-checkbox option::before {
+                content: "\2610";
+                width: 1.3em;
+                text-align: center;
+                display: inline-block;
+            }
+
+            .select-checkbox option:checked::before {
+                content: "\2611";
+            }
+
+            .select-checkbox-fa option::before {
+                font-family: FontAwesome;
+                content: "\f096";
+                width: 1.3em;
+                display: inline-block;
+                margin-left: 2px;
+            }
+
+            .select-checkbox-fa option:checked::before {
+                content: "\f046";
+            }
+            .btn-outline-success{
+                color: #007bff;
+            }
+            </style>
 
 
         <!-- ============================================================== -->
         <!-- Start right Content here -->
         <!-- ============================================================== -->
         <div class="main-content">
-            <style>
-                .listHeader {
-                    display: flex;
-                    justify-content: space-between;
-                }
-            </style>
+         
 
             <div class="page-content">
                 <div class="container-fluid">
@@ -93,18 +150,17 @@
                 <div class="alert alert-danger">{{ Session::get('fail') }}</div>
             @endif
 
-            <!-- <h3 class="text-center"></h3> -->
-            <div id="" class="mb-3 page-title-box listHeader">
+            <div class="mb-3 page-title-box listHeader d-flex justify-content-between align-items-center">
                 <div>
                     <h3>{{ isset($tdata) ? 'Edit Test Series' : 'Create Test Series' }}</h3>
                     @if(isset($tdata))
                         <span class="badge badge-lg {{ $tdata->test_type == 1 ? 'badge-primary' : 'badge-warning' }} mt-2">
-                            <i class="fas {{ $tdata->test_type == 1 ? 'fa-check-circle' : 'fa-edit' }}"></i>
+                            <i class="fa {{ $tdata->test_type == 1 ? 'fa-check-circle' : 'fa-edit' }}"></i>
                             {{ $tdata->test_type == 1 ? 'Objective Test (Multiple Choice)' : 'Subjective Test (Descriptive)' }}
                         </span>
                     @else
                         <span class="badge badge-lg badge-info mt-2" id="testTypeIndicator">
-                            <i class="fas fa-question-circle"></i>
+                            <i class="fa fa-question-circle"></i>
                             Select Test Type Below
                         </span>
                     @endif
@@ -114,67 +170,10 @@
 
             <form action="{{ route('tutor.onlinetests.store') }}" method="POST">
                 @csrf
-                <style>
-                    .studentpop tr td {
-                        margin: 0;
-                        padding-top: 0 !important;
-                        padding-bottom: 0 !important;
-
-
-                    }
-
-                    .my-custom-scrollbar {
-                        position: relative;
-                        height: 200px;
-                        overflow: auto;
-                    }
-
-                    .table-wrapper-scroll-y {
-                        display: block;
-                    }
-
-                    /* select option:nth-child(even) {
-                                    background: rgb(231, 231, 231);
-                                } */
-                    select option:nth-child(odd) {
-                        background: rgb(227, 226, 226);
-                    }
-
-                    select option:checked {
-                        background-color: rgb(47, 255, 0);
-                        /* color:white; */
-                    }
-
-                    select option:hover {
-                        background-color: rgb(47, 255, 0);
-                    }
-
-                    .select-checkbox option::before {
-                        content: "\2610";
-                        width: 1.3em;
-                        text-align: center;
-                        display: inline-block;
-                    }
-
-                    .select-checkbox option:checked::before {
-                        content: "\2611";
-                    }
-
-                    .select-checkbox-fa option::before {
-                        font-family: FontAwesome;
-                        content: "\f096";
-                        width: 1.3em;
-                        display: inline-block;
-                        margin-left: 2px;
-                    }
-
-                    .select-checkbox-fa option:checked::before {
-                        content: "\f046";
-                    }
-                </style>
+            
                 <div class="test-type-section">
                     <h5 class="text-primary mb-3">
-                        <i class="fas fa-cogs"></i> Test Configuration
+                        <i class="fa fa-cogs"></i> Test Configuration
                     </h5>
                     <div class="row">
                         <input type="hidden" id="id" name="id" value="{{ $tdata->id ?? '' }}" class="form-control">
@@ -193,92 +192,92 @@
                             <small class="text-muted">Test type cannot be changed once questions are added</small>
                             @endif
                         </div>
-                    <div class="col-md-3 col-sm-3 col-12">
-                        <label for="">Test Name<i style="color: red">*</i></label>
-                        <input type="text" class="form-control" id="testname" name="testname"
-                            value="{{ $tdata->name ?? '' }}" required>
-                        <span class="text-danger">
-                            @error('testname')
-                                {{ 'Please enter test name' }}
-                            @enderror
-                        </span>
-                    </div>
-                    <div class="col-md-6 col-sm-3 col-12">
-                        <label for="">Test Description<i style="color: red">*</i></label>
-                        <textarea type="text" class="form-control" id="testdescription"  name="testdescription" required>{{ $tdata->description ?? '' }}</textarea>
-                        <span class="text-danger">
-                            @error('testdescription')
-                                {{ 'Please enter test description' }}
-                            @enderror
-                        </span>
-                    </div>
-                    <div class="col-md-3 col-sm-3 col-12">
-                        <label for="">Class<i style="color:red">*</i></label>
-                        <select type="text" class="form-control" id="classname" name="classname"
-                            onchange="fetchSubjects();" required>
-                            <option value="">--Select--</option>
-                            @foreach ($classes as $class)
-                                <option value="{{ $class->id }}"
-                                    @if ($tdata->class_id ?? '') @if ($class->id == $tdata->class_id)
-                                    selected @endif
-                                    @endif>{{ $class->name }}</option>
-                            @endforeach
-                        </select>
-                        <span class="text-danger">
-                            @error('classname')
-                                {{ 'Please select class' }}
-                            @enderror
-                        </span>
-                    </div>
-                    <div class="col-md-3 col-sm-3 col-12 mt-2">
-                        <label for="">Subject<i style="color:red">*</i></label>
-                        <select type="text" class="form-control" id="subject" name="subject" onchange="fetchQuestions();"
-                            required>
-                            @if ($tdata ?? '')
-                                @foreach ($subjects as $subject)
-                                    <option
-                                        value="{{ $subject->id }}"@if ($tdata->subject_id ?? '') @if ($subject->id == $tdata->subject_id)
-                                    selected @endif
-                                        @endif>{{ $subject->name }}</option>
+                        <div class="col-md-3 col-sm-3 col-12">
+                            <label for="">Test Name<i style="color: red">*</i></label>
+                            <input type="text" class="form-control" id="testname" name="testname"
+                                value="{{ $tdata->name ?? '' }}" required>
+                            <span class="text-danger">
+                                @error('testname')
+                                    {{ 'Please enter test name' }}
+                                @enderror
+                            </span>
+                        </div>
+                        <div class="col-md-6 col-sm-3 col-12">
+                            <label for="">Test Description<i style="color: red">*</i></label>
+                            <textarea type="text" class="form-control" id="testdescription"  name="testdescription" required>{{ $tdata->description ?? '' }}</textarea>
+                            <span class="text-danger">
+                                @error('testdescription')
+                                    {{ 'Please enter test description' }}
+                                @enderror
+                            </span>
+                        </div>
+                        <div class="col-md-3 col-sm-3 col-12">
+                            <label for="">Class<i style="color:red">*</i></label>
+                            <select type="text" class="form-control" id="classname" name="classname"
+                                onchange="fetchSubjects();" required>
+                                <option value="">--Select--</option>
+                                @foreach ($classes as $class)
+                                    <option value="{{ $class->id }}"
+                                        @if ($tdata->class_id ?? '') @if ($class->id == $tdata->class_id)
+                                        selected @endif
+                                        @endif>{{ $class->name }}</option>
                                 @endforeach
-                            @endif
-                        </select>
-                        <span class="text-danger">
-                            @error('subject')
-                                {{ 'Please select subject' }}
-                            @enderror
-                        </span>
+                            </select>
+                            <span class="text-danger">
+                                @error('classname')
+                                    {{ 'Please select class' }}
+                                @enderror
+                            </span>
+                        </div>
+                        <div class="col-md-3 col-sm-3 col-12 mt-2">
+                            <label for="">Subject<i style="color:red">*</i></label>
+                            <select type="text" class="form-control" id="subject" name="subject" onchange="fetchQuestions();"
+                                required>
+                                @if ($tdata ?? '')
+                                    @foreach ($subjects as $subject)
+                                        <option
+                                            value="{{ $subject->id }}"@if ($tdata->subject_id ?? '') @if ($subject->id == $tdata->subject_id)
+                                        selected @endif
+                                            @endif>{{ $subject->name }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            <span class="text-danger">
+                                @error('subject')
+                                    {{ 'Please select subject' }}
+                                @enderror
+                            </span>
 
-                    </div>
-                    <div class="col-md-3 col-sm-3 col-12 mt-2">
-                        <label for="">Topic<i style="color:red">*</i></label>
-                        <input type="text" class="form-control" id="topic" name="topic" value="{{$tdata->topic_name ?? ''}}">
-                        <span class="text-danger">
-                            @error('topic')
-                                {{ 'Please enter topic' }}
-                            @enderror
-                        </span>
-                    </div>
+                        </div>
+                        <div class="col-md-3 col-sm-3 col-12 mt-2">
+                            <label for="">Topic<i style="color:red">*</i></label>
+                            <input type="text" class="form-control" id="topic" name="topic" value="{{$tdata->topic_name ?? ''}}">
+                            <span class="text-danger">
+                                @error('topic')
+                                    {{ 'Please enter topic' }}
+                                @enderror
+                            </span>
+                        </div>
                     {{-- <div class="col-md-3 col-sm-3 col-12 mt-2">
-                        <label for="">Max Attempt<i style="color: red">*</i></label>
-                        <input type="number" class="form-control" id="maxattempt" name="maxattempt"
-                            value="{{ $tdata->max_attempt ?? '' }}" required>
-                        <span class="text-danger">
-                            @error('maxattempt')
-                                {{ 'Please enter max attempts' }}
-                            @enderror
-                        </span>
-                    </div> --}}
-                    <div class="col-md-3 col-sm-3 col-12 mt-2">
-                        <label for="">Duration(minutes)<i style="color: red">*</i></label>
-                        <input type="number" class="form-control" id="duration" name="duration"
-                            value="{{ $tdata->test_duration ?? '' }}" required>
-                        <span class="text-danger">
-                            @error('duration')
-                                {{ 'Please enter test duration' }}
-                            @enderror
-                        </span>
-                    </div>
+                            <label for="">Max Attempt<i style="color: red">*</i></label>
+                            <input type="number" class="form-control" id="maxattempt" name="maxattempt"
+                                value="{{ $tdata->max_attempt ?? '' }}" required>
+                            <span class="text-danger">
+                                @error('maxattempt')
+                                    {{ 'Please enter max attempts' }}
+                                @enderror
+                            </span>
+                        </div> --}}
+                        <div class="col-md-3 col-sm-3 col-12 mt-2">
+                            <label for="">Duration(minutes)<i style="color: red">*</i></label>
+                            <input type="number" class="form-control" id="duration" name="duration"
+                                value="{{ $tdata->test_duration ?? '' }}" required>
+                            <span class="text-danger">
+                                @error('duration')
+                                    {{ 'Please enter test duration' }}
+                                @enderror
+                            </span>
+                        </div>
 
                     {{-- <div class="col-md-3 col-sm-3 col-12 mt-2">
                         <label for="">Test Start Date<i style="color: red">*</i></label>
@@ -289,19 +288,19 @@
                                 {{ 'Please select test start date' }}
                             @enderror
                         </span>
-                    </div>
+                        </div>
 
-                    <div class="col-md-3 col-sm-3 col-12 mt-2">
-                        <label for="">Test End Date<i style="color: red">*</i></label>
-                        <input type="datetime-local" class="form-control" id="testenddate" name="testenddate"
-                            value="{{ $tdata->test_end_date ?? '' }}" required>
-                        <span class="text-danger">
-                            @error('testenddate')
-                                {{ 'Please select test end date' }}
-                            @enderror
-                        </span>
-                    </div> --}}
-                </div>
+                        <div class="col-md-3 col-sm-3 col-12 mt-2">
+                            <label for="">Test End Date<i style="color: red">*</i></label>
+                            <input type="datetime-local" class="form-control" id="testenddate" name="testenddate"
+                                value="{{ $tdata->test_end_date ?? '' }}" required>
+                            <span class="text-danger">
+                                @error('testenddate')
+                                    {{ 'Please select test end date' }}
+                                @enderror
+                            </span>
+                        </div> --}}
+                    </div>
 
 
                 <!-- All-in-One Quiz Builder Section -->
@@ -309,8 +308,8 @@
                     <div class="col-md-12">
                         <div class="card border-primary">
                             <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-question-circle"></i> Build Your Quiz
+                                <h5 class="mb-0" style="color: black">
+                                    <i class="fa fa-question-circle"></i> Build Your Quiz
                                     <span class="badge badge-light ml-2" id="totalQuestionsBadge">0 questions</span>
                                 </h5>
                             </div>
@@ -319,17 +318,17 @@
                                 <ul class="nav nav-tabs mb-3" id="quizBuilderTabs" role="tablist">
                                     <li class="nav-item">
                                         <a class="nav-link {{ isset($tdata) ? '' : 'active' }}" id="create-questions-tab" data-toggle="tab" href="#create-questions" role="tab">
-                                            <i class="fas fa-plus-circle"></i> Create Questions
+                                            <i class="fa fa-plus-circle"></i> Create Questions
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" id="select-questions-tab" data-toggle="tab" href="#select-questions" role="tab">
-                                            <i class="fas fa-list"></i> Use Existing Questions
+                                            <i class="fa fa-list"></i> Use Existing Questions
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link {{ isset($tdata) ? 'active' : '' }}" id="preview-tab" data-toggle="tab" href="#preview" role="tab">
-                                            <i class="fas fa-eye"></i> Preview Quiz
+                                            <i class="fa fa-eye"></i> Preview Quiz
                                         </a>
                                     </li>
                                 </ul>
@@ -339,13 +338,13 @@
                                     <!-- Tab 1: Create Questions -->
                                     <div class="tab-pane fade {{ isset($tdata) ? '' : 'show active' }}" id="create-questions" role="tabpanel">
                                         <div class="alert alert-info">
-                                            <i class="fas fa-lightbulb"></i> <strong>Tip:</strong> Create questions directly here. They'll be automatically added to your quiz!
+                                            <i class="fa fa-lightbulb"></i> <strong>Tip:</strong> Create questions directly here. They'll be automatically added to your quiz!
                                         </div>
                                         
                                         <!-- Quick Question Form -->
                                         <div class="card border-success mb-3">
                                             <div class="card-header bg-success text-white">
-                                                <h6 class="mb-0"><i class="fas fa-plus"></i> Add New Question</h6>
+                                                <h6 class="mb-0"><i class="fa fa-plus"></i> Add New Question</h6>
                                             </div>
                                             <div class="card-body">
                                                 <div id="inlineQuestionForm">
@@ -414,13 +413,13 @@
                                                     <div class="row mt-3">
                                                         <div class="col-md-12">
                                                             <button type="button" class="btn btn-success btn-lg" id="btnAddQuestionInline">
-                                                                <i class="fas fa-plus"></i> Add Question to Quiz
+                                                                <i class="fa fa-plus"></i> Add Question to Quiz
                                                             </button>
-                                                            <button type="button" class="btn btn-outline-secondary" id="btnClearQuestionForm">
-                                                                <i class="fas fa-redo"></i> Clear Form
+                                                            <button type="button" class="btn btn-primary" id="btnClearQuestionForm">
+                                                                <i class="fa fa-redo"></i> Clear Form
                                                             </button>
                                                             <small class="text-muted ml-3">
-                                                                <i class="fas fa-info-circle"></i> Make sure Class, Subject, and Test Type are selected above
+                                                                <i class="fa fa-info-circle"></i> Make sure Class, Subject, and Test Type are selected above
                                                             </small>
                                                         </div>
                                                     </div>
@@ -430,10 +429,10 @@
 
                                         <!-- Created Questions List -->
                                         <div id="createdQuestionsList">
-                                            <h6 class="mb-3"><i class="fas fa-list"></i> Questions Added to Quiz</h6>
+                                            <h6 class="mb-3"><i class="fa fa-list"></i> Questions Added to Quiz</h6>
                                             <div id="createdQuestionsContainer">
                                                 <div class="alert alert-warning">
-                                                    <i class="fas fa-info-circle"></i> No questions created yet. Use the form above to add questions.
+                                                    <i class="fa fa-info-circle"></i> No questions created yet. Use the form above to add questions.
                                                 </div>
                                             </div>
                                         </div>
@@ -442,18 +441,18 @@
                                     <!-- Tab 2: Select Existing Questions -->
                                     <div class="tab-pane fade" id="select-questions" role="tabpanel">
                                         <div class="alert alert-info">
-                                            <i class="fas fa-info-circle"></i> Select questions from your question bank. Make sure you've selected Class and Subject above first.
+                                            <i class="fa fa-info-circle"></i> Select questions from your question bank. Make sure you've selected Class and Subject above first.
                                         </div>
                                         
                                         <div class="text-center mb-3">
                                             <button type="button" class="btn btn-primary btn-lg" id="btnSelectQuestions">
-                                                <i class="fas fa-list"></i> Browse Question Bank
+                                                <i class="fa fa-list"></i> Browse Question Bank
                                             </button>
                                         </div>
 
                                         <div id="selectedQuestionsContainer">
                                             <div class="alert alert-warning">
-                                                <i class="fas fa-info-circle"></i> No questions selected from question bank yet.
+                                                <i class="fa fa-info-circle"></i> No questions selected from question bank yet.
                                             </div>
                                         </div>
                                     </div>
@@ -462,12 +461,12 @@
                                     <div class="tab-pane fade {{ isset($tdata) ? 'show active' : '' }}" id="preview" role="tabpanel">
                                         <div class="text-center mb-3">
                                             <button type="button" class="btn btn-info btn-lg" id="btnPreviewQuiz">
-                                                <i class="fas fa-eye"></i> Preview Complete Quiz
+                                                <i class="fa fa-eye"></i> Preview Complete Quiz
                                             </button>
                                         </div>
                                         <div id="previewContent">
                                             <div class="alert alert-info">
-                                                <i class="fas fa-info-circle"></i> Click "Preview Complete Quiz" to see how your quiz will look.
+                                                <i class="fa fa-info-circle"></i> Click "Preview Complete Quiz" to see how your quiz will look.
                                             </div>
                                         </div>
                                     </div>
@@ -493,10 +492,10 @@
                     <div class="col-md-12 col-sm-12 col-12">
                         <div style="display:flex; justify-content: space-between; align-items: center;">
                             <a href="{{ route('tutor.onlinetests') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Cancel
+                                <i class="fa fa-arrow-left"></i> Cancel
                             </a>
                             <button type="submit" id="btnSaveTest" class="btn btn-success btn-lg">
-                                <i class="fas fa-save"></i> Save Test
+                                <i class="fa fa-save"></i> Save Test
                             </button>
                         </div>
                     </div>
@@ -619,10 +618,10 @@
                         var indicator = $('#testTypeIndicator');
                         if (testType == '1') {
                             indicator.removeClass('badge-warning badge-info').addClass('badge-primary');
-                            indicator.html('<i class="fas fa-check-circle"></i> Objective Test (Multiple Choice)');
+                            indicator.html('<i class="fa fa-check-circle"></i> Objective Test (Multiple Choice)');
                         } else if (testType == '2') {
                             indicator.removeClass('badge-primary badge-info').addClass('badge-warning');
-                            indicator.html('<i class="fas fa-edit"></i> Subjective Test (Descriptive)');
+                            indicator.html('<i class="fa fa-edit"></i> Subjective Test (Descriptive)');
                         }
                     };
                 }
