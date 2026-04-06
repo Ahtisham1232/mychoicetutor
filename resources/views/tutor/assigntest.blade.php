@@ -179,8 +179,8 @@
                             <td>{{$loop->iteration}}</td>
                             <td>{{$stdata->test_name}}</td>
                             <td>{{$stdata->student_name}}</td>
-                            <td>{{ \Carbon\Carbon::parse($stdata->start_time)->format('d/m/Y h:i A') }}</td>
-                            <td>{{ \Carbon\Carbon::parse($stdata->endtime)->format('d/m/Y h:i A') }}</td>
+                            <td>{{ \App\Helpers\TimezoneHelper::formatInUserTz($stdata->start_time, 'd/m/Y h:i A', 'UTC') }}</td>
+                            <td>{{ \App\Helpers\TimezoneHelper::formatInUserTz($stdata->end_time, 'd/m/Y h:i A', 'UTC') }}</td>
                             <td>
                                 @if($stdata->is_attempted == 1)
                                     <span style="color: green">Attempted</span>

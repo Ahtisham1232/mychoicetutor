@@ -922,12 +922,17 @@ class OnlineTestController extends Controller
         if ($datachk) {
             return back()->with('fail', 'Test already assigned to this student');
         }
+        // datetime-local is wall clock in the tutor's browser locale; interpret it in the tutor's TZ, then persist UTC.
+        $tutorTz = TimezoneHelper::userTimezone(session('userid'));
+        $utcStart = Carbon::parse($request->starttime, $tutorTz)->utc();
+        $utcEnd = Carbon::parse($request->endtime, $tutorTz)->utc();
+
         $assigntest = new AssignTest();
         $assigntest->test_id = $request->testid;
         $assigntest->student_id = $request->student;
         $assigntest->tutor_id = session('userid')->id;
-        $assigntest->start_time = $request->starttime;
-        $assigntest->end_time = $request->endtime;
+        $assigntest->start_time = $utcStart;
+        $assigntest->end_time = $utcEnd;
         $assigntest->status = 1;
         $res = $assigntest->save();
 
@@ -982,14 +987,14 @@ class OnlineTestController extends Controller
                     // Format the start time for the student's timezone
                     // 1. Format both times
                     $formattedStart = TimezoneHelper::formatInUserTz(
-                        $request->starttime,
+                        $utcStart,
                         'd M Y h:i A',
                         'UTC',
                         $student
                     );
 
                     $formattedEnd = TimezoneHelper::formatInUserTz(
-                        $request->endtime,
+                        $utcEnd,
                         'd M Y h:i A',
                         'UTC',
                         $student

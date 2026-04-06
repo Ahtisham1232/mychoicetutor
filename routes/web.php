@@ -198,7 +198,6 @@ Route::group(['prefix' => 'student', 'middleware' => ['StudentAuthenticate']], f
     Route::get('tutormessages/{id}', [MessagesController::class, 'messagesbystudenttutormessages'])->name('student.messages.tutormessages');
     Route::get('tutormessagesload/{id}', [MessagesController::class, 'messagesbystudenttutormessagesload'])->name('student.messages.tutormessagesload');
     Route::post('sendmessage', [MessagesController::class, 'messagesentbystudent'])->name('student.messages.send');
-    // Route::post('chat-presence', [MessagesController::class, 'chatPresence'])->name('student.chat.presence');
     Route::get('chat-presence-status', [MessagesController::class, 'chatPresenceStatusStudent'])->name('student.chat.presence.status');
     Route::post('chat-presence-auth', [MessagesController::class, 'chatPresenceAuth'])->name('student.chat.presence.auth');
     // Assignments
@@ -367,7 +366,6 @@ Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], funct
     Route::get('tutormessagesload/{id}', [MessagesController::class, 'messagesbyadmintutormessagesload'])->name('admin.messages.tutormessagesload');
     Route::get('chatClearAdmintutor/{id}', [MessagesController::class, 'chatClearAdmintutor'])->name('admin.messages.cleartutormessages');
     Route::post('sendmessage', [MessagesController::class, 'messagesentbyadmin'])->name('admin.messages.send');
-    // Route::post('chat-presence', [MessagesController::class, 'chatPresence'])->name('admin.chat.presence');
     Route::get('chat-presence-status', [MessagesController::class, 'chatPresenceStatusAdmin'])->name('admin.chat.presence.status');
     Route::post('chat-presence-auth', [MessagesController::class, 'chatPresenceAuth'])->name('admin.chat.presence.auth');
     Route::post('messages/student/search', [MessagesController::class, 'chatstudentsearch'])->name('admin.chat.student.search');
@@ -472,7 +470,6 @@ Route::group(['prefix' => 'tutor', 'middleware' => ['TutorAuthenticate']], funct
     Route::get('studentmessages/{id}', [MessagesController::class, 'messagesbytutorstudentmessages'])->name('tutor.messages.studentmessages');
     Route::get('studentmessagesload/{id}', [MessagesController::class, 'messagesbytutorstudentmessagesload'])->name('tutor.messages.studentmessagesload');
     Route::post('sendmessage', [MessagesController::class, 'messagesentbytutor'])->name('tutor.messages.send');
-    // Route::post('chat-presence', [MessagesController::class, 'chatPresence'])->name('tutor.chat.presence');
     Route::get('chat-presence-status', [MessagesController::class, 'chatPresenceStatusTutor'])->name('tutor.chat.presence.status');
     Route::post('chat-presence-auth', [MessagesController::class, 'chatPresenceAuth'])->name('tutor.chat.presence.auth');
    //payments
@@ -483,7 +480,7 @@ Route::group(['prefix' => 'tutor', 'middleware' => ['TutorAuthenticate']], funct
    Route::get('payouts',[PaymentsController::class,'tutorpayouts'])->name('tutor.payouts');
    Route::post('payouts-search',[PaymentsController::class,'tutorpayoutsSearch'])->name('tutor.payouts-search');
 
-    // learning Cintents
+    // learning Contents
    Route::get('questionbank', [QuestionBankController::class, 'tutorQuestionbank'])->name('tutor.questionbank');
    Route::get('questionbank/create', [QuestionBankController::class, 'tutorcreate'])->name('tutor.questionbank.create');
    Route::post('questionbank/store', [QuestionBankController::class, 'tutorstore'])->name('tutor.questionbank.store');
@@ -659,11 +656,6 @@ Route::get('contact', function(){
 Route::get('password-change-confirmation', function(){
     return view('front-cms/password-change-confirmation');
 })->name('password.change.confirmation');
-
-// WorldPay Payment Gateway
-// Route::get('/worldpay/payment/', [WorldPayController::class, 'showPaymentPage'])->name('worldpay.payment.page');
-// Route::post('/worldpay/initiate', [WorldPayController::class, 'initiatePayment'])->name('worldpay.payment');
-// Route::get('/initiate-payment', [PaymentController::class, 'initiatePayment'])->name('initiate.payment');
 
 // Optional: Success, cancel, and failed routes
 Route::get('/payment/success', function () {
