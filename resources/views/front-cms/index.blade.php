@@ -102,7 +102,7 @@
             <div class="overlayMTC">
                 <div class="tutorHeader">
                     <h1>
-                        Discover the perfect tutor for you
+                        Unlock Your Potential with Top Tutors
                     </h1>
                     <form action="{{ url('toptutorsearch') }}" method="POST">
                         @csrf

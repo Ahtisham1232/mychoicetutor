@@ -649,10 +649,6 @@ Route::get('termsandconditions', function(){
     return view('front-cms/termsandconditions');
 })->name('termsandconditions');
 
-Route::get('contact', function(){
-    return view('front-cms/contact');
-});
-
 Route::get('password-change-confirmation', function(){
     return view('front-cms/password-change-confirmation');
 })->name('password.change.confirmation');

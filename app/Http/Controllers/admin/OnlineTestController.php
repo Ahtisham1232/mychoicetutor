@@ -181,18 +181,49 @@ class OnlineTestController extends Controller
     {
         $classes = (new CommonController)->classes();
         $subjects = subjects::where('is_active', 1)->get();
-        // $exams = OnlineTests::select('online_tests.*', 'classes.name as class', 'subjects.name as subject', 'topics.name as topic')
-        $exams = OnlineTests::select('online_tests.*')
-            // ->join('classes', 'classes.id', 'online_tests.class_id')
-            // ->join('subjects', 'subjects.id', 'online_tests.subject_id')
-            // ->join('topics', 'topics.id', 'online_tests.topic_id')
-            ->join('assign_tests', 'assign_tests.test_id', 'online_tests.id')
+        $studentId = session('userid')->id;
+        $nowUtc = Carbon::now('UTC');
+
+        // NOTE: The student-visible exam window is defined per-assignment (assign_tests.start_time/end_time),
+        // stored in UTC. online_tests.test_start_date/test_end_date are admin-level fields and may differ.
+        $exams = OnlineTests::select(
+            'online_tests.*',
+            'classes.name as class',
+            'subjects.name as subject',
+            'online_tests.topic_name as topic',
+            'assign_tests.start_time as assigned_start_time',
+            'assign_tests.end_time as assigned_end_time'
+        )
+            ->join('assign_tests', 'assign_tests.test_id', '=', 'online_tests.id')
+            ->leftJoin('classes', 'classes.id', '=', 'online_tests.class_id')
+            ->leftJoin('subjects', 'subjects.id', '=', 'online_tests.subject_id')
             ->where('assign_tests.status', 1)
             ->where('assign_tests.is_attempted', 0)
-            ->where('assign_tests.student_id', session('userid')->id)
-            ->orderBy('online_tests.created_at', 'asc')
-            // ->paginate(10);
+            ->where('assign_tests.student_id', $studentId)
+            ->orderBy('assign_tests.start_time', 'asc')
             ->get();
+
+        foreach ($exams as $exam) {
+            $startUtc = $exam->assigned_start_time ? Carbon::parse($exam->assigned_start_time, 'UTC') : null;
+            $endUtc = $exam->assigned_end_time ? Carbon::parse($exam->assigned_end_time, 'UTC') : null;
+
+            $exam->display_start = TimezoneHelper::formatInUserTz($exam->assigned_start_time, 'd-m-Y h:i A', 'UTC');
+            $exam->display_end = TimezoneHelper::formatInUserTz($exam->assigned_end_time, 'd-m-Y h:i A', 'UTC');
+
+            $exam->can_start = false;
+            $exam->start_status = 'Unavailable';
+
+            if ($startUtc && $endUtc) {
+                if ($nowUtc->lt($startUtc)) {
+                    $exam->start_status = 'Not started yet';
+                } elseif ($nowUtc->gt($endUtc)) {
+                    $exam->start_status = 'Expired';
+                } else {
+                    $exam->can_start = true;
+                    $exam->start_status = 'Available';
+                }
+            }
+        }
         // dd($exams);
         // foreach ($exams as $exam) {
         //     $exam->attemptsRemaining = $exam->max_attempt - testattempted::where('student_id', session('userid')->id)
@@ -200,10 +231,28 @@ class OnlineTestController extends Controller
         //         ->count();
         // }
 
-        $extakens = testattempted::select('testattempteds.*', 'online_tests.name as exam_name', 'online_tests.description as exam_description', 'online_tests.test_duration as duration', 'online_tests.test_start_date as test_start_date', 'online_tests.test_end_date as test_end_date')
-            ->join('online_tests', 'online_tests.id', 'testattempteds.test_id')
-            ->where('testattempteds.student_id', session('userid')->id)
-            ->where('testattempteds.is_active', 1)->orderBy('testattempteds.created_at', 'asc')->get();
+        $extakens = testattempted::select(
+            'testattempteds.*',
+            'online_tests.name as exam_name',
+            'online_tests.description as exam_description',
+            'online_tests.test_duration as duration',
+            'assign_tests.start_time as assigned_start_time',
+            'assign_tests.end_time as assigned_end_time'
+        )
+            ->join('online_tests', 'online_tests.id', '=', 'testattempteds.test_id')
+            ->leftJoin('assign_tests', function ($join) use ($studentId) {
+                $join->on('assign_tests.test_id', '=', 'testattempteds.test_id')
+                    ->where('assign_tests.student_id', '=', $studentId);
+            })
+            ->where('testattempteds.student_id', $studentId)
+            ->where('testattempteds.is_active', 1)
+            ->orderBy('testattempteds.created_at', 'asc')
+            ->get();
+
+        foreach ($extakens as $extaken) {
+            $extaken->display_start = TimezoneHelper::formatInUserTz($extaken->assigned_start_time, 'd-m-Y h:i A', 'UTC');
+            $extaken->display_end = TimezoneHelper::formatInUserTz($extaken->assigned_end_time, 'd-m-Y h:i A', 'UTC');
+        }
 
         return view('student.exam', get_defined_vars());
     }
@@ -237,12 +286,23 @@ class OnlineTestController extends Controller
         // return $request->all();
         $classes = (new CommonController)->classes();
         $subjects = subjects::where('is_active', 1)->get();
-        $query = OnlineTests::select('online_tests.*', 'classes.name as class', 'subjects.name as subject', 'online_tests.topic_name as topic')
-            ->join('classes', 'classes.id', 'online_tests.class_id')
-            ->join('subjects', 'subjects.id', 'online_tests.subject_id')
-            ->join('assign_tests', 'assign_tests.test_id', 'online_tests.id')
+        $studentId = session('userid')->id;
+        $nowUtc = Carbon::now('UTC');
+
+        $query = OnlineTests::select(
+            'online_tests.*',
+            'classes.name as class',
+            'subjects.name as subject',
+            'online_tests.topic_name as topic',
+            'assign_tests.start_time as assigned_start_time',
+            'assign_tests.end_time as assigned_end_time'
+        )
+            ->leftJoin('classes', 'classes.id', '=', 'online_tests.class_id')
+            ->leftJoin('subjects', 'subjects.id', '=', 'online_tests.subject_id')
+            ->join('assign_tests', 'assign_tests.test_id', '=', 'online_tests.id')
             ->where('assign_tests.status', 1)
-            ->where('assign_tests.is_attempted', 0);
+            ->where('assign_tests.is_attempted', 0)
+            ->where('assign_tests.student_id', $studentId);
         // ->get();
 
 
@@ -256,17 +316,52 @@ class OnlineTestController extends Controller
             $query->where('online_tests.topic_name', 'like', '%' . $request->topic . '%');
         }
         $exams = $query->paginate(10);
+
         foreach ($exams as $exam) {
-            $exam->attemptsRemaining = $exam->max_attempt - testattempted::where('student_id', session('userid')->id)
-                ->where('test_id', $exam->id)
-                ->count();
+            $startUtc = $exam->assigned_start_time ? Carbon::parse($exam->assigned_start_time, 'UTC') : null;
+            $endUtc = $exam->assigned_end_time ? Carbon::parse($exam->assigned_end_time, 'UTC') : null;
+
+            $exam->display_start = TimezoneHelper::formatInUserTz($exam->assigned_start_time, 'd-m-Y h:i A', 'UTC');
+            $exam->display_end = TimezoneHelper::formatInUserTz($exam->assigned_end_time, 'd-m-Y h:i A', 'UTC');
+
+            $exam->can_start = false;
+            $exam->start_status = 'Unavailable';
+            if ($startUtc && $endUtc) {
+                if ($nowUtc->lt($startUtc)) {
+                    $exam->start_status = 'Not started yet';
+                } elseif ($nowUtc->gt($endUtc)) {
+                    $exam->start_status = 'Expired';
+                } else {
+                    $exam->can_start = true;
+                    $exam->start_status = 'Available';
+                }
+            }
         }
         $type = 'student-exams';
         $viewTable = view('admin.partials.common-search', compact('exams', 'type'))->render();
         $viewPagination = $exams->links()->render();
-        $extakens = testattempted::select('testattempteds.*', 'online_tests.name as exam_name', 'online_tests.description as exam_description', 'online_tests.test_duration as duration', 'online_tests.test_start_date as test_start_date', 'online_tests.test_end_date as test_end_date')
-            ->join('online_tests', 'online_tests.id', 'testattempteds.test_id')
-            ->where('testattempteds.student_id', session('userid')->id)->where('testattempteds.is_active', 1)->orderBy('testattempteds.created_at', 'desc')->get();
+        $extakens = testattempted::select(
+            'testattempteds.*',
+            'online_tests.name as exam_name',
+            'online_tests.description as exam_description',
+            'online_tests.test_duration as duration',
+            'assign_tests.start_time as assigned_start_time',
+            'assign_tests.end_time as assigned_end_time'
+        )
+            ->join('online_tests', 'online_tests.id', '=', 'testattempteds.test_id')
+            ->leftJoin('assign_tests', function ($join) use ($studentId) {
+                $join->on('assign_tests.test_id', '=', 'testattempteds.test_id')
+                    ->where('assign_tests.student_id', '=', $studentId);
+            })
+            ->where('testattempteds.student_id', $studentId)
+            ->where('testattempteds.is_active', 1)
+            ->orderBy('testattempteds.created_at', 'desc')
+            ->get();
+
+        foreach ($extakens as $extaken) {
+            $extaken->display_start = TimezoneHelper::formatInUserTz($extaken->assigned_start_time, 'd-m-Y h:i A', 'UTC');
+            $extaken->display_end = TimezoneHelper::formatInUserTz($extaken->assigned_end_time, 'd-m-Y h:i A', 'UTC');
+        }
 
 
         return view('student.exam', get_defined_vars());
@@ -274,9 +369,34 @@ class OnlineTestController extends Controller
 
     public function taketest($id)
     {
+        $studentId = session('userid')->id;
+
+        $assignment = AssignTest::where('test_id', $id)
+            ->where('student_id', $studentId)
+            ->where('status', 1)
+            ->where('is_attempted', 0)
+            ->first();
+
+        if (!$assignment) {
+            return back()->with('fail', 'Test is not assigned to you or is no longer available.');
+        }
+
+        $nowUtc = Carbon::now('UTC');
+        $startUtc = $assignment->start_time ? Carbon::parse($assignment->start_time, 'UTC') : null;
+        $endUtc = $assignment->end_time ? Carbon::parse($assignment->end_time, 'UTC') : null;
+
+        if ($startUtc && $nowUtc->lt($startUtc)) {
+            return back()->with('fail', 'Test has not started yet.');
+        }
+        if ($endUtc && $nowUtc->gt($endUtc)) {
+            return back()->with('fail', 'Test time has ended. You can no longer start this test.');
+        }
 
         $onlineTest = OnlineTests::where('id', $id)
             ->first();
+        if (!$onlineTest) {
+            return back()->with('fail', 'Test not found.');
+        }
 
         // Decode the JSON string to an array
         $questionIds = json_decode($onlineTest->question_id);
@@ -288,9 +408,35 @@ class OnlineTestController extends Controller
     public function taketestsubjective($id)
     {
         // echo $id;
+        $studentId = session('userid')->id;
+
+        $assignment = AssignTest::where('test_id', $id)
+            ->where('student_id', $studentId)
+            ->where('status', 1)
+            ->where('is_attempted', 0)
+            ->first();
+
+        if (!$assignment) {
+            return back()->with('fail', 'Test is not assigned to you or is no longer available.');
+        }
+
+        $nowUtc = Carbon::now('UTC');
+        $startUtc = $assignment->start_time ? Carbon::parse($assignment->start_time, 'UTC') : null;
+        $endUtc = $assignment->end_time ? Carbon::parse($assignment->end_time, 'UTC') : null;
+
+        if ($startUtc && $nowUtc->lt($startUtc)) {
+            return back()->with('fail', 'Test has not started yet.');
+        }
+        if ($endUtc && $nowUtc->gt($endUtc)) {
+            return back()->with('fail', 'Test time has ended. You can no longer start this test.');
+        }
+
         $onlineTest = OnlineTests::where('id', $id)
             // ->where('class_id', session('userid')->class_id)
             ->first();
+        if (!$onlineTest) {
+            return back()->with('fail', 'Test not found.');
+        }
 
         // echo session('userid')->class_id;
         // dd($onlineTest);
