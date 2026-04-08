@@ -2,7 +2,6 @@
 @section('main-section')
 <!-- END header -->
 
-
 <style>
 input,
 textarea {
@@ -32,8 +31,6 @@ textarea:focus {
                 <p>Are you a parent or student seeking assistance with your bookings?</p>
             </div>
 
-
-
         </div>
     </div>
 
@@ -47,9 +44,6 @@ textarea:focus {
                 <h1>Need some help?</h1>
                 <br>
                 <h5><b> Give us a call</b></h5>
-
-
-
 
                 <div class="contactsOuter">
 
@@ -104,15 +98,9 @@ textarea:focus {
 
 
 
-
-
-
-
-
-
             </div>
             <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                <h1>Send us a message</h1>
+                <h2>Send us a message</h2>
                 <div class="contactform mt-4">
                     <form action="https://api.web3forms.com/submit" method="POST">
                         <input type="hidden" name="access_key" value="4b32d89d-c763-494c-8e4e-2c5556dbbedf">
@@ -138,16 +126,6 @@ textarea:focus {
             </div>
         </div>
     </div>
-
-
-
-
-
-
-
-
-
-
 
 
 </section>

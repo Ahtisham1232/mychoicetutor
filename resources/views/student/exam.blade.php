@@ -111,13 +111,19 @@
                                     <td>{{ $exam->description }}</td>
                                     <td>{{ $exam->attemptsRemaining }}</td>
                                     <td>{{ $exam->test_duration }} min</td>
-                                    <td>{{ \Carbon\Carbon::parse($exam->test_start_date)->format('d-m-Y h:i A') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($exam->test_end_date)->format('d-m-Y h:i A') }}</td>
+                                    <td>{{ $exam->display_start ?? '' }}</td>
+                                    <td>{{ $exam->display_end ?? '' }}</td>
 
                                         @if (session('usertype') == 'Parent')
                                             @else
-                                            <td><a @if($exam->test_type ==1) href="{{ url('student/taketest') }}/{{ $exam->id }}" @elseif($exam->test_type ==2)href="{{ url('student/taketest-subjective') }}/{{ $exam->id }} @endif"
-                                                class="badge bg-success p-2">Start Test</a></td>
+                                            <td>
+                                                @if(!empty($exam->can_start))
+                                                    <a @if($exam->test_type ==1) href="{{ url('student/taketest') }}/{{ $exam->id }}" @elseif($exam->test_type ==2)href="{{ url('student/taketest-subjective') }}/{{ $exam->id }} @endif"
+                                                        class="badge bg-success p-2">Start Test</a>
+                                                @else
+                                                    <span class="badge bg-secondary p-2">{{ $exam->start_status ?? 'Unavailable' }}</span>
+                                                @endif
+                                            </td>
                                                 @endif
 
                                 </tr>
@@ -146,7 +152,7 @@
                     <thead class="">
                         <tr>
                             <th scope="col">S.No.</th>
-                            <th scope="col">Exam Type</th>
+                            {{-- <th scope="col">Exam Type</th> --}}
                             <th scope="col">Exam Name</th>
                             <th scope="col">Exam Description</th>
                             <th scope="col">Exam Duration</th>
@@ -161,12 +167,12 @@
 
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                <td></td>
+                                {{-- <td></td> --}}
                                 <td>{{ $extaken->exam_name }}</td>
                                 <td>{{ $extaken->exam_description }}</td>
                                 <td>{{ $extaken->duration }} min</td>
-                                <td>{{  \Carbon\Carbon::parse($extaken->test_start_date)->format('d-m-Y h:i A')}}</td>
-                                <td>{{  \Carbon\Carbon::parse($extaken->test_end_date)->format('d-m-Y h:i A')}}</td>
+                                <td>{{ $extaken->display_start ?? '' }}</td>
+                                <td>{{ $extaken->display_end ?? '' }}</td>
                                 <td>{{  \Carbon\Carbon::parse($extaken->test_attempted_on)->format('d-m-Y h:i A')}}</td>
                                 <td><a href="{{url('student/exam/report')}}/{{$extaken->id}}" class="badge bg-primary p-2"> Report</a></td>
                             </tr>
