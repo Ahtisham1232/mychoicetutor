@@ -561,7 +561,7 @@ class TutorSearchController extends Controller
         ];
 
         session(['stripe_payload' => $stripeData]);
-        $stripekey = env('STRIPE_KEY') ? env('STRIPE_KEY') : 'pk_test_51RQRnr2eHjtuGCfAR6Ox2n88Dnq04kT3XkPMguqjnNX0scs6NN5t24k1xnNwKOfFhGAUyqISv8lPOX9DPePiKZuw003Tgc5fMq';
+        $stripekey = config('services.stripe.key');
 
         return view('stripe', [
             'amt' => $request->totalamountenroll,
@@ -569,7 +569,7 @@ class TutorSearchController extends Controller
         ]);
     }
 
-    // NEW: Enrollment request method (no payment required)
+    // NEW: Enrollment request method with Stripe integration
     public function purchaseclass(Request $request)
     {
         try {
@@ -587,11 +587,10 @@ class TutorSearchController extends Controller
             }
 
             // 2. Validate scheduling (Must have slots OR Contact Admin checked)
-            if (empty($request->slotids) && $request->contactadmin !== 'on') {
+            if (empty($request->slotids) && ($request->contactadmin !== 'on')) {
                 return redirect()->back()->with('fail', 'Please select your preferred slots or check "Contact Admin" if no slots suit you.');
             }
 
-            $order_id = substr(uniqid(date('YmdHis')), 0, 20);
             $classId = subjects::find($request->subjectenrollid);
             $tutorname = tutorprofile::where('tutor_id', $request->tutorenrollid)->first();
 
@@ -603,103 +602,27 @@ class TutorSearchController extends Controller
                 return redirect()->back()->with('fail', 'Tutor not found.');
             }
 
-            // Save enrollment request (pending admin approval)
-            $paymentdetails = new paymentdetails();
-            $paymentdetails->transaction_id = $order_id;
-            $paymentdetails->payment_mode = 'Physical Payment';
-            $paymentdetails->amount = $request->totalamountenroll;
-            $paymentdetails->status = 0; // 0 = pending approval
-            $paymentdetails->save();
+            // Store in session temporarily and pass to Stripe payment view
+            $stripeData = [
+                'tutorenrollid' => $request->tutorenrollid,
+                'subjectenrollid' => $request->subjectenrollid,
+                'requiredclassenroll' => $request->requiredclassenroll,
+                'rateperhourenroll' => $request->rateperhourenroll,
+                'totalamountenroll' => $request->totalamountenroll,
+                'slotids' => $request->slotids,
+                'contactadmin' => $request->contactadmin,
+            ];
 
-            // Save student enrollment request
-            $studentpayment = new paymentstudents();
-            $studentpayment->transaction_id = $order_id;
-            $studentpayment->student_id = session('userid')->id;
-            $studentpayment->class_id = $classId->class_id;
-            $studentpayment->subject_id = $request->subjectenrollid;
-            $studentpayment->tutor_id = $request->tutorenrollid;
-            $studentpayment->classes_purchased = $request->requiredclassenroll;
-            $studentpayment->rate_per_hr = $request->rateperhourenroll;
-            $studentpayment->save();
+            session(['stripe_payload' => $stripeData]);
+            
+            $stripekey = config('services.stripe.key');
 
-            // Book slots (temporarily reserved)
-            $slotIds = explode(',', $request->slotids);
-            foreach ($slotIds as $slotId) {
-                $slotbooking = SlotBooking::find($slotId);
-                if ($slotbooking) {
-                    $slotbooking->student_id = session('userid')->id;
-                    $slotbooking->booked_at = now();
-                    $slotbooking->transaction_id = $order_id;
-                    $slotbooking->subject_id = $request->subjectenrollid;
-                    $slotbooking->status = 2; // 2 = pending approval
-                    $slotbooking->contact_admin = $request->contactadmin == 'on' ? 1 : 0;
-                    $slotbooking->class_schedule_id = $studentpayment->id;
-                    $slotbooking->save();
-                }
-            }
+            // dd($stripekey);
 
-            // Send notification to admin
-            try {
-                $notificationdata = new Notification();
-                $notificationdata->alert_type = 8; // New alert type for enrollment requests
-                $notificationdata->notification = session('userid')->name . ' has requested enrollment for classes with ' . $tutorname->name;
-                $notificationdata->initiator_id = session('userid')->id;
-                $notificationdata->initiator_role = session('userid')->role_id;
-                $notificationdata->event_id = $request->tutorenrollid;
-                $notificationdata->show_to_admin = 1;
-                $notificationdata->show_to_all_admin = 1;
-                $notificationdata->read_status = 0;
-                $notificationdata->save();
-                broadcast(new RealTimeMessage('$notification'));
-            } catch (\Exception $e) {
-                // return redirect()->back()->with('fail', 'Enrollment request submitted, but notification failed. Error: ' . $e->getMessage());
-            }
-
-            // Send WhatsApp notification to Tutor when student purchases class
-            try {
-                $whatsApp = app(TwilioWhatsAppService::class);
-                $tutor = tutorregistration::find($request->tutorenrollid);
-                $student = session('userid');
-                $firstSlot = SlotBooking::whereIn('id', explode(',', $request->slotids))
-                    ->orderBy('date', 'asc')
-                    ->first();
-                if (!empty($tutor->mobile) && $firstSlot) {
-                    $templateIdTutor = 1605; // Your approved template ID
-                    $tutorNumber = $tutor->mobile;
-
-                    // Format date & time in tutor's timezone for WhatsApp message
-                    $slotDate = TimezoneHelper::formatInUserTz($firstSlot->date, 'd M Y', 'UTC', $tutor);
-                    $slotTime = TimezoneHelper::formatInUserTz($firstSlot->slot, 'h:i A', 'UTC', $tutor);
-
-                    // Variables must match your template placeholders exactly
-                    $bodyVariablesTutor = [
-                        $tutor->name,                       // {{1}}
-                        $classId->name ?? 'N/A',            // {{2}}
-                        $student->name,                     // {{3}}
-                        $slotDate,                          // {{4}}
-                        $slotTime,                          // {{5}}
-                    ];
-
-                    $whatsApp->sendMessage($tutorNumber, $bodyVariablesTutor, $templateIdTutor);
-                }
-            } catch (\Exception $e) {
-                Log::error('WhatsApp send failed for class purchase: ' . $e->getMessage());
-            }
-
-            // Send mail to student
-            try {
-                $details = [
-                    'name' => session('userid')->name,
-                    'total_classes' => $request->requiredclassenroll,
-                    'tutor_name' => $tutorname->name,
-                    'mailtype' => 5, // New mail type for enrollment request
-                ];
-                Mail::to(session('userid')->email)->send(new SendMail($details));
-            } catch (\Exception $e) {
-                // return redirect()->back()->with('fail', 'Enrollment request submitted, but email failed. Error: ' . $e->getMessage());
-            }
-
-            return redirect()->route('student.admission', ['id' => $request->tutorenrollid])->with('success', 'Enrollment request submitted successfully. Admin will review and approve your request.');
+            return view('stripe', [
+                'amt' => $request->totalamountenroll,
+                'stripeKey' => $stripekey
+            ]);
         } catch (\Exception $e) {
             return redirect()->back()->with('fail', 'Something went wrong. Please try again. Error: ' . $e->getMessage());
         }
@@ -869,87 +792,129 @@ class TutorSearchController extends Controller
     //     }
     // }
 
-    // BACKUP: Original Stripe payment success method - renamed for backup
-    public function stripePaymentSuccess_backup(Request $request)
-    {
-
-        $data = session('stripe_payload');
-
-        if (!$data) {
-            return redirect()->back()->with('fail', 'Session expired.');
-        }
-
-        $order_id = substr(uniqid(date('YmdHis')), 0, 20);
-        $classId = subjects::find($data['subjectenrollid']);
-        $tutorname = tutorprofile::where('tutor_id', $data['tutorenrollid'])->first();
-
-        // Save paymentdetails
-        $paymentdetails = new paymentdetails();
-        $paymentdetails->transaction_id = session('order_id') ?? $order_id;
-        $paymentdetails->payment_mode = 'Credit Card';
-        $paymentdetails->amount = $data['totalamountenroll'];
-        $paymentdetails->status = 1;
-        $paymentdetails->save();
-
-        // Save paymentstudents
-        $studentpayment = new paymentstudents();
-        $studentpayment->transaction_id = session('order_id') ?? $order_id;
-        $studentpayment->student_id = session('userid')->id;
-        $studentpayment->class_id = $classId->class_id;
-        $studentpayment->subject_id = $data['subjectenrollid'];
-        $studentpayment->tutor_id = $data['tutorenrollid'];
-        $studentpayment->classes_purchased = $data['requiredclassenroll'];
-        $studentpayment->rate_per_hr = $data['rateperhourenroll'];
-        $studentpayment->save();
-
-        // Send mail
-        $details = [
-            'name' => session('userid')->name,
-            'total_classes' => $data['requiredclassenroll'],
-            'tutor_name' => $tutorname->name,
-            'mailtype' => 4,
-        ];
-        Mail::to(session('userid')->email)->send(new SendMail($details));
-
-        // Book slots
-        $slotIds = explode(',', $data['slotids']);
-        foreach ($slotIds as $slotId) {
-            $slotbooking = SlotBooking::find($slotId);
-            if ($slotbooking) {
-                $slotbooking->student_id = session('userid')->id;
-                $slotbooking->booked_at = now();
-                $slotbooking->transaction_id = $order_id;
-                $slotbooking->subject_id = $data['subjectenrollid'];
-                $slotbooking->status = 1;
-                $slotbooking->contact_admin = $data['contactadmin'] == 'on' ? 1 : 0;
-                $slotbooking->class_schedule_id = $studentpayment->id;
-                $slotbooking->save();
-            }
-        }
-
-        $notificationdata = new Notification();
-        $notificationdata->alert_type = 7;
-        $notificationdata->notification = session('userid')->name . ' Enrolled for classes';
-        $notificationdata->initiator_id = session('userid')->id;
-        $notificationdata->initiator_role = session('userid')->role_id;
-        $notificationdata->event_id = $data['tutorenrollid'];;
-        $notificationdata->show_to_tutor = 1;
-        $notificationdata->show_to_tutor_id = $data['tutorenrollid'];;
-        $notificationdata->read_status = 0;
-
-        $notified = $notificationdata->save();
-        broadcast(new RealTimeMessage('$notification'));
-        return redirect()->to('student/enrollsuccess');
-
-        return redirect()->to('student/enrollsuccess')->with('success', 'Payment and booking successful.');
-    }
-
-    // NEW: Admin approval method for enrollment requests
+    // NEW: Stripe payment success method
     public function stripePaymentSuccess(Request $request)
     {
-        // This method is now used for admin approval of enrollment requests
-        // The actual implementation will be in the admin controller
-        return redirect()->back()->with('info', 'This method is now handled by admin approval system.');
+        try {
+            $data = session('stripe_payload');
+            
+            if (!$data) {
+                return redirect()->route('student.dashboard')->with('fail', 'Session expired or payment data lost.');
+            }
+
+            $order_id = session('order_id') ?? substr(uniqid(date('YmdHis')), 0, 20);
+            $classId = subjects::find($data['subjectenrollid']);
+            $tutorname = tutorprofile::where('tutor_id', $data['tutorenrollid'])->first();
+
+            // Check if subject and tutor exist
+            if (!$classId || !$tutorname) {
+                return redirect()->route('student.dashboard')->with('fail', 'Course or tutor missing in records.');
+            }
+
+            // Save enrollment request (pending admin approval)
+            $paymentdetails = new paymentdetails();
+            $paymentdetails->transaction_id = $order_id;
+            $paymentdetails->payment_mode = 'Stripe Credit Card';
+            $paymentdetails->amount = $data['totalamountenroll'];
+            $paymentdetails->status = 0; // 0 = pending approval
+            $paymentdetails->save();
+
+            // Save student enrollment request
+            $studentpayment = new paymentstudents();
+            $studentpayment->transaction_id = $order_id;
+            $studentpayment->student_id = session('userid')->id;
+            $studentpayment->class_id = $classId->class_id;
+            $studentpayment->subject_id = $data['subjectenrollid'];
+            $studentpayment->tutor_id = $data['tutorenrollid'];
+            $studentpayment->classes_purchased = $data['requiredclassenroll'];
+            $studentpayment->rate_per_hr = $data['rateperhourenroll'];
+            $studentpayment->save();
+
+            // Book slots (temporarily reserved)
+            $slotIds = explode(',', $data['slotids'] ?? '');
+            foreach ($slotIds as $slotId) {
+                if(empty($slotId)) continue;
+                $slotbooking = SlotBooking::find($slotId);
+                if ($slotbooking) {
+                    $slotbooking->student_id = session('userid')->id;
+                    $slotbooking->booked_at = now();
+                    $slotbooking->transaction_id = $order_id;
+                    $slotbooking->subject_id = $data['subjectenrollid'];
+                    $slotbooking->status = 2; // 2 = pending approval
+                    $slotbooking->contact_admin = ($data['contactadmin'] ?? '') == 'on' ? 1 : 0;
+                    $slotbooking->class_schedule_id = $studentpayment->id;
+                    $slotbooking->save();
+                }
+            }
+
+            // Send notification to admin
+            try {
+                $notificationdata = new Notification();
+                $notificationdata->alert_type = 8; // alert type for enrollment requests
+                $notificationdata->notification = session('userid')->name . ' has paid and requested enrollment for classes with ' . $tutorname->name;
+                $notificationdata->initiator_id = session('userid')->id;
+                $notificationdata->initiator_role = session('userid')->role_id;
+                $notificationdata->event_id = $data['tutorenrollid'];
+                $notificationdata->show_to_admin = 1;
+                $notificationdata->show_to_all_admin = 1;
+                $notificationdata->read_status = 0;
+                $notificationdata->save();
+                broadcast(new RealTimeMessage('$notification'));
+            } catch (\Exception $e) { }
+
+            // Send WhatsApp notification to Tutor when student purchases class
+            try {
+                $whatsApp = app(TwilioWhatsAppService::class);
+                $tutor = tutorregistration::find($data['tutorenrollid']);
+                $student = session('userid');
+                
+                $firstSlot = null;
+                if (!empty($data['slotids'])) {
+                     $firstSlot = SlotBooking::whereIn('id', explode(',', $data['slotids']))
+                         ->orderBy('date', 'asc')
+                         ->first();
+                }
+
+                if (!empty($tutor->mobile) && $firstSlot) {
+                    $templateIdTutor = 1605; // Your approved template ID
+                    $tutorNumber = $tutor->mobile;
+
+                    // Format date & time in tutor's timezone for WhatsApp message
+                    $slotDate = TimezoneHelper::formatInUserTz($firstSlot->date, 'd M Y', 'UTC', $tutor);
+                    $slotTime = TimezoneHelper::formatInUserTz($firstSlot->slot, 'h:i A', 'UTC', $tutor);
+
+                    // Variables must match your template placeholders exactly
+                    $bodyVariablesTutor = [
+                        $tutor->name,                       // {{1}}
+                        $classId->name ?? 'N/A',            // {{2}}
+                        $student->name,                     // {{3}}
+                        $slotDate,                          // {{4}}
+                        $slotTime,                          // {{5}}
+                    ];
+
+                    $whatsApp->sendMessage($tutorNumber, $bodyVariablesTutor, $templateIdTutor);
+                }
+            } catch (\Exception $e) {
+                Log::error('WhatsApp send failed for class purchase: ' . $e->getMessage());
+            }
+
+            // Send mail to student
+            try {
+                $details = [
+                    'name' => session('userid')->name,
+                    'total_classes' => $data['requiredclassenroll'],
+                    'tutor_name' => $tutorname->name,
+                    'mailtype' => 5, // New mail type for enrollment request
+                ];
+                Mail::to(session('userid')->email)->send(new SendMail($details));
+            } catch (\Exception $e) { }
+
+            session()->forget('stripe_payload');
+
+            return redirect()->route('student.admission', ['id' => $data['tutorenrollid']])->with('success', 'Payment successful and enrollment request submitted. Admin will review and approve your request.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('fail', 'Something went wrong processing your successful payment. Please contact admin. Error: ' . $e->getMessage());
+        }
     }
 
 
