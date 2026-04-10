@@ -2,9 +2,12 @@
 <html>
 
 <head>
+    <meta charset="utf-8">
+    <link rel="icon" href="{{ url('frontendnew/img/icons/mct-favicon.png') }}" type="image/x-icon">
     <title>My Choice Tutor - Checkout</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style type="text/css">
         body {
             background-color: #f8f9fa;
@@ -41,12 +44,12 @@
     <div class="container">
         <div class="row">
 
-            <div class="col-md-6 offset-md-3">
+            <div class="col-12 col-sm-10 offset-sm-1 col-md-8 offset-md-2 col-lg-4 offset-lg-4">
                 <div class="card mt-5">
                     <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Secure Payment</h4>
-                        <a href="javascript:history.back()" class="btn btn-sm btn-outline-secondary">
-                            &larr; Back
+                        <a href="{{ url()->previous() }}" class="btn btn-sm btn-outline-secondary">
+                            Back
                         </a>
                     </div>
                     <div class="card-body p-4">

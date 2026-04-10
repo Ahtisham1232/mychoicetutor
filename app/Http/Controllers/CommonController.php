@@ -106,7 +106,7 @@ class CommonController extends Controller
 
         $targetStudentData = json_decode($batchesstudents->student_data);
         // $targetStudentData = ["1", "3"];
-// dd($targetStudentData);
+        // dd($targetStudentData);
         $results['students'] = StudentRegistration::
             whereIn('id',$targetStudentData)
             // join('batchstudentmappings', function ($join) use ($targetStudentData) {
@@ -123,19 +123,4 @@ class CommonController extends Controller
         return response()->json($results);
     }
 
-    // $studentId = 1;
-    // $targetStudentData = ["1", "3","10","11"];
-
-    // select a.* from studentregistrations a, batchstudentmappings b where '"'+a.id+'"' in b.student_data
-
-
-
-
-    //     $studentId = 1;
-    // $studentIdsArray = ["1", "2"];
-
-    // $results = Table1::where('student_id', $studentId)
-    //     ->join('table2', 'table1.student_id', '=', 'table2.student_id')
-    //     ->whereIn('table2.student_id', $studentIdsArray)
-    //     ->get();
 }

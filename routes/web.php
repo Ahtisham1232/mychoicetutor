@@ -49,12 +49,15 @@ use Illuminate\Support\Facades\Cache;
 */
 
 
+
+//************************************************ Home Route ************************************************
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
+//************************************************ Stripe Routes *********************************************
 Route::controller(StripePaymentController::class)->group(function(){
     Route::get('stripe', 'stripe');
     Route::post('stripe', 'stripePost')->name('stripe.post');
 });
-// Common Activity
-Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Route::get('/deepesh', function(){
 //     event(new RealTimeMessage('uyuyyuy this is a sample broadcast'));
@@ -653,19 +656,6 @@ Route::get('password-change-confirmation', function(){
 Route::get('/listen', function(){
     return view('listen');
 });
-
-// Optional: Success, cancel, and failed routes
-Route::get('/payment/success', function () {
-    return 'Payment successful!';
-})->name('payment');
-
-Route::get('/payment/cancel', function () {
-    return 'Payment cancelled.';
-})->name('payment.cancel');
-
-Route::get('/payment/failed', function () {
-    return 'Payment failed.';
-})->name('payment.failed');
 
 Route::get('/.well-known/pki-validation/{filename}', function ($filename) {
     $path = public_path('.well-known/pki-validation/' . $filename);
