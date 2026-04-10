@@ -45,23 +45,23 @@
                 padding-left: 10px;
             }
         </style>
-        
+
         <style>
             .active-slot {
                 outline: 2px solid #000;
                 box-shadow: 0 0 5px #000;
             }
-            
+
             #requestEnrollmentBtn:disabled {
                 opacity: 0.6;
                 cursor: not-allowed;
             }
-            
+
             #requestEnrollmentBtn:not(:disabled) {
                 opacity: 1;
                 cursor: pointer;
             }
-            
+
             .contact-admin-section {
                 background-color: #f8f9fa;
                 padding: 15px;
@@ -80,13 +80,14 @@
                     <div class="alert alert-danger">{{ Session::get('fail') }}</div>
                 @endif
 
-                <div id="" class="mb-3 listHeader page-title-box row">
+                <div class="mb-3 listHeader page-title-box row">
                     <div class="col-12 col-md-6">
                         <h3>Request Enrollment</h3>
                     </div>
                     <div class="col-12 col-md-6">
                         <div class="alert alert-info">
-                            <strong>Note:</strong> You are requesting enrollment for classes. Admin will review your request and approve it after payment verification. You will be notified once approved.
+                            <strong>Note:</strong> You are requesting enrollment for classes. Admin will review your request
+                            and approve it after payment verification. You will be notified once approved.
                         </div>
                     </div>
                 </div>
@@ -101,7 +102,8 @@
                     <div class="row ">
                         <div class="col-md-3 mt-4">
                             <label for="">Tutor</label>
-                            <input type="hidden" id="tutorenrollid" name="tutorenrollid" value="{{$enrollment->tutor_id }}">
+                            <input type="hidden" id="tutorenrollid" name="tutorenrollid"
+                                value="{{ $enrollment->tutor_id }}">
                             <input type="text" class="form-control readonly" name="tutorenroll" id="tutorenroll" readonly
                                 value="{{ $enrollment->tutor_name }}">
                             <span class="text-danger">
@@ -135,7 +137,7 @@
                                 @enderror
                             </span>
                         </div>
-                        
+
                         <div class="col-md-2 mt-4">
                             <label for="">Required Class<i style="color: red">*</i></label>
                             <input type="number" class="form-control" name="requiredclassenroll" id="requiredclassenroll"
@@ -146,7 +148,7 @@
                                 @enderror
                             </span>
                         </div>
-                        
+
                         <div class="col-md-2 mt-4">
                             <label for="">Total Amount(£)</label>
                             <input type="text" class="form-control readonly" name="totalamountenroll"
@@ -162,76 +164,80 @@
                     <hr>
 
                     <div class="full-width-table-responsive">
-                        @if(count($groupedSlots) > 0)
-                        <table class="table table-hover table-striped align-middle table-nowrap mb-0 users-table"
-                            style="height: 260px;">
-                            <thead class="thead-dark">
-                                <tr>
-                                    <th scope="col">Date</th>
-                                    <th scope="col">Slots</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($groupedSlots as $date => $slots)
+                        @if (count($groupedSlots) > 0)
+                            <table class="table table-hover table-striped align-middle table-nowrap mb-0 users-table"
+                                style="height: 260px;">
+                                <thead class="thead-dark">
                                     <tr>
-                                        <td>{{ $date }}</td>
-                                        <td>
-                                            @foreach ($slots as $slot)
-                                                @php
-                                                    // Convert the time string to a Carbon instance for formatting
-                                                    $formattedTime = \Carbon\Carbon::parse($slot['time'])->format(
-                                                        'h:i A',
-                                                    );
-                                                @endphp
-                                                <input type="hidden" name="selected_slot_id" id="selectedSlotId">
-
-                                                <button type="button"
-                                                    class="slot-btn btn btn-sm btn-{{ $slot['is_available'] ? 'success' : 'danger' }}"
-                                                    data-date="{{ $date }}" data-time="{{ $formattedTime }}"
-                                                    data-slot-id="{{ $slot['id'] }}"
-                                                    {{ $slot['is_available'] ? '' : 'disabled' }}>
-                                                    {{ $formattedTime }}
-                                                </button>
-                                            @endforeach
-
-                                        </td>
+                                        <th scope="col">Date</th>
+                                        <th scope="col">Slots</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
+                                </thead>
+                                <tbody>
+                                    @foreach ($groupedSlots as $date => $slots)
+                                        <tr>
+                                            <td>{{ $date }}</td>
+                                            <td>
+                                                @foreach ($slots as $slot)
+                                                    @php
+                                                        // Convert the time string to a Carbon instance for formatting
+                                                        $formattedTime = \Carbon\Carbon::parse($slot['time'])->format(
+                                                            'h:i A',
+                                                        );
+                                                    @endphp
+                                                    <input type="hidden" name="selected_slot_id" id="selectedSlotId">
 
-                        </table>
+                                                    <button type="button"
+                                                        class="slot-btn btn btn-sm btn-{{ $slot['is_available'] ? 'success' : 'danger' }}"
+                                                        data-date="{{ $date }}" data-time="{{ $formattedTime }}"
+                                                        data-slot-id="{{ $slot['id'] }}"
+                                                        {{ $slot['is_available'] ? '' : 'disabled' }}>
+                                                        {{ $formattedTime }}
+                                                    </button>
+                                                @endforeach
+
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+
+                            </table>
                         @else
                             <div class="alert alert-danger mt-3">
-                                <i class="fa fa-lock"></i> 
-                                <strong>Booking Unavailable:</strong> This tutor has not set their availability slots yet. Enrollment is disabled until slots are created.
+                                <i class="fa fa-lock"></i>
+                                <strong>Booking Unavailable:</strong> This tutor has not set their availability slots yet.
+                                Enrollment is disabled until slots are created.
                             </div>
-                         @endif
+                        @endif
                     </div>
 
 
 
                     </table>
-                     </div>
+            </div>
 
-                        <div style="display: flex; justify-content:space-between" class="my-3">
-                            <div class="contact-admin-section">
-                                <input type="hidden" id="slotids" name="slotids">
-                                <div class="form-check">
-                                    {{-- Disable checkbox if no slots --}}
-                                    <input type="checkbox" class="form-check-input" id="contactadmin" name="contactadmin" {{ count($groupedSlots) == 0 ? 'disabled' : '' }}>
-                                    <label class="form-check-label" for="contactadmin">
-                                        <strong>Checked this checkbox for the enrollment</strong>
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            {{-- Ensure button is strictly disabled if count is 0 --}}
-                            <button id="requestEnrollmentBtn" class="btn btn-sm btn-success" 
+            <div class="row g-3 align-items-center my-3">
+                <div class="col-12 col-md-8">
+                    <div class="contact-admin-section">
+                        <input type="hidden" id="slotids" name="slotids">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="contactadmin" name="contactadmin"
                                 {{ count($groupedSlots) == 0 ? 'disabled' : '' }}>
-                                Request Enrollment
-                            </button>
+                            <label class="form-check-label" for="contactadmin">
+                                <strong>Check this checkbox for enrollment</strong>
+                            </label>
                         </div>
-                </form>
+                    </div>
+                </div>
+
+                <div class="col-10 col-md-2 text-md-end"> <button id="requestEnrollmentBtn"
+                        class="btn btn-success px-4 py-2" style="border-radius: 8px; min-width: 180px;"
+                        {{ count($groupedSlots) == 0 ? 'disabled' : '' }}>
+                        Request Enrollment
+                    </button>
+                </div>
+            </div>
+            </form>
             <div>
                 <p style="color: #99A7AE">Subject selection is a formality—you can take any subject by mutual agreement with
                     your tutor.</p>
@@ -242,7 +248,7 @@
     <!-- content-wrapper ends -->
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+
     <script>
         $(document).ready(function() {
             var slotCount = {{ count($groupedSlots) }};
@@ -271,7 +277,7 @@
                     $('#requestEnrollmentBtn').prop('disabled', true);
                 }
             }
-            
+
             // Add event listener to checkbox
             $('#contactadmin').on('change', checkButtonState);
 
@@ -347,7 +353,7 @@
 
                 // Update the slotids input field
                 updateSlotIdsInput();
-                
+
                 // Check button state after slot selection
                 checkButtonState();
 
@@ -366,7 +372,7 @@
 
             // Initial check for button state
             checkButtonState();
-            
+
             // Additional logic can be added here based on your requirements
         });
     </script>
