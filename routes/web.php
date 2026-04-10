@@ -30,7 +30,6 @@ use App\Http\Controllers\student\MyLearningController;
 use App\Http\Controllers\student\StudentProfileController;
 use App\Http\Controllers\student\SubjectsController;
 use App\Http\Controllers\student\TutorSearchController;
-use App\Http\Controllers\student\PaymentController;
 
 use App\Http\Controllers\TutorreviewsController;
 use App\Http\Controllers\ZoomClassesController;
@@ -128,9 +127,8 @@ Route::get('subjects',[SubjectController::class,'cmsindex'])->name('cmsindex');
 
 //************************************************ Student  Routes ************************************************
 Route::group(['prefix' => 'student', 'middleware' => ['StudentAuthenticate']], function () {
-    // student dashboard
 
-    // Route::post('/create-payment-intent', [PaymentController::class, 'createPaymentIntent']);
+
     Route::get('/payment/{order_id}', [TutorSearchController::class, 'paymentPage'])->name('payment.checkout');
     Route::post('/stripe/webhook', [TutorSearchController::class, 'handleStripeWebhook']);
     Route::get('/payment/success/{order_id}', [TutorSearchController::class, 'paymentSuccess'])->name('payment.success');
@@ -188,7 +186,6 @@ Route::group(['prefix' => 'student', 'middleware' => ['StudentAuthenticate']], f
     Route::get('myfeedback', [TutorreviewsController::class, 'studentfeedbacklist'])->name('student.myfeedback');
     Route::get('trialsuccess', [DemoListController::class, 'trialsuccess'])->name('student.trialsuccess');
     Route::get('enrollsuccess', [TutorSearchController::class, 'enrollsuccess'])->name('student.enrollsuccess');
-    // Route::get('trialsuccess', [TutorreviewsController::class, 'trialsuccess'])->name('student.trialsuccess');
     // Message By Student
     Route::get('messages', [MessagesController::class, 'messagesbystudent'])->name('student.messages');
     Route::get('adminmessages', [MessagesController::class, 'messagesbystudentadmins'])->name('student.messages.admins');
@@ -653,14 +650,14 @@ Route::get('password-change-confirmation', function(){
     return view('front-cms/password-change-confirmation');
 })->name('password.change.confirmation');
 
+Route::get('/listen', function(){
+    return view('listen');
+});
+
 // Optional: Success, cancel, and failed routes
 Route::get('/payment/success', function () {
     return 'Payment successful!';
 })->name('payment');
-
-Route::get('/listen', function(){
-    return view('listen');
-});
 
 Route::get('/payment/cancel', function () {
     return 'Payment cancelled.';
