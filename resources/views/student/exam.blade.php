@@ -28,8 +28,7 @@
                 @if (Session::has('fail'))
                     <div class="alert alert-danger">{{ Session::get('fail') }}</div>
                 @endif
-           <form action="{{route('student.exams-search')}}" method="POST">
-                 @csrf
+           <form action="{{route('student.exams-search')}}" method="GET">
                     <div class="row ">
                         <div class="col-md-3 mt-4">
                             <select name="class_name" class="form-control" id="classname" onchange="fetchSubjects()">

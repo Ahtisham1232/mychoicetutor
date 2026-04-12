@@ -118,7 +118,7 @@
                         formData += `&page=${page}`;
 
                         $.ajax({
-                            type: 'post',
+                            type: 'get',
                             url: ajaxUrl, // Define your route here
                             data: formData,
                             headers: {
@@ -146,7 +146,7 @@
                     formData += `&page=${page}`;
 
                     $.ajax({
-                        type: 'post',
+                        type: 'get',
                         url: '{{ route("student.payments-search") }}', // Define your route here
                         data: formData,
                         headers: {

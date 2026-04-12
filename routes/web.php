@@ -200,10 +200,10 @@ Route::group(['prefix' => 'student', 'middleware' => ['StudentAuthenticate']], f
     Route::post('assignments-search',[AssignmentsController::class,'studentassignmentsSearch'])->name('student.assignments.search');
     // Student Fees/Payments
     Route::get('studentpayments', [PaymentsController::class, 'studentpayments'])->name('student.studentpayments');
-    Route::post('studentpayments-search', [PaymentsController::class, 'studentpaymentsSearch'])->name('student.payments-search');
+    Route::get('studentpayments-search', [PaymentsController::class, 'studentpaymentsSearch'])->name('student.payments-search');
     // Online tests/exams
     Route::get('exams', [OnlineTestController::class, 'studentexams'])->name('student.exams');
-    Route::post('exams-search', [OnlineTestController::class, 'studentexamsSearch'])->name('student.exams-search');
+    Route::get('exams-search', [OnlineTestController::class, 'studentexamsSearch'])->name('student.exams-search');
     Route::get('taketest/{id}', [OnlineTestController::class, 'taketest'])->name('student.taketest');
     Route::get('taketest-subjective/{id}', [OnlineTestController::class, 'taketestsubjective'])->name('student.taketest.subjective');
     Route::get('exam/report/{id}', [OnlineTestController::class, 'testreport'])->name('student.test.report');
