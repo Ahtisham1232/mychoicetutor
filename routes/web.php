@@ -53,12 +53,6 @@ use Illuminate\Support\Facades\Cache;
 //************************************************ Home Route ************************************************
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-//************************************************ Stripe Routes *********************************************
-Route::controller(StripePaymentController::class)->group(function(){
-    Route::get('stripe', 'stripe');
-    Route::post('stripe', 'stripePost')->name('stripe.post');
-});
-
 // Route::get('/deepesh', function(){
 //     event(new RealTimeMessage('uyuyyuy this is a sample broadcast'));
 // });
@@ -132,9 +126,9 @@ Route::get('subjects',[SubjectController::class,'cmsindex'])->name('cmsindex');
 Route::group(['prefix' => 'student', 'middleware' => ['StudentAuthenticate']], function () {
 
 
-    Route::get('/payment/{order_id}', [TutorSearchController::class, 'paymentPage'])->name('payment.checkout');
-    Route::post('/stripe/webhook', [TutorSearchController::class, 'handleStripeWebhook']);
-    Route::get('/payment/success/{order_id}', [TutorSearchController::class, 'paymentSuccess'])->name('payment.success');
+    // Route::get('/payment/{order_id}', [TutorSearchController::class, 'paymentPage'])->name('payment.checkout');
+    // Route::post('/stripe/webhook', [TutorSearchController::class, 'handleStripeWebhook']);
+    // Route::get('/payment/success/{order_id}', [TutorSearchController::class, 'paymentSuccess'])->name('payment.success');
 
     Route::get('dashboard', [DashboardController::class, 'index'])->name('student.dashboard');
     Route::get('notifications', [DashboardController::class, 'notificationslist'])->name('student.notifications');
@@ -142,7 +136,7 @@ Route::group(['prefix' => 'student', 'middleware' => ['StudentAuthenticate']], f
     Route::get('profile', [StudentProfileController::class, 'index'])->name('student.profile');
     Route::get('profileupdate/{id}', [StudentProfileController::class, 'edit'])->name('student.profileupdate');
     Route::post('updateprofiledata', [StudentProfileController::class, 'updateprofiledata'])->name('student.updateprofiledata');
-    Route::post('updateprofilepic', [StudentProfileController::class, 'profilepicupdate'])->name('student.profilepicupdate');
+    // Route::post('updateprofilepic', [StudentProfileController::class, 'profilepicupdate'])->name('student.profilepicupdate');
     Route::post('studentacadd', [StudentProfileController::class, 'studentacadd'])->name('student.studentacadd');
     Route::get('studentacdel/{id}', [StudentProfileController::class, 'studentacdel'])->name('student.studentacdel');
     // tutor search
@@ -222,6 +216,13 @@ Route::group(['prefix' => 'student', 'middleware' => ['StudentAuthenticate']], f
     Route::get('class-reports',[ClassController::class,'student_class_report'])->name('student.class.report');
     // My Favourites
     Route::get('addfav/{id}',[MyFavouriteController::class,'addfav'])->name('student.addfav');
+
+    //************************************************ Stripe Routes *********************************************
+    Route::controller(StripePaymentController::class)->group(function(){
+    Route::get('stripe', 'stripe');
+    Route::post('stripe', 'stripePost')->name('stripe.post');
+});
+
 });
 
 
