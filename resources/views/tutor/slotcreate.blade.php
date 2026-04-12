@@ -25,10 +25,7 @@
         display: inline-flex;
         align-items: center
     }
-    input[type="time"] {
-    appearance: auto;
-    -webkit-appearance: auto;
-}
+
     </style>
     
     <meta name="csrf-token" content="{{ csrf_token() }}">
