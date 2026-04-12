@@ -454,7 +454,7 @@ class PaymentsController extends Controller
         $viewTable = view('admin.partials.common-search', compact('payments','type'))->render();
         $viewPagination = $payments->links()->render();
 
-        return view('student.fees',compact('payments'));
+        return view('student.fees',compact('payments'))->with('transaction_id', $request->transaction_id);
     }
     public function tutorpayouts(){
         $tutorpayouts = payout::select('payouts.*','tutorregistrations.name','statuses.name as status_name','tutorregistrations.mobile','tutorregistrations.email')
