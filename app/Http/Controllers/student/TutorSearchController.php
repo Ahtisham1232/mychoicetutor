@@ -614,7 +614,7 @@ class TutorSearchController extends Controller
             ];
 
             session(['stripe_payload' => $stripeData]);
-            
+
             $stripekey = config('services.stripe.key');
 
             // dd($stripekey);
@@ -624,7 +624,20 @@ class TutorSearchController extends Controller
                 'stripeKey' => $stripekey
             ]);
         } catch (\Exception $e) {
-            return redirect()->back()->with('fail', 'Something went wrong. Please try again. Error: ' . $e->getMessage());
+            return redirect()->back()->with(
+                'fail',
+                'Something went wrong while processing your request. Please try again or contact support.'
+            );
+            Log::error('Purchase Class Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+
+                // Important request data (for debugging)
+                'request_data' => $request->all(),
+                'user_id' => session('userid')->id ?? null,
+            ]);
         }
     }
     // public function purchaseclass(Request $request)
@@ -797,7 +810,7 @@ class TutorSearchController extends Controller
     {
         try {
             $data = session('stripe_payload');
-            
+
             if (!$data) {
                 return redirect()->route('student.dashboard')->with('fail', 'Session expired or payment data lost.');
             }
@@ -833,7 +846,7 @@ class TutorSearchController extends Controller
             // Book slots (temporarily reserved)
             $slotIds = explode(',', $data['slotids'] ?? '');
             foreach ($slotIds as $slotId) {
-                if(empty($slotId)) continue;
+                if (empty($slotId)) continue;
                 $slotbooking = SlotBooking::find($slotId);
                 if ($slotbooking) {
                     $slotbooking->student_id = session('userid')->id;
@@ -860,19 +873,20 @@ class TutorSearchController extends Controller
                 $notificationdata->read_status = 0;
                 $notificationdata->save();
                 broadcast(new RealTimeMessage('$notification'));
-            } catch (\Exception $e) { }
+            } catch (\Exception $e) {
+            }
 
             // Send WhatsApp notification to Tutor when student purchases class
             try {
                 $whatsApp = app(TwilioWhatsAppService::class);
                 $tutor = tutorregistration::find($data['tutorenrollid']);
                 $student = session('userid');
-                
+
                 $firstSlot = null;
                 if (!empty($data['slotids'])) {
-                     $firstSlot = SlotBooking::whereIn('id', explode(',', $data['slotids']))
-                         ->orderBy('date', 'asc')
-                         ->first();
+                    $firstSlot = SlotBooking::whereIn('id', explode(',', $data['slotids']))
+                        ->orderBy('date', 'asc')
+                        ->first();
                 }
 
                 if (!empty($tutor->mobile) && $firstSlot) {
@@ -907,13 +921,21 @@ class TutorSearchController extends Controller
                     'mailtype' => 5, // New mail type for enrollment request
                 ];
                 Mail::to(session('userid')->email)->send(new SendMail($details));
-            } catch (\Exception $e) { }
+            } catch (\Exception $e) {
+            }
 
             session()->forget('stripe_payload');
 
             return redirect()->route('student.admission', ['id' => $data['tutorenrollid']])->with('success', 'Payment successful and enrollment request submitted. Admin will review and approve your request.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('fail', 'Something went wrong processing your successful payment. Please contact admin. Error: ' . $e->getMessage());
+            return redirect()->back()->with('fail', 'Something went wrong processing your successful payment. Please contact admin.');
+            Log::error('Stripe Payment Success Flow Error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => session('userid')->id ?? null,
+            ]);
         }
     }
 

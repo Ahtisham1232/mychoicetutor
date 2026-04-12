@@ -25,7 +25,12 @@
         display: inline-flex;
         align-items: center
     }
+    input[type="time"] {
+    appearance: auto;
+    -webkit-appearance: auto;
+}
     </style>
+    
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <div class="page-content">
@@ -274,7 +279,7 @@
                                 <input type="hidden" id="slotid" name="slotid">
                                 <div class="col-12 col-md-6 mb-3">
                                     <label>Date<span style="color:red">*</span></label>
-                                    <input type="date" class="form-control" id="classdate" name="classdate">
+                                    <input type="date" class="form-control" id="classdate" name="classdate" required>
                                     <span class="text-danger">
                                         @error('classdate')
                                         {{ 'Date is required' }}
@@ -283,7 +288,7 @@
                                 </div>
                                 <div class="col-12 col-md-6 mb-3">
                                     <label>Time<span style="color:red">*</span></label>
-                                    <input type="time" class="form-control" id="classtime" name="classtime">
+                                    <input type="time" class="form-control" id="classtime" name="classtime" required>
                                     <span class="text-danger">
                                         @error('classtime')
                                         {{ 'Time is required' }}

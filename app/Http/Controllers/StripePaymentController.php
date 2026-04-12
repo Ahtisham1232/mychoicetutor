@@ -17,6 +17,12 @@ class StripePaymentController extends Controller
 
     public function stripePost(Request $request): RedirectResponse
     {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'stripeToken' => 'required|string',
+            'amt' => 'required|numeric|min:1',
+        ]);
+
         Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
         $amt = $request->amt;
@@ -35,7 +41,7 @@ class StripePaymentController extends Controller
                     'order_id' => $order_id,
                     'amount' => $amt,
                     'currency' => 'gbp',
-                    'user_id' => auth()->id() ?? null,
+                    'user_id' => session('userid')->id ?? null,
                 ]);
                 return redirect()->route('stripe.payment.success')->with('order_id', $order_id);
             } else {
