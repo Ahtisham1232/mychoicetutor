@@ -551,7 +551,7 @@ class PaymentsController extends Controller
             ->join('subjects', 'subjects.id', 'paymentstudents.subject_id')
             ->join('classes', 'classes.id', 'paymentstudents.class_id')
             ->where('paymentdetails.status', 0) // 0 = pending approval
-            ->where('paymentdetails.payment_mode', 'Physical Payment')
+            ->where('paymentdetails.payment_mode', paymentdetails::MODE_STRIPE)
             ->orderBy('paymentdetails.created_at', 'desc')
             ->paginate(10);
 
@@ -664,7 +664,7 @@ class PaymentsController extends Controller
             ->join('subjects', 'subjects.id', 'paymentstudents.subject_id')
             ->join('classes', 'classes.id', 'paymentstudents.class_id')
             ->where('paymentdetails.status', 0) // 0 = pending approval
-            ->where('paymentdetails.payment_mode', 'Physical Payment')
+            ->where('paymentdetails.payment_mode', paymentdetails::MODE_STRIPE)
             ->orderBy('paymentdetails.created_at', 'desc')
             ->paginate(10);
 

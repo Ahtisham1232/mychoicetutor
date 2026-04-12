@@ -827,7 +827,7 @@ class TutorSearchController extends Controller
             // Save enrollment request (pending admin approval)
             $paymentdetails = new paymentdetails();
             $paymentdetails->transaction_id = $order_id;
-            $paymentdetails->payment_mode = 'Stripe Credit Card';
+            $paymentdetails->payment_mode = paymentdetails::MODE_STRIPE;
             $paymentdetails->amount = $data['totalamountenroll'];
             $paymentdetails->status = 0; // 0 = pending approval
             $paymentdetails->save();
