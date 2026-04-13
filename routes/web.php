@@ -175,7 +175,7 @@ Route::group(['prefix' => 'student', 'middleware' => ['StudentAuthenticate']], f
 
     // completed classes
     Route::get('completed-classes', [ClassController::class, 'studentCompletedclass'])->name('student.completed-classes');
-    Route::post('completed-classes-search', [ClassController::class, 'studentCompletedclasssearch'])->name('student.completed-classes-search');
+    Route::get('completed-classes-search', [ClassController::class, 'studentCompletedclasssearch'])->name('student.completed-classes-search');
 
     // Feedback by Student
     Route::post('feedback/submit',[TutorreviewsController::class,'feedbacksubmitstudent'])->name('student.feedback.submit');
