@@ -86,7 +86,7 @@
 
                             </div>
 
-                            <div class="form-group">
+                            {{-- <div class="form-group">
                                 <label for="password">Create password:<span class="reqrd">*</span></label>
                                 <input type="password" class="form-control" id="password" name="password" aria-describedby=""
                                     placeholder="&#8226; &#8226; &#8226; &#8226; &#8226; &#8226; &#8226; &#8226;">
@@ -106,6 +106,41 @@
                                             {{ $message }}
                                         @enderror
                                     </span>
+                            </div> --}}
+
+
+                            <div class="form-group position-relative">
+                                    <label for="password">Create password:<span class="reqrd">*</span></label>
+
+                                    <input type="password" class="form-control pr-5" id="password" name="password"
+                                        placeholder="••••••••">
+
+                                    <span class="toggle-password" toggle="#password" style="position:absolute; right:15px; top:40px; cursor:pointer;">
+                                        👁️
+                                    </span>
+
+                                    <span class="text-danger error-message">
+                                        @error('password')
+                                            {{ $message }}
+                                        @enderror
+                                    </span>
+                            </div>
+
+                            <div class="form-group position-relative">
+                                <label for="confpassword">Retype password:<span class="reqrd">*</span></label>
+
+                                <input type="password" class="form-control pr-5" id="confpassword" name="confpassword"
+                                    placeholder="••••••••">
+
+                                <span class="toggle-password" toggle="#confpassword" style="position:absolute; right:15px; top:40px; cursor:pointer;">
+                                    👁️
+                                </span>
+
+                                <span class="text-danger error-message">
+                                    @error('confpassword')
+                                        {{ $message }}
+                                    @enderror
+                                </span>
                             </div>
 
 
@@ -226,6 +261,27 @@
             document.getElementById("timezone").value = timezone;
         });
     </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            document.querySelectorAll(".toggle-password").forEach(function (element) {
+                element.addEventListener("click", function () {
+
+                    let input = document.querySelector(this.getAttribute("toggle"));
+
+                    if (input.type === "password") {
+                        input.type = "text";
+                        this.innerHTML = "🙈"; // hide icon
+                    } else {
+                        input.type = "password";
+                        this.innerHTML = "👁️"; // show icon
+                    }
+                });
+            });
+
+        });
+</script>
 
 
 @endsection

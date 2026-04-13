@@ -1046,7 +1046,6 @@ class HomeController extends Controller
 
     public function std_tutor_registration()
     {
-
         // return view('common.student-register');
         return view('front-cms.register');
     }
