@@ -11,9 +11,12 @@
                         <h1 class="">
                             Become a tutor <br> share your passion!
                         </h1>
-                        <img src="{{url('frontendnew/img/registrationImg.png')}}" width="100%" alt="">
+                        <img src="{{ url('frontendnew/img/registrationImg.png') }}" width="100%" alt="">
 
-                        <p class="charcol">"Become a tutor with us and share your knowledge to inspire and educate students worldwide. Enjoy the flexibility of setting your own schedule, competitive earnings, and the satisfaction of making a difference in learners' lives." <br><br>Join our community of passionate educators today!</p>
+                        <p class="charcol">"Become a tutor with us and share your knowledge to inspire and educate students
+                            worldwide. Enjoy the flexibility of setting your own schedule, competitive earnings, and the
+                            satisfaction of making a difference in learners' lives." <br><br>Join our community of
+                            passionate educators today!</p>
 
                     </div>
                 </div>
@@ -21,36 +24,36 @@
                     <div class="regidform">
                         <h3 class="text-center mt-4">To Register with us fill out the following</h3>
                         @if (Session::has('success'))
-                                <div class="alert alert-success">{{ Session::get('success') }}</div>
-                            @endif
-                            @if (Session::has('fail'))
-                                <div class="alert alert-danger">{{ Session::get('fail') }}</div>
-                            @endif
-                        <form action="{{url('/student/register')}}" method="POST" class="">
+                            <div class="alert alert-success">{{ Session::get('success') }}</div>
+                        @endif
+                        @if (Session::has('fail'))
+                            <div class="alert alert-danger">{{ Session::get('fail') }}</div>
+                        @endif
+                        <form action="{{ url('/student/register') }}" method="POST" class="">
                             @csrf
-                                <input type="hidden" name="timezone" id="timezone">
+                            <input type="hidden" name="timezone" id="timezone">
 
                             <div class="form-group">
                                 <label for="name">Full Name:<span class="reqrd">*</span></label>
                                 <input type="text" class="form-control" id="name" name="name" aria-describedby=""
-                                    placeholder="Your name" value="{{old('name')}}">
-                                    <span class="text-danger error-message">
-                                        @error('name')
-                                            {{ $message }}
-                                        @enderror
-                                    </span>
+                                    placeholder="Your name" value="{{ old('name') }}">
+                                <span class="text-danger error-message">
+                                    @error('name')
+                                        {{ $message }}
+                                    @enderror
+                                </span>
                             </div>
 
 
                             <div class="form-group">
                                 <label for="email">Email:<span class="reqrd">*</span></label>
                                 <input type="email" class="form-control" id="email" name="email" aria-describedby=""
-                                    placeholder="Your email address"value="{{old('email')}}">
-                                    <span class="text-danger error-message">
-                                        @error('email')
-                                            {{ $message }}
-                                        @enderror
-                                    </span>
+                                    placeholder="Your email address"value="{{ old('email') }}">
+                                <span class="text-danger error-message">
+                                    @error('email')
+                                        {{ $message }}
+                                    @enderror
+                                </span>
                             </div>
 
                             <div class="form-group">
@@ -59,8 +62,9 @@
                                 <div style="display:flex; gap:10px;">
 
                                     <!-- Country Code Dropdown -->
-                                    <select class="form-control" id="country_code" name="country_code" style="max-width:120px;">
-                                        @foreach(config('phone') as $key => $country)
+                                    <select class="form-control" id="country_code" name="country_code"
+                                        style="max-width:120px;">
+                                        @foreach (config('phone') as $key => $country)
                                             <option value="{{ $country['code'] }}"
                                                 {{ old('country_code', '+44') == $country['code'] ? 'selected' : '' }}>
                                                 {{ $country['code'] }}
@@ -69,12 +73,8 @@
                                     </select>
 
                                     <!-- Mobile Input -->
-                                    <input type="text"
-                                        class="form-control"
-                                        id="mobile"
-                                        name="mobile"
-                                        placeholder="Mobile (no country code)"
-                                        value="{{ old('mobile') }}"
+                                    <input type="text" class="form-control" id="mobile" name="mobile"
+                                        placeholder="Mobile (no country code)" value="{{ old('mobile') }}"
                                         oninput="formatMobile(this)">
                                 </div>
 
@@ -110,20 +110,21 @@
 
 
                             <div class="form-group position-relative">
-                                    <label for="password">Create password:<span class="reqrd">*</span></label>
+                                <label for="password">Create password:<span class="reqrd">*</span></label>
 
-                                    <input type="password" class="form-control pr-5" id="password" name="password"
-                                        placeholder="••••••••">
+                                <input type="password" class="form-control pr-5" id="password" name="password"
+                                    placeholder="••••••••">
 
-                                    <span class="toggle-password" toggle="#password" style="position:absolute; right:15px; top:40px; cursor:pointer;">
-                                        👁️
-                                    </span>
+                                <span class="toggle-password" toggle="#password"
+                                    style="position:absolute; right:15px; top:40px; cursor:pointer;">
+                                    <i class="fa fa-eye-slash"></i>
+                                </span>
 
-                                    <span class="text-danger error-message">
-                                        @error('password')
-                                            {{ $message }}
-                                        @enderror
-                                    </span>
+                                <span class="text-danger error-message">
+                                    @error('password')
+                                        {{ $message }}
+                                    @enderror
+                                </span>
                             </div>
 
                             <div class="form-group position-relative">
@@ -132,8 +133,10 @@
                                 <input type="password" class="form-control pr-5" id="confpassword" name="confpassword"
                                     placeholder="••••••••">
 
-                                <span class="toggle-password" toggle="#confpassword" style="position:absolute; right:15px; top:40px; cursor:pointer;">
-                                    👁️
+                                <span class="toggle-password" toggle="#confpassword"
+                                    style="position:absolute; right:15px; top:40px; cursor:pointer;">
+                                    <i class="fa fa-eye-slash"></i>
+
                                 </span>
 
                                 <span class="text-danger error-message">
@@ -149,8 +152,8 @@
                                 <div class="row">
                                     <div class="col-6">
                                         <div class="radioLogin student active-btn">
-                                            <input type="radio" class=""    value="student" name="registerAs"
-                                                id="student" checked> <span>Student</span>
+                                            <input type="radio" value="student" name="registerAs" id="student" checked>
+                                            <span>Student</span>
                                         </div>
                                     </div>
 
@@ -165,8 +168,9 @@
                             </div>
 
                             <div class="term-Condition">
-                                <input type="checkbox" id="expcheck" name="expcheck" {{ old('expcheck') ? 'checked' : '' }}> <span for="termCondition">I have read and agree to all <a
-                                        href="{{route('termsandconditions')}}">Terms & conditions</a></span>
+                                <input type="checkbox" id="expcheck" name="expcheck"
+                                    {{ old('expcheck') ? 'checked' : '' }}> <span for="termCondition">I have read and
+                                    agree to all <a href="{{ route('termsandconditions') }}">Terms & conditions</a></span>
                             </div>
                             <span class="text-danger error-message">
                                 @error('expcheck')
@@ -202,9 +206,9 @@
                             </div> --}}
 
                             <div class="haveAnAccount">
-                                <p>Already have an account <a href="#" data-toggle="modal" data-target="#loginPopup"><u>Login now</u></a></p>
+                                <p>Already have an account <a href="#" data-toggle="modal"
+                                        data-target="#loginPopup"><u>Login now</u></a></p>
                             </div>
-
 
                         </form>
                     </div>
@@ -237,25 +241,24 @@
         });
     </script>
     <script>
-            function formatMobile(input)
-            {
-                // Allow digits only
-                let number = input.value.replace(/\D/g, '');
+        function formatMobile(input) {
+            // Allow digits only
+            let number = input.value.replace(/\D/g, '');
 
-                // limit length (max 15 digits international standard)
-                if (number.length > 15) {
-                    number = number.slice(0, 15);
-                }
-
-                input.value = number;
+            // limit length (max 15 digits international standard)
+            if (number.length > 15) {
+                number = number.slice(0, 15);
             }
+
+            input.value = number;
+        }
     </script>
 
     {{-- Pick the timezone of the user and log  --}}
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
             const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            
+
             console.log("User timezone:", timezone);
 
             document.getElementById("timezone").value = timezone;
@@ -263,25 +266,23 @@
     </script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
 
-            document.querySelectorAll(".toggle-password").forEach(function (element) {
-                element.addEventListener("click", function () {
+            document.querySelectorAll(".toggle-password").forEach(function(element) {
+                element.addEventListener("click", function() {
 
                     let input = document.querySelector(this.getAttribute("toggle"));
 
                     if (input.type === "password") {
                         input.type = "text";
-                        this.innerHTML = "🙈"; // hide icon
+                        this.innerHTML = '<i class="fa fa-eye"></i>'; // show icon
                     } else {
                         input.type = "password";
-                        this.innerHTML = "👁️"; // show icon
+                        this.innerHTML = '<i class="fa fa-eye-slash"></i>'; // hide icon
                     }
                 });
             });
 
         });
-</script>
-
-
+    </script>
 @endsection
