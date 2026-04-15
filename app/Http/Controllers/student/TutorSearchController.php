@@ -71,9 +71,8 @@ class TutorSearchController extends Controller
 
         // dd($tutorlist);
 
-        // dd($tutorlist);
-
-        $subjectlist = subjects::where('is_active', 1)->get();
+        // $subjectlist = subjects::where('is_active', 1)->get();
+        $subjectlist = Subjects::getUniqueSubjects();
         $classes = classes::where('is_active', 1)->get();
         $countrylist = country::select('*')->get();
         if (!$tutorlist) {
@@ -379,9 +378,16 @@ class TutorSearchController extends Controller
             })
             ->leftJoin('classschedules', 'classschedules.tutor_id', '=', 'tutorprofiles.tutor_id')
             ->where('tutorregistrations.is_active', 1)
-            ->when($subjectIds, function ($query) use ($subjectIds) {
-                return $query->whereIn('tutorsubjectmappings.subject_id', $subjectIds);
+            // ->when($subjectIds, function ($query) use ($subjectIds) {
+            //     return $query->whereIn('tutorsubjectmappings.subject_id', $subjectIds);
+            // })
+            ->when($subjectIds, function($q) use ($subjectIds) {
+            $subjectName = Subjects::where('id', $subjectIds)->value('name');
+            $q->whereIn('subjects.id', 
+                Subjects::where('name', $subjectName)->pluck('id')
+            );
             })
+
             ->when($gradeId, function ($query) use ($gradeId) {
                 return $query->where('classes.id', $gradeId);
             })
@@ -433,7 +439,6 @@ class TutorSearchController extends Controller
 
         // dd( ($tutors));
         // return view('front-cms.findatutor',get_defined_vars());
-
         if (!$tutorlist) {
             return view('student.searchtutor')->with('fail', 'No tutor found');
         }
