@@ -21,9 +21,30 @@
                     <span class="badge bg-danger">{{ $demo->currentstatus }}</span>
                 @endif
             </td>
-            <td>{{ $demo->slot_1 }}</td>
-            <td>{{ $demo->slot_2 }}</td>
-            <td>{{ $demo->slot_3 }}</td>
+            <td>
+                @if ($demo->slot_1)
+                    <span style="color: black;">{{ date('d-m-Y', strtotime($demo->slot_1)) }}</span>
+                    <span style="color: #299CDB;">{{ date('h:i A', strtotime($demo->slot_1)) }}</span>
+                @else
+                    <span class="text-muted">Not selected</span>
+                @endif
+            </td>
+            <td>
+                @if ($demo->slot_2)
+                    <span style="color: black;">{{ date('d-m-Y', strtotime($demo->slot_2)) }}</span>
+                    <span style="color: #299CDB;">{{ date('h:i A', strtotime($demo->slot_2)) }}</span>
+                @else
+                    <span class="text-muted">Not selected</span>
+                @endif
+            </td>
+            <td>
+                @if ($demo->slot_3)
+                    <span style="color: black;">{{ date('d-m-Y', strtotime($demo->slot_3)) }}</span>
+                    <span style="color: #299CDB;">{{ date('h:i A', strtotime($demo->slot_3)) }}</span>
+                @else
+                    <span class="text-muted">Not selected</span>
+                @endif
+            </td>
             <td>{{ $demo->slot_confirmed }}</td>
             <td><a href="{{ $demo->demo_link }}">{{ $demo->demo_link }}</a></td>
             <td>{{ $demo->remarks }}</td>

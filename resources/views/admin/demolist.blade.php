@@ -169,28 +169,40 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <span style="color: black;">
-                                            {{ $demo->slot_1 ? date('d-m-Y', strtotime($demo->slot_1)) : '' }}
-                                        </span>
-                                        <span style="color: #299CDB;">
-                                            {{ $demo->slot_1 ? date('h:i A', strtotime($demo->slot_1)) : '' }}
-                                        </span>
+                                        @if ($demo->slot_1)
+                                            <span style="color: black;">
+                                                {{ date('d-m-Y', strtotime($demo->slot_1)) }}
+                                            </span>
+                                            <span style="color: #299CDB;">
+                                                {{ date('h:i A', strtotime($demo->slot_1)) }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">Not selected</span>
+                                        @endif
                                     </td>
                                     <td>
-                                        <span style="color: black;">
-                                            {{ $demo->slot_2 ? date('d-m-Y', strtotime($demo->slot_2)) : '' }}
-                                        </span>
-                                        <span style="color: #299CDB;">
-                                            {{ $demo->slot_2 ? date('h:i A', strtotime($demo->slot_2)) : '' }}
-                                        </span>
+                                        @if ($demo->slot_2)
+                                            <span style="color: black;">
+                                                {{ date('d-m-Y', strtotime($demo->slot_2)) }}
+                                            </span>
+                                            <span style="color: #299CDB;">
+                                                {{ date('h:i A', strtotime($demo->slot_2)) }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">Not selected</span>
+                                        @endif
                                     </td>
                                     <td>
-                                        <span style="color: black;">
-                                            {{ $demo->slot_3 ? date('d-m-Y', strtotime($demo->slot_3)) : '' }}
-                                        </span>
-                                        <span style="color: #299CDB;">
-                                            {{ $demo->slot_3 ? date('h:i A', strtotime($demo->slot_3)) : '' }}
-                                        </span>
+                                        @if ($demo->slot_3)
+                                            <span style="color: black;">
+                                                {{ date('d-m-Y', strtotime($demo->slot_3)) }}
+                                            </span>
+                                            <span style="color: #299CDB;">
+                                                {{ date('h:i A', strtotime($demo->slot_3)) }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">Not selected</span>
+                                        @endif
                                     </td>
 
                                     <td>
@@ -250,18 +262,18 @@
                         <label>Select Slot to Confirm</label>
                         <div class="row mb-3">
                             <input type="hidden" id="confirmid" name="confirmid">
-                            <div class="col-12 col-md-12 col-ms-12 p-2">
+                            <div class="col-12 col-md-12 col-ms-12 p-2" id="slot1Div">
                                 <label class="mr-4 text-secondary">Slot 1</label>
                                 <input type="radio" id="slot1" value="" name="slot">&nbsp;<span
                                     id="slot_1"></span>
                             </div>
-                            <div class="col-12 col-md-12 col-ms-12 p-2">
+                            <div class="col-12 col-md-12 col-ms-12 p-2" id="slot2Div">
                                 <label class="mr-4 text-secondary">Slot 2</label>
                                 <input type="radio" id="slot2" value="" name="slot">&nbsp;<span
                                     id="slot_2"></span>
                             </div>
 
-                            <div class="col-12 col-md-12 col-ms-12 p-2 mb-3">
+                            <div class="col-12 col-md-12 col-ms-12 p-2 mb-3" id="slot3Div">
                                 <label class="mr-4 text-secondary">Slot 3</label>
                                 <input type="radio" id="slot3" value="" name="slot">&nbsp;<span
                                     id="slot_3"></span>
@@ -392,15 +404,40 @@
                     console.log(result)
                     result = result[0]
                     $('#confirmid').val(id)
-                    $('#slot_1').html(result.slot_1)
-                    $('#slot_2').html(result.slot_2)
-                    $('#slot_3').html(result.slot_3)
+                    // Slot 1
+                    if (result.slot_1) {
+                        $('#slot_1').html(result.slot_1)
+                        $('#slot1').val(result.slot_1).prop('disabled', false)
+                        document.getElementById('slot1Div').style.display = 'block'
+                    } else {
+                        $('#slot_1').html('Not selected')
+                        $('#slot1').val('').prop('disabled', true).prop('checked', false)
+                        document.getElementById('slot1Div').style.display = 'none'
+                    }
+
+                    // Slot 2
+                    if (result.slot_2) {
+                        $('#slot_2').html(result.slot_2)
+                        $('#slot2').val(result.slot_2).prop('disabled', false)
+                        document.getElementById('slot2Div').style.display = 'block'
+                    } else {
+                        $('#slot_2').html('Not selected')
+                        $('#slot2').val('').prop('disabled', true).prop('checked', false)
+                        document.getElementById('slot2Div').style.display = 'none'
+                    }
+
+                    // Slot 3
+                    if (result.slot_3) {
+                        $('#slot_3').html(result.slot_3)
+                        $('#slot3').val(result.slot_3).prop('disabled', false)
+                        document.getElementById('slot3Div').style.display = 'block'
+                    } else {
+                        $('#slot_3').html('Not selected')
+                        $('#slot3').val('').prop('disabled', true).prop('checked', false)
+                        document.getElementById('slot3Div').style.display = 'none'
+                    }
                     $('#demolink').val(result.demo_link)
                     $('#demoremarks').val(result.remarks)
-                    $('#slot1').val(result.slot_1)
-                    $('#slot2').val(result.slot_2)
-                    $('#slot3').val(result.slot_3)
-
                 }
             });
 
