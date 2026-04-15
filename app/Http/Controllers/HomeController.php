@@ -123,7 +123,8 @@ class HomeController extends Controller
 
         // Grades/Level
         $gradelists = Classes::where('is_active', 1)->get();
-        $subjects = Subjects::where('is_active', 1)->get();
+        // $subjects = Subjects::where('is_active', 1)->get();
+        $subjects = Subjects::getUniqueSubjects();
         $countries = Country::where('is_active', 1)->get();
         $classes = classes::all('id', 'name');
         $blogs = Blogs::select('*')->where('is_active', 1)->orderby('created_at')->get();
@@ -203,7 +204,12 @@ class HomeController extends Controller
         $classes = classes::all('id', 'name');
 
         $tutors = $this->baseTutorQuery()
-        ->when($subjectid, fn($q) => $q->where('subjects.id', $subjectid))
+        ->when($subjectid, function($q) use ($subjectid) {
+            $subjectName = Subjects::where('id', $subjectid)->value('name');
+            $q->whereIn('subjects.id', 
+                Subjects::where('name', $subjectName)->pluck('id')
+            );
+        })
         ->when($classid, fn($q) => $q->where('classes.id', $classid))
         ->get();
         // Grades/Level
@@ -225,7 +231,14 @@ class HomeController extends Controller
         $classes = classes::all('id', 'name');
          
         $tutors = $this->baseTutorQuery()
-        ->when($subjectid, fn($q) => $q->where('subjects.id', $subjectid))
+        // ->when($subjectid, fn($q) => $q->where('subjects.id', $subjectid))
+        // If the biology subject filter is applied, then we will fetch all the subject of biology
+        ->when($subjectid, function($q) use ($subjectid) {
+            $subjectName = Subjects::where('id', $subjectid)->value('name');
+            $q->whereIn('subjects.id', 
+                Subjects::where('name', $subjectName)->pluck('id')
+            );
+        })
         ->when($classid, fn($q) => $q->where('classes.id', $classid))
         ->when($tutorname, fn($q) => $q->where('tutorprofiles.name', 'like', "%$tutorname%"))
         // ->when($minPrice, fn($q) => $q->havingRaw('rateperhour >= ?', [$minPrice]))

@@ -130,42 +130,11 @@
                     <div class="tu-sort">
                         <!-- <h3>{{ count($tutorlist) }} Search result for tutors</h3> -->
                          <h3>Find Your Perfect Tutor</h3>
-                        {{-- <div class="tu-sort-right-area">
-                            <div class="tu-sortby">
-                                <span>Sort by: </span>
-                                <div class="tu-select">
-                                    <select class="form-control tu-selectv">
-                                        <option>Price low to high </option>
-                                        <option>Price high to low</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="tu-filter-btn">
-                                <a class="tu-listbtn active" href="{{url('search-listing.html')}}"><i class="icon icon-list"></i></a>
-                                <a class="tu-listbtn" href="{{url('search-listing-two.html')}}"><i class="icon icon-grid"></i></a>
-                            </div>
-                        </div> --}}
                     </div>
                     <div class="btns">
 
-                        <!-- <div class="btn-group">
-                                    <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown"
-                                        aria-haspopup="true" aria-expanded="false">
-                                        Sort By
-                                    </button>
-                                    <div class="dropdown-menu">
-                                        <a class="dropdown-item" href="#">Price</a>
-                                        <a class="dropdown-item" href="#">Class</a>
-                                        <a class="dropdown-item" href="#">Rating</a>
-                                        <a class="dropdown-item" href="#">Experience</a>
-
-                                    </div>
-                                </div> -->
                         <div class="dropdown">
-                            {{-- <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Sort By
-                            </button> --}}
+                    
                             <ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenu">
                                 <li class="dropdown-submenu">
                                     <a class="dropdown-item" tabindex="-1" href="#">Price</a>
@@ -208,9 +177,7 @@
                         </div>
 
 
-                        {{-- <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#advSearchModal"><i
-                                class="fa fa-search"></i> Advance Search
-                        </button> --}}
+
                     </div>
                 </div>
 
@@ -343,18 +310,7 @@
                                 @endforeach
                             @endif
                         </div>
-                        {{-- <nav class="tu-pagination">
-                            <ul>
-                                <li class="tu-pagination-prev"><a href="#"><i class="icon icon-chevron-left"></i></a> </li>
-                                <li><a href="#">1</a> </li>
-                                <li><a href="#">2</a> </li>
-                                <li><a href="#">3</a> </li>
-                                <li class="active"><a href="#">4</a> </li>
-                                <li><a href="#">...</a> </li>
-                                <li><a href="#">60</a> </li>
-                                <li class="tu-pagination-next"><a href="#"><i class="icon icon-chevron-right"></i></a> </li>
-                            </ul>
-                        </nav> --}}
+
                     </div>
                     <br>
                     {{-- Search/Filter --}}
@@ -363,14 +319,21 @@
                             <a href="javascript:void(0)" class="tu-dbmenu"><i class="icon icon-chevron-left"></i></a>
                             <form action="{{ route('student.tutoradvs') }}" method="POST">
                                 @csrf
+                                @php
+                                    $selectedGrade = request()->input('gradelistid');
+                                    $selectedSubjects = (array) request()->input('subjectlistid', []);
+                                    $minPriceValue = request()->input('tminprice');
+                                    $maxPriceValue = request()->input('tmaxprice');
+                                    $tutorSearchValue = request()->input('ttsearch');
+                                @endphp
                                 <div class="tu-aside-menu">
                                     <div class="tu-aside-holder">
                                         <div class="tu-asidetitle" data-bs-toggle="collapse" aria-expanded="true">
-                                            <h6>Search Tutor</h6>
+                                            <h6>Search Tutoddr</h6>
                                             <div class="input-group">
                                                 <input type="text" class="form-control tu-input-field"
                                                     placeholder="Type Tutor Name..." id="ttsearch" name="ttsearch"
-                                                    style="width: 70%;">
+                                                    style="width: 70%;" value="{{ $tutorSearchValue }}">
                                                 <button class="btn btn-sm btn-success" style="width: 30%;"><i
                                                         class="fa fa-search"></i> Search</button>
                                             </div>
@@ -388,10 +351,11 @@
                                                             data-placeholder="Select education level"
                                                             data-placeholderinput="Select education level"
                                                             class="form-control tu-input-field">
-                                                            <option label="Select Grade"></option>
+                                                            <option value="">Select Grade</option>
                                                             @foreach ($classes as $class)
-                                                                <option value="{{ $class->id }}">{{ $class->name }}
-                                                                </option>
+                                                                <option value="{{ $class->id }}"
+                                                                    {{ (string) $selectedGrade === (string) $class->id ? 'selected' : '' }}>
+                                                                    {{ $class->name }}</option>
                                                             @endforeach
                                                         </select>
                                                     </div>
@@ -405,7 +369,8 @@
                                                                     <input type="checkbox"
                                                                         id="subject{{ $subject->id }}"
                                                                         name="subjectlistid[]"
-                                                                        value="{{ $subject->id }}">
+                                                                        value="{{ $subject->id }}"
+                                                                        {{ in_array((string) $subject->id, array_map('strval', $selectedSubjects), true) ? 'checked' : '' }}>
                                                                     <label
                                                                         for="subject{{ $subject->id }}">{{ $subject->name }}</label>
                                                                 </div>
@@ -431,13 +396,13 @@
                                                     role="list" aria-expanded="false">
                                                     <div class="tu-areasizebox">
                                                         <div class="input-group mb-2">
-                                                            <span class="input-group-text">£</span>
-                                                            <input type="number" class="form-control tu-input-field" placeholder="Min" id="tminprice" name="tminprice" step="1">
+                                                            <span class="input-group-text">{{config('common.currency.symbol')}}</span>
+                                                            <input type="number" class="form-control tu-input-field" placeholder="Min" id="tminprice" name="tminprice" step="1" value="{{ $minPriceValue }}">
                                                         </div>
 
                                                         <div class="input-group mb-2">
-                                                            <span class="input-group-text">£</span>
-                                                            <input type="number" class="form-control tu-input-field" placeholder="Max" id="tmaxprice" name="tmaxprice" step="1">
+                                                            <span class="input-group-text">{{config('common.currency.symbol')}}</span>
+                                                            <input type="number" class="form-control tu-input-field" placeholder="Max" id="tmaxprice" name="tmaxprice" step="1" value="{{ $maxPriceValue }}">
                                                         </div>
                                                     </div>
 
@@ -885,14 +850,7 @@
                             </div>
 
 
-
-
-
                         </div>
-
-
-
-
 
 
                         </form>
@@ -1467,7 +1425,6 @@
         }
     </script>
 
-
     {{-- Slots availability ends here --}}
 
     <script>
@@ -1531,6 +1488,13 @@
                 `<button class="btn btn-sm btn-danger" data-dismiss="modal">Cancel</button>
                                                                 <button type="button" onclick="confirmformdata()" class="btn btn-sm btn-success">Confirm</button>`;
             document.getElementById('selectedSlotConfirmation').innerHTML = '';
+        }
+    </script>
+
+    <script>
+        function scrollCol(col, dir) {
+            const el = col === 'hour' ? hourCol : minCol;
+            el.scrollBy({ top: dir * 36, behavior: 'smooth' });
         }
     </script>
 
