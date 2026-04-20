@@ -47,6 +47,12 @@
         height: 18px;
         object-fit: contain;
     }
+    
+     @media (max-width: 576px) {
+        .footer-bottom{
+            padding: 20px;
+        }
+    }
 </style>
 
 <!-- Login Modal -->
@@ -97,7 +103,7 @@
                 <div class="form-group position-relative">
                     <label for="password">Password</label>
                     <input type="password" class="form-control" id="password" name="password" aria-describedby=""
-                        placeholder="Password" required>
+                        placeholder="Password" required maxlength="30">
                     <i class="fa fa-eye-slash toggle-password mt-2" data-target="password"></i>
 
                 </div>

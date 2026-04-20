@@ -20,7 +20,7 @@ class TwilioWhatsAppService
      * @param int $templateId The ID of the message template.
      * @return array The API response as an associative array.
      */
-    public function sendMessage(string $to, array $bodyVariables, int $templateId): bool
+    public function sendMessage(string $to, array $bodyVariables, int $templateId,array $buttonVariables = []): bool
     {
         try {
             $hash = config('services.veevotech.hash');
@@ -38,6 +38,7 @@ class TwilioWhatsAppService
                 'template_id' => $templateId,
                 'header_variables' => [],
                 'body_variables' => $bodyVariables,
+                'button_variables' => $buttonVariables,
                 'media_url' => [],
                 'priority' => 1,
             ]);

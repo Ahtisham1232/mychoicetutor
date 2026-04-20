@@ -397,16 +397,18 @@ class GoogleCalendarController extends Controller
                     broadcast(new RealTimeMessage('$notification'));
                     if (!empty($demostudent->mobile)) {
                         try {
-                            $templateIdDemoConfirm = 1645;
+                            // $templateIdDemoConfirm = 1645;
+                            $templateIdDemoConfirm = 2398;
                             $studentNumber = $demostudent->mobile;
                             $bodyVariablesStudent = [
                                 $demostudent->name,
                                 $subjectName,
                                 TimezoneHelper::formatInUserTz($dcnf->slot_confirmed, 'd M Y h:i A', 'UTC', $studentReg),
                                 session('userid')->name,
-                                $meeting['meeting_url'],
                             ];
-                            $sent = $whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdDemoConfirm);
+                            // $buttonVariables = $meeting['meeting_url'];
+                            $buttonVariables = [$meeting['meeting_url']];
+                            $sent = $whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdDemoConfirm, $buttonVariables);
                             if ($sent) {
                                 Log::info('WHATSAPP SENT SUCCESSFULLY for democlass in google calender controller', [
                                     'demo_id' => $dcnf->id,
@@ -443,7 +445,7 @@ class GoogleCalendarController extends Controller
         // dd($request->demoendid);
         $dcnf = democlasses::find($request->demoendid);
         if (!$dcnf) {
-        return back()->with('fail', 'Class record not found.');
+            return back()->with('fail', 'Class record not found.');
         }
 
         $dcnf->remarks = $request->demoendremarks;

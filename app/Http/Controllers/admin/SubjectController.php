@@ -85,7 +85,8 @@ class SubjectController extends Controller
         return view('admin.subjectcategory');
     }
     public function cmsindex(){
-        $subjects = Subjects::select('*')->where('is_active',1)->get();
+        // $subjects = Subjects::select('*')->where('is_active',1)->get();
+        $subjects = Subjects::getUniqueSubjects();;
         $subjectswc = Subjects::select('subjects.*','subjectcategories.name as category_name')
         ->join('subjectcategories','subjectcategories.id','subjects.category')
         ->where('subjects.is_active',1)

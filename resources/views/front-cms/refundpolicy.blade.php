@@ -33,15 +33,15 @@
 <p class="mb-5">If you have any concerns or disputes regarding your enrollment or our no-refund policy, please contact us at [Insert Contact Information]. We are committed to addressing your concerns promptly and fairly.</p>
 
 <h5 class="mb-2">5. Contact Information</h5>
-<p class="mb-5">For any questions or further clarification regarding our refund policy, please contact us at:</p>
+<p class="mb-5">For any questions or further clarification regarding our refund policy, please contact us</p>
 
-<ul class="contactDetail">
+{{-- <ul class="contactDetail">
     <li><img src="{{ url('frontendnew/img/icons/Group.png') }}" alt="">07761 975326</li>
     <li><img src="{{ url('frontendnew/img/icons/Vector.png') }}" alt="">07761 975326</li>
     <li><img src="{{ url('frontendnew/img/icons/email.png') }}" alt="">info@mychoicetutor.com
     </li>
 
-</ul>
+</ul> --}}
 </section>
 
 @endsection

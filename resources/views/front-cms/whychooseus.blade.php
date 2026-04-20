@@ -86,7 +86,7 @@
             <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12 order2">
 
                 <div class="row">
-                    <div class="col-12 mb-4">
+                    <div class="col-12 mb-5">
                         <div class="boeder_Bg">
                             <div class="p-5">
                                 <h3>Flexible scheduling</h3>
