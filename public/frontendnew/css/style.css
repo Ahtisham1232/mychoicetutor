@@ -1763,9 +1763,8 @@ color: #838181;
   line-height: 8px;
 }
 
-
-
-.contactHaeder p{
+.contactHeader p{
   line-height: 10px;
+  /* margin-bottom: 1rem; */
 }
 

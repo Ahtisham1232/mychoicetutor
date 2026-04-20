@@ -18,8 +18,7 @@
 
     <div class="page-content">
 
-        <div class="card" style="width: 50rem; margin: 0 auto;">
-
+    <div class="card mx-auto w-100" style="max-width: 50rem;">
             <div class=" card-header bg-white">
 
                 <div class="row">

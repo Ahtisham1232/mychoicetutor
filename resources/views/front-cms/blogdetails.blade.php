@@ -27,17 +27,13 @@
                             <hr>
                         </div>
                        
-
-
                     </div>
-
-
 
                     <div class="row resourcesTop" style="margin:50px 0;">
                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                             <div class="resourcesBottom">
                                 <h4>Featured</h4>
-                                <h1>Blogs</h1>
+                                <h1 class="mb-3">Blogs</h1>
                                 <button onclick="redirect();" class="btn search-tutor">Free Trial Class</button>
                             </div> 
                         </div>
