@@ -92,9 +92,26 @@
                                         {{-- <td>{{ $assignment->batch }}</td> --}}
                                         <td>{{ $assignment->assignment_name }}</td>
                                         <td>{{ $assignment->assignment_description }}</td>
-                                        <td><a href="{{ url('uploads/documents/assignments') }}/{{ $assignment->assignment_link }}"
+                                        {{-- <td><a href="{{ url('uploads/documents/assignments') }}/{{ $assignment->assignment_link }}"
                                                 target="_blank"><button class="badge bg-primary">View
-                                                    Assignment</button></td>
+                                                    Assignment</button></td> --}}
+                                        <td>
+                                            @php
+                                                $filePath = public_path(
+                                                    'uploads/documents/assignments/' . $assignment->assignment_link,
+                                                );
+                                            @endphp
+
+                                            @if ($assignment->assignment_link && file_exists($filePath))
+                                                <a href="{{ asset('uploads/documents/assignments/' . $assignment->assignment_link) }}"
+                                                    target="_blank">
+                                                    <button class="badge bg-primary border-0">View Assignment</button>
+                                                </a>
+                                            @else
+                                                <span class="badge bg-danger">File Not Available</span>
+                                            @endif
+                                        </td>
+                                        
                                         <td>{{ \Carbon\Carbon::parse($assignment->assignment_start_date)->format('d-m-Y') }}
                                         </td>
                                         <td>{{ \Carbon\Carbon::parse($assignment->assignment_end_date)->format('d-m-Y') }}

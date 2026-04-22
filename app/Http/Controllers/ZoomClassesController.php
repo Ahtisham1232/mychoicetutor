@@ -494,13 +494,14 @@ class ZoomClassesController extends Controller
             $notified = $notificationdata->save();
             broadcast(new RealTimeMessage('$notification'));
 
-            // WhatsApp notification to the student (Regular Class) using template 1939
+            // WhatsApp notification to the student (Regular Class) using template 2404
             try {
                 $student = studentregistration::find($data->student_id);
                 $tutor   = tutorregistration::find($data->tutor_id);
 
                 if ($student && $tutor && !empty($student->mobile)) {
-                    $templateIdClassConfirm = 1939;
+                    // $templateIdClassConfirm = 1939;
+                    $templateIdClassConfirm = 2404;
 
                     // Determine class type label
                     $classType = 'Regular Class';
@@ -508,17 +509,20 @@ class ZoomClassesController extends Controller
                     // phone number
                     $studentNumber = $student->mobile;
 
+                    $meetingUrl = $data->join_url ?? 'Link not available for regular class';
+                    $buttonVariables = [$meetingUrl]; // Wrap in array
+
                     $bodyVariablesStudent = [
                         $student->name,
                         $classType,
-                        $tutor->name,
-                        $data->join_url ?? 'Link not available',
+                        $tutor->name
                     ];
 
                     $sent = $whatsApp->sendMessage(
                         $studentNumber,
                         $bodyVariablesStudent,
-                        $templateIdClassConfirm
+                        $templateIdClassConfirm,
+                        $buttonVariables
                     );
 
                     if ($sent) {

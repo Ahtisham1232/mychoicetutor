@@ -270,9 +270,19 @@ class ClassController extends Controller
         ->where('zoom_classes.recording_link', '!=', ''); // Exclude empty recording links
 
         // Apply subject filter if present
-        if ($request->subject_name) {
-            $query->where('subjects.id', $request->subject_name);
-        }
+      if ($request->subject_name) {
+        $subjectid = $request->subject_name;
+
+        $query->when($subjectid, function($q) use ($subjectid) {
+            // Find the name of the selected subject
+            $subjectName = subjects::where('id', $subjectid)->value('name');
+            
+            // Filter by all IDs that share that same name
+            $q->whereIn('subjects.id', 
+                subjects::where('name', $subjectName)->pluck('id')
+            );
+        });
+    }
 
         // Apply date range filters
         if ($request->start_date && !$request->end_date) {
@@ -293,7 +303,7 @@ class ClassController extends Controller
         $classes = $query->paginate(10000);
 
         // Fetch subjects and batches
-        $subjects = subjects::where('is_active', 1)->get();
+        $subjects = Subjects::getUniqueSubjects();;
         $batches = batches::where('is_active', 1)->get();
 
         // Return the view
