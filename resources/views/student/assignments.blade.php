@@ -1,21 +1,18 @@
 @extends('student.layouts.main')
 @section('main-section')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- partial -->
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+                <style>
+                    .listHeader {
+                        display: flex;
+                        justify-content: space-between;
+                    }
+                </style>
 
-<meta name="csrf-token" content="{{ csrf_token() }}">
-<!-- partial -->
-<div class="main-content">
-    <div class="page-content">
-        <div class="container-fluid">
-            <style>
-                .listHeader {
-                    display: flex;
-                    justify-content: space-between;
-                }
-
-
-            </style>
-
-            <div class="mt-4" id="">
+                <div class="mt-4" id="">
 
 
                     <div id="" class="mb-3 listHeader page-title-box">
@@ -47,8 +44,15 @@
 
 
                             <div class="col-md-3 mt-4">
-                                <button class="btn  btn-primary" style="float:right"> <span
-                                    class="fa fa-search"></span> Search</button>
+
+                                <div class="myLearningSearch">
+                                    <button class="btn  btn-primary"> <span class="fa fa-search"></span> Search</button>
+                                    <a href="{{ route('student.assignments.list') }}" class="btn btn-primary">
+                                        Reset
+                                        <span class=" fa fa-refresh"></span>
+
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -91,8 +95,10 @@
                                         <td><a href="{{ url('uploads/documents/assignments') }}/{{ $assignment->assignment_link }}"
                                                 target="_blank"><button class="badge bg-primary">View
                                                     Assignment</button></td>
-                                                    <td>{{ \Carbon\Carbon::parse($assignment->assignment_start_date)->format('d-m-Y') }}</td>
-                                                    <td>{{ \Carbon\Carbon::parse($assignment->assignment_end_date)->format('d-m-Y') }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($assignment->assignment_start_date)->format('d-m-Y') }}
+                                        </td>
+                                        <td>{{ \Carbon\Carbon::parse($assignment->assignment_end_date)->format('d-m-Y') }}
+                                        </td>
 
                                         <td>
                                             @php
@@ -108,16 +114,16 @@
                                             @endphp
 
                                             @if ($isSubmitted)
-                                                <a class="btn btn-sm btn-success"
-                                                    ><span class="fa fa-check"></span> Assignment Submitted</a>
+                                                <a class="btn btn-sm btn-success"><span class="fa fa-check"></span>
+                                                    Assignment Submitted</a>
                                             @else
-                                            @if (session('usertype') == 'Parent')
-                                            <a class="btn btn-sm btn-danger"
-                                                    > Not Submitted</a>
+                                                @if (session('usertype') == 'Parent')
+                                                    <a class="btn btn-sm btn-danger"> Not Submitted</a>
                                                 @else
-                                                <button class="btn btn-sm btn-primary"
-                                                onclick="openmodal('{{ $assignment->assignment_id }}');" data-toggle="modal"
-                                                data-target="#openmodal"><span class="fa fa-cloud-upload"></span> Submit Assignment</button>
+                                                    <button class="btn btn-sm btn-primary"
+                                                        onclick="openmodal('{{ $assignment->assignment_id }}');"
+                                                        data-toggle="modal" data-target="#openmodal"><span
+                                                            class="fa fa-cloud-upload"></span> Submit Assignment</button>
                                                 @endif
                                             @endif
                                         </td>
@@ -134,7 +140,8 @@
                                         </td>
                                         <td>
                                             @if ($isSubmitted && $submissionData && $submissionData->remarks)
-                                                <span style="max-width: 200px; display: inline-block;">{{ $submissionData->remarks }}</span>
+                                                <span
+                                                    style="max-width: 200px; display: inline-block;">{{ $submissionData->remarks }}</span>
                                             @elseif ($isSubmitted)
                                                 <span class="text-muted">No remarks</span>
                                             @else
@@ -153,60 +160,60 @@
                         {!! $assignments->links() !!}
                     </div>
 
-                </table>
-                <div class="d-flex justify-content-center">
-                    {{-- {!! $demos->links() !!} --}}
+                    </table>
+                    <div class="d-flex justify-content-center">
+                        {{-- {!! $demos->links() !!} --}}
+                    </div>
+
+
                 </div>
-
-
             </div>
-        </div>
-        <!-- content-wrapper ends -->
+            <!-- content-wrapper ends -->
 
-        <!-- modal -->
-        <div class="modal fade" id="openmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-
-
-                    <div class="modal-body">
+            <!-- modal -->
+            <div class="modal fade" id="openmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
 
 
-                        <header>
-                            <h3 class="text-center mb-4" id="header">Upload Assignment</h3>
-                        </header>
+                        <div class="modal-body">
 
-                        <form action="{{ route('student.assignments.upload') }}" method="POST"
-                            enctype="multipart/form-data">
-                            @csrf
-                            <input type="hidden" id="id" name="id">
-                            <div class="row">
 
-                                <div class="col-12 col-md-12 col-ms-6 mb-3">
-                                    <label>Upload Assignment<span style="color:red">*</span></label>
-                                    <input type="file" class="form-control" id="assigupload" name="assigupload">
-                                    <span class="text-danger">
-                                        @error('assigupload')
-                                            {{ 'Assignment is required' }}
-                                        @enderror
-                                    </span>
+                            <header>
+                                <h3 class="text-center mb-4" id="header">Upload Assignment</h3>
+                            </header>
+
+                            <form action="{{ route('student.assignments.upload') }}" method="POST"
+                                enctype="multipart/form-data">
+                                @csrf
+                                <input type="hidden" id="id" name="id">
+                                <div class="row">
+
+                                    <div class="col-12 col-md-12 col-ms-6 mb-3">
+                                        <label>Upload Assignment<span style="color:red">*</span></label>
+                                        <input type="file" class="form-control" id="assigupload" name="assigupload">
+                                        <span class="text-danger">
+                                            @error('assigupload')
+                                                {{ 'Assignment is required' }}
+                                            @enderror
+                                        </span>
+                                    </div>
+                                    <div class="col-12 col-md-12 col-ms-6 mb-3">
+                                        <label>Remarks</label>
+                                        <textarea type="text" class="form-control" id="remarks" name="remarks" placeholder="Enter remarks..."></textarea>
+                                        <span class="text-danger">
+                                            @error('remarks')
+                                                {{ 'Remarks is required' }}
+                                            @enderror
+                                        </span>
+                                    </div>
+
                                 </div>
-                                <div class="col-12 col-md-12 col-ms-6 mb-3">
-                                    <label>Remarks</label>
-                                    <textarea type="text" class="form-control" id="remarks" name="remarks" placeholder="Enter remarks..."></textarea>
-                                    <span class="text-danger">
-                                        @error('remarks')
-                                            {{ 'Remarks is required' }}
-                                        @enderror
-                                    </span>
-                                </div>
-
-                            </div>
 
 
-                            <button type="submit" id="" class="btn btn-sm btn-success float-right"><span
-                                    class="fa fa-upload"> </span> Upload</button>
+                                <button type="submit" id="" class="btn btn-sm btn-success float-right"><span
+                                        class="fa fa-upload"> </span> Upload</button>
 
                         </div>
 
@@ -224,6 +231,7 @@
                 $('#id').val(id);
                 $("#openmodal").modal('show');
             }
+
             function fetchSubjects() {
                 var classId = $('#classname option:selected').val();
                 $("#subject").html('');
@@ -254,11 +262,11 @@
                 $('#paginationContainer').html(data.pagination);
             }
 
-            $(document).ready(function () {
-                $('#payment-search').submit(function (e) {
+            $(document).ready(function() {
+                $('#payment-search').submit(function(e) {
                     e.preventDefault();
                     const page = 1;
-                    const ajaxUrl = '{{ route("student.assignments.search") }}'
+                    const ajaxUrl = '{{ route('student.assignments.search') }}'
                     var formData = $(this).serialize();
 
                     formData += `&page=${page}`;
@@ -271,11 +279,11 @@
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
 
-                        success: function (data) {
+                        success: function(data) {
                             // console.log(data)
                             updateTableAndPagination(data);
                         },
-                        error: function (xhr, status, error) {
+                        error: function(xhr, status, error) {
                             console.log(xhr.responseText);
                         }
                     });
@@ -283,26 +291,26 @@
                 });
 
 
-                $(document).on('click', '#paginationContainer .pagination a', function (e) {
-                e.preventDefault();
-                var formData = $('#payment-search').serialize();
-                const page = $(this).attr('href').split('page=')[1];
-                formData += `&page=${page}`;
-                $.ajax({
-                    type: 'post',
-                    url: '{{ route("student.assignments.search") }}', // Define your route here
-                    data:formData,
-                    headers: {
+                $(document).on('click', '#paginationContainer .pagination a', function(e) {
+                    e.preventDefault();
+                    var formData = $('#payment-search').serialize();
+                    const page = $(this).attr('href').split('page=')[1];
+                    formData += `&page=${page}`;
+                    $.ajax({
+                        type: 'post',
+                        url: '{{ route('student.assignments.search') }}', // Define your route here
+                        data: formData,
+                        headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
-                    success: function (data) {
-                        updateTableAndPagination(data);
-                    },
-                    error: function (xhr, status, error) {
-                        console.log(xhr.responseText);
-                    }
+                        success: function(data) {
+                            updateTableAndPagination(data);
+                        },
+                        error: function(xhr, status, error) {
+                            console.log(xhr.responseText);
+                        }
+                    });
                 });
-            });
 
 
 

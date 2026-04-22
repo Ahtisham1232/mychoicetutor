@@ -131,7 +131,10 @@ class ClassController extends Controller
             $query->where('zoom_classes.is_completed', '!=', 1)
                   ->orWhereNull('zoom_classes.is_completed');
         }) // Exclude completed classes only if they exist
-        ->orderBy('zoom_classes.id','desc')->get();
+        // ->orderBy('zoom_classes.id','desc')->get();
+            ->orderBy('slot_bookings.date', 'desc')
+            ->orderBy('slot_bookings.slot', 'desc')
+            ->get();
 
         // Convert slot dates and times from UTC to viewer's timezone for display
         $classes->each(function ($class) {
