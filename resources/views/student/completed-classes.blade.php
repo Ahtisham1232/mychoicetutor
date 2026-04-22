@@ -34,7 +34,10 @@
                             <select name="subject_name" class="form-control" id="subject" onchange="batchbysubject()">
                                 <option value="">Select Subject</option>
                                 @foreach ($subjects as $subject)
-                                    <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                                    <option value="{{ $subject->id }}"
+                                        {{ request('subject_name') == $subject->id ? 'selected' : '' }}>
+                                        {{ $subject->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>

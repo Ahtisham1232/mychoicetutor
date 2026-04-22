@@ -384,13 +384,14 @@ public function demostatusupdate(Request $request, TwilioWhatsAppService $whatsA
         $notified = $notificationdata->save();
         broadcast(new RealTimeMessage('$notification'));
 
-        // Send WhatsApp notification to the student (Demo Class) using template 1939
+        // Send WhatsApp notification to the student (Demo Class) using template 2404
         try {
             $student = studentregistration::find($data->student_id);
             $tutor   = tutorregistration::find($data->tutor_id);
 
             if ($student && $tutor && !empty($student->mobile)) {
-                $templateIdClassConfirm = 1939;
+                // $templateIdClassConfirm = 1939;
+                $templateIdClassConfirm = 2404;
 
                 // Determine class type label
                 $classType = 'Demo Class';
@@ -402,13 +403,15 @@ public function demostatusupdate(Request $request, TwilioWhatsAppService $whatsA
                     $student->name,
                     $classType,
                     $tutor->name,
-                    $data->demo_link ?? 'Link not available',
                 ];
+                $meetingUrl = $data->demo_link ?? 'Link not available for democlass';
+                $buttonVariables = [$meetingUrl]; // Wrap in array
 
                 $sent = $whatsApp->sendMessage(
                     $studentNumber,
                     $bodyVariablesStudent,
-                    $templateIdClassConfirm
+                    $templateIdClassConfirm,
+                    $buttonVariables
                 );
 
                 if ($sent) {
