@@ -43,7 +43,9 @@ class SendClassReminders extends Command
                 'TIMESTAMPDIFF(MINUTE, UTC_TIMESTAMP(), slot_confirmed) BETWEEN 25 AND 35'
             )
             ->get();
-
+        // $templateIdDemoStudent = 1644;
+        // $templateIdDemoTutor   = 1642;
+        $templateIdUniversalForDemo =2406;
 
         Log::info('Demo classes fetched', ['count' => $classes->count()]); // LOG
 
@@ -67,7 +69,8 @@ class SendClassReminders extends Command
             }
 
             $subject = subjects::find($class->subject_id);
-            $meetingLink = $class->demo_link ?? "https://mychoicetutor.com/waiting-room";
+            $meetingUrl = $class->demo_link ?? "https://mychoicetutor.com/waiting-room";
+            $buttonVariables = [$meetingUrl];
 
             $studentReg = studentregistration::find($class->student_id);
             $tutorReg   = tutorregistration::find($class->slot_confirmed_by);
@@ -91,10 +94,10 @@ class SendClassReminders extends Command
                             $student->name ?? 'Student',
                             $subject->name ?? 'Demo Class',
                             $formattedForStudent,
-                            $tutor->name ?? 'Tutor',
-                            $meetingLink,
+                            $tutor->name ?? 'Tutor'
                         ],
-                        1644
+                        $templateIdUniversalForDemo,
+                        $buttonVariables
                     );
                 } catch (\Exception $e) {
                     Log::error('Student demo reminder failed', [ // LOG
@@ -117,10 +120,11 @@ class SendClassReminders extends Command
                             $tutor->name ?? 'Tutor',
                             $subject->name ?? 'Demo Class',
                             $formattedForTutor,
-                            $student->name ?? 'Student',
-                            $meetingLink,
+                            $student->name ?? 'Student',                    
                         ],
-                        1642
+                        $templateIdUniversalForDemo,
+                        $buttonVariables
+
                     );
                 } catch (\Exception $e) {
                     Log::error('Tutor demo reminder failed', [ // LOG
@@ -164,8 +168,9 @@ class SendClassReminders extends Command
             'count' => $slotBookings->count()
         ]);
 
-        $templateIdRegularStudent = 1643;
-        $templateIdRegularTutor   = 1641;
+        // $templateIdRegularStudent = 1643;
+        // $templateIdRegularTutor   = 1641;
+        $templateIdUniversalForRegular = 2407;
 
         foreach ($slotBookings as $booking) {
 
@@ -186,9 +191,11 @@ class SendClassReminders extends Command
                 continue;
             }
 
-            $meetingLink = $zoomClass->join_url
+            $meetingUrl = $zoomClass->join_url
                 ?? $zoomClass->start_url
                 ?? "https://mychoicetutor.com/waiting-room";
+
+            $buttonVariables = [$meetingUrl];
 
             $studentReg = studentregistration::find($booking->student_id);
             $formattedForStudent = TimezoneHelper::formatInUserTz(
@@ -215,10 +222,10 @@ class SendClassReminders extends Command
                             $studentProfile->name ?? 'Student',
                             $subject->name ?? 'Class',
                             $formattedForStudent,
-                            // $tutorReg->name ?? 'Tutor',
-                            $meetingLink,
+                            $tutorReg->name ?? 'Tutor',
                         ],
-                        $templateIdRegularStudent
+                        $templateIdUniversalForRegular,
+                        $buttonVariables
                     );
                 } catch (\Exception $e) {
                     Log::error('Student regular reminder failed', [
@@ -238,9 +245,10 @@ class SendClassReminders extends Command
                             $subject->name ?? 'Class',
                             $formattedForTutor,
                             $studentProfile->name ?? 'Student',
-                            $meetingLink,
                         ],
-                        $templateIdRegularTutor
+                        $templateIdUniversalForRegular,
+                        $buttonVariables
+
                     );
                 } catch (\Exception $e) {
                     Log::error('Tutor regular reminder failed', [
