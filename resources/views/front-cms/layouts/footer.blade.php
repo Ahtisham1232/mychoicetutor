@@ -508,7 +508,7 @@
                 <h5 class="mb-4">Popular Subjects</h5>
 
                 @php
-                    $footerSubjects = App\Helpers\CommonHelper::getPopularSubjects(12);
+                    $footerSubjects = App\Helpers\CommonHelper::getPopularSubjects(8);
                 @endphp
 
                 @if($footerSubjects->isNotEmpty())

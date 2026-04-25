@@ -119,7 +119,7 @@ Route::post('studentsbyclass', [CommonController::class, 'studentsbyclass'])->na
 Route::post('batchbysubject', [CommonController::class, 'batchbysubject'])->name('batchbysubject');
 Route::post('studentsbybatch', [CommonController::class, 'studentsbybatch'])->name('studentsbybatch');
 Route::post('fetchtutors', [CommonController::class, 'fetchtutors'])->name('fetchtutors');
-Route::get('subjects',[SubjectController::class,'cmsindex'])->name('cmsindex');
+Route::get('subjects',[SubjectController::class,'allsubjects'])->name('all-subjects');
 
 
 //************************************************ Student  Routes ************************************************
