@@ -329,7 +329,7 @@
                                 <div class="tu-aside-menu">
                                     <div class="tu-aside-holder">
                                         <div class="tu-asidetitle" data-bs-toggle="collapse" aria-expanded="true">
-                                            <h6>Search Tutoddr</h6>
+                                            <h6>Search Tutor</h6>
                                             <div class="input-group">
                                                 <input type="text" class="form-control tu-input-field"
                                                     placeholder="Type Tutor Name..." id="ttsearch" name="ttsearch"

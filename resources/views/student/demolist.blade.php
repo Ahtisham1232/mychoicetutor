@@ -42,7 +42,7 @@
                 <form id="payment-search">
                     <div class="row align-items-end">
 
-                        <div class="col-md-2">
+                        <div class="col-md-2 mt-2">
                             <label for="tutor">Tutor</label>
                             <select class="form-control" name="tutor" id="tutor">
                                 <option value="">Select Tutor</option>
@@ -52,7 +52,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-2">
+                        <div class="col-md-2 mt-2">
                             <label for="subject">Subject</label>
 
                             <select name="subject_name" class="form-control" id="subject">
@@ -63,7 +63,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-2">
+                        <div class="col-md-2 mt-2">
                             <label for="status">Status</label>
 
                             <select class="form-control" name="status" id="ststus">
@@ -88,7 +88,7 @@
                       
 
 
-                        <div class="col-md-4">
+                        <div class="col-md-4 mt-2">
                             <div class="d-flex align-items-center">
                                 <a href="{{ url()->current() }}" class="btn btn-primary rounded-pill px-4 me-2">
                                     <span class="fa fa-refresh"></span> Reset

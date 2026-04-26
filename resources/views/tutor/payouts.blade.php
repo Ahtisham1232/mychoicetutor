@@ -38,17 +38,18 @@
                 <div class="row">
                     <div class="col-md-3 mt-4">
                         <div class="form-group">
+                            <label>Transaction No.</label>
                             <input type="text" class="form-control" name="tansaction_no" id="tranx" placeholder="Transaction No.">
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-3 mt-4">
                         <div class="form-group">
                             <label>Start Date</label>
                             <input type="date" class="form-control" name="start_date" id="smob" placeholder="Student Mobile">
 
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-3 mt-4">
                         <div class="form-group">
                             <label>End Date</label>
                             <input type="date" class="form-control" name="end_date" id="smob" placeholder="Student Mobile">
@@ -58,6 +59,7 @@
 
                     <div class="col-md-3 mt-4">
                         <div class="form-group">
+                            <label>Status</label>
                             <select class="form-control" name="status" id="byststus">
                                 <option value="">--Status--</option>
                                 @foreach ($statuses as $status)
@@ -66,10 +68,22 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-12 mt-2">
+                    {{-- <div class="col-md-12 mt-2">
                         <div class="form-group">
                             <button class="btn btn-primary" style="float:right"> <span class="fa fa-search"></span>
                                 Search</button>
+                        </div>
+                    </div> --}}
+
+                    <div class="col-md-12 mt-3">
+                        <div class="d-flex justify-content-end align-items-center">
+                            <a href="{{ url()->current() }}" class="btn btn-secondary rounded-pill px-4 me-2">
+                                <span class="fa fa-refresh"></span> Reset
+                            </a>
+                            
+                            <button type="submit" class="btn rounded-pill px-4 text-white" style="background-color: #43518c; border: none;">
+                                <span class="fa fa-search"></span> Search
+                            </button>
                         </div>
                     </div>
                 </div>
