@@ -28,7 +28,7 @@
                     @csrf
                     <div class="row py-3 align-items-end">
 
-                        <div class="col-md-2">
+                        <div class="col-md-2 my-1">
                             <div class="form-group">
                                 <label for="name">Student Name</label>
                                 <input type="text" class="form-control" name="student_name" id="sname"
@@ -37,15 +37,8 @@
 
                             </div>
                         </div>
-                        <!-- <div class="col-md-3">
-                                            <div class="form-group">
-                                                <input type="text" class="form-control" name="student_mobile" id="smob" placeholder="Student Mobile">
 
-                                            </div>
-                                        </div> -->
-
-
-                        <div class="col-md-2">
+                        <div class="col-md-2 my-1">
                             <div class="form-group">
                                 <label for="classname">Class Name</label>
 
@@ -57,7 +50,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-2 my-1">
                             <div class="form-group">
                                 <label for="subject">Subject Name</label>
 
@@ -69,7 +62,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-2 my-1 ">
                             <div class="form-group">
                                 <label for="status">Status</label>
 
@@ -82,7 +75,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-4 my-1">
                             <div class="d-flex align-items-center">
                                 <a href="{{ url()->current() }}" class="btn btn-primary rounded-pill px-4 me-2">
                                     <span class="fa fa-refresh"></span> Reset

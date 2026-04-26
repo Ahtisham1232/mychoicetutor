@@ -2186,6 +2186,24 @@ class HomeController extends Controller
                 }
             }
         }
+
+        // Notification Event On Enrollment Approval (Tutor)
+        if ((int)$notificationData->alert_type === 10) {
+            if ($notificationData->initiator_role == 1) {
+                if (session('userid')->role_id == 2) {
+                    return redirect()->to('tutor/getclasslist');
+                }
+            }
+        }
+
+        // Notification Event On Enrollment Rejection (Student)
+        if ((int)$notificationData->alert_type === 11) {
+            if ($notificationData->initiator_role == 1) {
+                if (session('userid')->role_id == 3) {
+                    return redirect()->to('student/dashboard');
+                }
+            }
+        }
         // Notification Event On Tutor Registration
         if ($notificationData->alert_type == 8) {
             // dd($notificationData->initiator_role);

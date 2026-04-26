@@ -895,7 +895,8 @@ class TutorSearchController extends Controller
                 }
 
                 if (!empty($tutor->mobile) && $firstSlot) {
-                    $templateIdTutor = 1605; // Your approved template ID
+                    // $templateIdTutor = 1605; // Your approved template ID
+                    $templateIdTutor = 2409; // Your approved template ID
                     $tutorNumber = $tutor->mobile;
 
                     // Format date & time in tutor's timezone for WhatsApp message
