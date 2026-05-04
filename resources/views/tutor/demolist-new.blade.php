@@ -24,7 +24,9 @@
                 <div class="page-title-box">
                     <h3 class="text-center">Trial Class </h3>
                 </div>
-                <form action="{{ route('tutor.demolist-search') }}" method="POST">
+
+                <!-- Hide the filter -->
+                <form action="{{ route('tutor.demolist-search') }}" method="POST" hidden>
                     @csrf
                     <div class="row py-3 align-items-end">
 
