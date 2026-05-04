@@ -38,8 +38,8 @@
                 <div id="" class="mb-3 listHeader page-title-box">
                     <h3>Trial Classes</h3>
                 </div>
-
-                <form id="payment-search">
+                <!-- Hide the filter-->
+                <form id="payment-search" hidden>
                     <div class="row align-items-end">
 
                         <div class="col-md-2 mt-2">
@@ -101,6 +101,7 @@
                         </div>
                     </div>
                 </form>
+
                 <hr>
                 <div class=" table-responsive">
                     <table class="table table-hover table-striped align-middle table-nowrap mb-0 users-table">
@@ -191,7 +192,7 @@
                                         @else
                                             <td>
                                                 {{-- <button class="btn btn-sm mr-1 btn-primary" disabled><i class="fa fa-calendar" aria-hidden="true"></i> Reschedule</button> --}}
-                                                <button class="badge" style="background-color: rgb(215, 215, 215)"
+                                                <button class="badge" style="background-color: rgb(179 80 80);"
                                                     disabled>
                                                     Cancelled</button>
                                             </td>

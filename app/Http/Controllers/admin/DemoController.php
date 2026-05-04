@@ -320,128 +320,126 @@ class DemoController extends Controller
     }
 
 
-public function tutordemoupdate(Request $request){
-    // echo $request->statusupdate;
-    // dd();
-    $request->validate([
-        'statusupdate'=>'required',
-        'demoid'=>'required'
-    ]);
+    public function tutordemoupdate(Request $request){
+        $request->validate([
+            'statusupdate'=>'required',
+            'demoid'=>'required'
+        ]);
 
-    $data = democlasses::find($request->demoid);
-    $data->status = $request->statusupdate;
-    $data->remarks = $request->remarks;
+        $data = democlasses::find($request->demoid);
+        $data->status = $request->statusupdate;
+        $data->remarks = $request->remarks;
 
-    $res = $data->save();
-    if($res){
-        return back()->with('success','Trial details updated successfully');
-    }
-    else{
-        return back()->with('fail','Something went wrong. Please try again later');
-    }
-
-}
-
-public function demostatusupdate(Request $request, TwilioWhatsAppService $whatsApp)
-{
-    $data = democlasses::find($request->id);
-    $data->status = '8';
-    $res = $data->save();
-    if ($res) {
-        //////////////// Here I need to pass notification into db
-        $notificationdata = new Notification();
-        $notificationdata->alert_type = 2;
-        $notificationdata->notification = 'Trial class started by '.session('userid')->name;
-        $notificationdata->initiator_id = session('userid')->id;
-        $notificationdata->initiator_role = session('userid')->role_id;
-        $notificationdata->event_id = $data->id;
-        // Sending to admin
-        // if($request->receiver_role_id == 1){
-            // $notificationdata->show_to_admin = 1;
-        //     $notificationdata->show_to_admin_id = $request->receiver_id;
-        //     // $notificationdata->show_to_all_admin = 1;
-        // }
-        // Sending to tutor
-        // if($request->receiver_role_id == 2){
-            // $notificationdata->show_to_tutor = 1;
-            // $notificationdata->show_to_tutor_id = $tutor_id->assigned_by;
-            // $notificationdata->show_to_all_tutor = 0;
-        // }
-        // Sending to student
-        // if($request->receiver_role_id == 3){
-            $notificationdata->show_to_student = 1;
-            $notificationdata->show_to_student_id = $data->student_id;
-            $notificationdata->show_to_all_student = 0;
-        // }
-        // // Sending to parent
-        // if($request->receiver_role_id == 3){
-            // $notificationdata->show_to_parent = 1;
-            // $notificationdata->show_to_parent_id = $request->receiver_id;
-            // $notificationdata->show_to_all_parent = 0;
-        // }
-        $notificationdata->read_status = 0;
-
-        $notified = $notificationdata->save();
-        broadcast(new RealTimeMessage('$notification'));
-
-        // Send WhatsApp notification to the student (Demo Class) using template 2404
-        try {
-            $student = studentregistration::find($data->student_id);
-            $tutor   = tutorregistration::find($data->tutor_id);
-
-            if ($student && $tutor && !empty($student->mobile)) {
-                // $templateIdClassConfirm = 1939;
-                $templateIdClassConfirm = 2404;
-
-                // Determine class type label
-                $classType = 'Demo Class';
-
-                // Format phone number
-                $studentNumber = $student->mobile;
-
-                $bodyVariablesStudent = [
-                    $student->name,
-                    $classType,
-                    $tutor->name,
-                ];
-                $meetingUrl = $data->demo_link ?? 'Link not available for democlass';
-                $buttonVariables = [$meetingUrl]; // Wrap in array
-
-                $sent = $whatsApp->sendMessage(
-                    $studentNumber,
-                    $bodyVariablesStudent,
-                    $templateIdClassConfirm,
-                    $buttonVariables
-                );
-
-                if ($sent) {
-                    Log::info("WHATSAPP SENT: {$classType} started", [
-                        'student_name'   => $student->name,
-                        'student_mobile' => $studentNumber,
-                        'class_type'     => $classType,
-                    ]);
-                } else {
-                    Log::warning("WHATSAPP FAILED: {$classType}", [
-                        'student_mobile' => $studentNumber,
-                        'class_type'     => $classType,
-                    ]);
-                }
-            } else {
-                Log::warning('Class start WhatsApp skipped (demo): missing student/tutor or mobile', [
-                    'demo_id'    => $data->id ?? null,
-                    'student_id' => $data->student_id ?? null,
-                    'tutor_id'   => $data->tutor_id ?? null,
-                ]);
-            }
-        } catch (\Throwable $e) {
-            Log::error('Failed to send WhatsApp for demo class start: ' . $e->getMessage(), [
-                'demo_id' => $data->id ?? null,
-            ]);
+        $res = $data->save();
+        if($res){
+            return back()->with('success','Trial details updated successfully');
+        }
+        else{
+            return back()->with('fail','Something went wrong. Please try again later');
         }
 
-        return json_encode(array('statusCode' => 200));
-    } else {
-        return back()->with('fail', 'Something went wrong, please try again later');
     }
-}
+
+    public function demostatusupdate(Request $request, TwilioWhatsAppService $whatsApp)
+    {
+        $data = democlasses::find($request->id);
+        $data->status = '8';
+        $res = $data->save();
+        if ($res) {
+            //////////////// Here I need to pass notification into db
+            $notificationdata = new Notification();
+            $notificationdata->alert_type = 2;
+            $notificationdata->notification = 'Trial class started by '.session('userid')->name;
+            $notificationdata->initiator_id = session('userid')->id;
+            $notificationdata->initiator_role = session('userid')->role_id;
+            $notificationdata->event_id = $data->id;
+            // Sending to admin
+            // if($request->receiver_role_id == 1){
+                // $notificationdata->show_to_admin = 1;
+            //     $notificationdata->show_to_admin_id = $request->receiver_id;
+            //     // $notificationdata->show_to_all_admin = 1;
+            // }
+            // Sending to tutor
+            // if($request->receiver_role_id == 2){
+                // $notificationdata->show_to_tutor = 1;
+                // $notificationdata->show_to_tutor_id = $tutor_id->assigned_by;
+                // $notificationdata->show_to_all_tutor = 0;
+            // }
+            // Sending to student
+            // if($request->receiver_role_id == 3){
+                $notificationdata->show_to_student = 1;
+                $notificationdata->show_to_student_id = $data->student_id;
+                $notificationdata->show_to_all_student = 0;
+            // }
+            // // Sending to parent
+            // if($request->receiver_role_id == 3){
+                // $notificationdata->show_to_parent = 1;
+                // $notificationdata->show_to_parent_id = $request->receiver_id;
+                // $notificationdata->show_to_all_parent = 0;
+            // }
+            $notificationdata->read_status = 0;
+
+            $notified = $notificationdata->save();
+            broadcast(new RealTimeMessage('$notification'));
+
+            // Send WhatsApp notification to the student (Demo Class) using template 2404
+            try {
+                $student = studentregistration::find($data->student_id);
+                $tutor   = tutorregistration::find($data->tutor_id);
+
+                if ($student && $tutor && !empty($student->mobile)) {
+                    // $templateIdClassConfirm = 1939;
+                    $templateIdClassConfirm = 2404;
+
+                    // Determine class type label
+                    $classType = 'Demo Class';
+
+                    // Format phone number
+                    $studentNumber = $student->mobile;
+
+                    $bodyVariablesStudent = [
+                        $student->name,
+                        $classType,
+                        $tutor->name,
+                    ];
+                    $meetingUrl = $data->demo_link ?? 'Link not available for democlass';
+                    $buttonVariables = [$meetingUrl]; // Wrap in array
+
+                    $sent = $whatsApp->sendMessage(
+                        $studentNumber,
+                        $bodyVariablesStudent,
+                        $templateIdClassConfirm,
+                        $buttonVariables
+                    );
+
+                    if ($sent) {
+                        Log::info("WHATSAPP SENT: {$classType} started", [
+                            'student_name'   => $student->name,
+                            'student_mobile' => $studentNumber,
+                            'class_type'     => $classType,
+                        ]);
+                    } else {
+                        Log::warning("WHATSAPP FAILED: {$classType}", [
+                            'student_mobile' => $studentNumber,
+                            'class_type'     => $classType,
+                        ]);
+                    }
+                } else {
+                    Log::warning('Class start WhatsApp skipped (demo): missing student/tutor or mobile', [
+                        'demo_id'    => $data->id ?? null,
+                        'student_id' => $data->student_id ?? null,
+                        'tutor_id'   => $data->tutor_id ?? null,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                Log::error('Failed to send WhatsApp for demo class start: ' . $e->getMessage(), [
+                    'demo_id' => $data->id ?? null,
+                ]);
+            }
+
+            return json_encode(array('statusCode' => 200));
+        } else {
+            return back()->with('fail', 'Something went wrong, please try again later');
+        }
+    }
 }
