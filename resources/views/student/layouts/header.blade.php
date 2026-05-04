@@ -385,6 +385,11 @@ $studentprofile = studentprofile::where('student_id', session('userid')->id)->fi
                                                 <a class="nav-link active" data-bs-toggle="tab" href="#all-noti-tab"
                                                     role="tab" aria-selected="true">All</a>
                                             </li>
+                                            <li class="nav-item waves-effect waves-light">
+                                                <a class="nav-link" href="{{ route('student.notifications') }}">
+                                                    Previous Notifications
+                                                </a>
+                                            </li>
                                             {{--
                                             <li class="nav-item waves-effect waves-light">
                                                 <a class="nav-link" data-bs-toggle="tab" href="#messages-tab" role="tab" aria-selected="false">Messages</a>
@@ -815,28 +820,28 @@ $studentprofile = studentprofile::where('student_id', session('userid')->id)->fi
 
                 <!-- <li class="menu-title"><i class="ri-more-fill"></i> <span data-key="t-pages">Purchase</span></li> -->
 
-                <li class="nav-item" hidden>
-                    <a class="nav-link menu-link" href="#sidebarPages" data-bs-toggle="collapse" role="button"
-                        aria-expanded="false" aria-controls="sidebarPages">
-                        <i class="ri-pages-line"></i> <span data-key="t-pages">My Purchases</span>
-                    </a>
-                    <div class="collapse menu-dropdown" id="sidebarPages">
-                        <ul class="nav nav-sm flex-column">
-                            <li class="nav-item">
+            <li class="nav-item" hidden>
+                <a class="nav-link menu-link" href="#sidebarPages" data-bs-toggle="collapse" role="button"
+                    aria-expanded="false" aria-controls="sidebarPages">
+                    <i class="ri-pages-line"></i> <span data-key="t-pages">My Purchases</span>
+                </a>
+                <div class="collapse menu-dropdown" id="sidebarPages">
+                    <ul class="nav nav-sm flex-column">
+                        <li class="nav-item">
                             <li class="nav-item">
                                 <a href="{{ route('student.searchtutor') }}" class="nav-link"
                                     data-key="t-starter">Purchase New Tutor </a>
                             </li>
                             <a href="{{ route('student.yourtutor') }}" class="nav-link" data-key="t-starter">
                                 Tutor </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('student.subjects') }}" class="nav-link" data-key="t-starter">
-                        Subjects </a>
-                </li>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('student.subjects') }}" class="nav-link" data-key="t-starter">
+                                Subjects </a>
+                        </li>
 
-                </ul>
-            </div>
+                    </ul>
+                </div>
             </li>
 
             <li class="nav-item">
