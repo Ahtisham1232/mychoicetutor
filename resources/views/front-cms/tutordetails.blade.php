@@ -228,17 +228,39 @@
                             <div class="tabView">
                                 <div class="freeTrial btnSize ">
                                     @if (isset($tutorpd->tutor_id))
-                                        <a href="/free-trial-class/student-login/{{ $tutorpd->tutor_id }}"
-                                            class="btn">Free
-                                            Trial Class</a>
+                                        @php
+                                            $tutorId = $tutorpd->tutor_id;
+                                            $userObj = session('userid');
+                                            $userType = session('usertype');
+                                            $roleId = $userObj->role_id ?? null;
+
+                                            $isStudentOrParent =
+                                                ($userType === 'Student' || $userType === 'Parent')
+                                                || ($roleId === 3 || $roleId === 4);
+                                            $isTutor = ($userType === 'Tutor') || ($roleId === 2);
+
+                                            $tutorProfileUrl = route('student.tutorprofile', $tutorId);
+                                        @endphp
+
+                                        @if($isTutor)
+                                            {{-- Tutor logged in: don't show these actions --}}
+                                        <a href="{{ $tutorProfileUrl }}"
+                                           class="btn require-login-for-tutorprofile"
+                                           data-redirect="{{ $tutorProfileUrl }}">Free Trial Class</a>
                                     @endif
                                 </div>
                                 <div></div>
 
                                 <div class="expMore btnSize">
                                     @if (isset($tutorpd->tutor_id))
-                                        <a href="/enroll-class/student-login/{{ $tutorpd->tutor_id }}" class="btn">Book
-                                            Classes</a>
+                                        @php
+                                            // $tutorProfileUrl already set above when tutor_id exists
+                                        @endphp
+                                        @if($isTutor)
+                                            {{-- Tutor logged in: don't show these actions --}}
+                                        <a href="{{ $tutorProfileUrl }}"
+                                           class="btn require-login-for-tutorprofile"
+                                           data-redirect="{{ $tutorProfileUrl }}">Book Classes</a>
                                     @endif
                                 </div>
                             </div>
