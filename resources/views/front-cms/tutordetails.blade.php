@@ -242,11 +242,11 @@
                                             $tutorProfileUrl = route('student.tutorprofile', $tutorId);
                                         @endphp
 
-                                        @if($isTutor)
-                                            {{-- Tutor logged in: don't show these actions --}}
-                                        <a href="{{ $tutorProfileUrl }}"
-                                           class="btn require-login-for-tutorprofile"
-                                           data-redirect="{{ $tutorProfileUrl }}">Free Trial Class</a>
+                                        @if(!$isTutor)
+                                            <a href="{{ $tutorProfileUrl }}"
+                                               class="btn require-login-for-tutorprofile"
+                                               data-redirect="{{ $tutorProfileUrl }}">Free Trial Class</a>
+                                        @endif
                                     @endif
                                 </div>
                                 <div></div>
@@ -256,11 +256,11 @@
                                         @php
                                             // $tutorProfileUrl already set above when tutor_id exists
                                         @endphp
-                                        @if($isTutor)
-                                            {{-- Tutor logged in: don't show these actions --}}
-                                        <a href="{{ $tutorProfileUrl }}"
-                                           class="btn require-login-for-tutorprofile"
-                                           data-redirect="{{ $tutorProfileUrl }}">Book Classes</a>
+                                        @if(!$isTutor)
+                                            <a href="{{ $tutorProfileUrl }}"
+                                               class="btn require-login-for-tutorprofile"
+                                               data-redirect="{{ $tutorProfileUrl }}">Book Classes</a>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
