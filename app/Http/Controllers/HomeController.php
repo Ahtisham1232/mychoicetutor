@@ -592,7 +592,8 @@ class HomeController extends Controller
             'password' => 'required',
             'loginAs' => 'required',
         ]);
-        if ($request->loginAs == 'student') {
+        $loginAs = $request->loginAs === 'parents' ? 'parent' : $request->loginAs;
+        if ($loginAs == 'student') {
 
             $mobile = $request->mobile;
             $countryCode = $request->country_code;
@@ -634,7 +635,7 @@ class HomeController extends Controller
                 return back()->with('fail', 'Mobile No. Not Registered');
             }
         }
-        if ($request->loginAs == 'parent') {
+        if ($loginAs == 'parent') {
             $mobile = $request->mobile;
             $countryCode = $request->country_code;
             $fullMobile = CommonHelper::ensureE164($mobile, $countryCode);
@@ -652,7 +653,7 @@ class HomeController extends Controller
                 return back()->with('fail', 'Mobile No. Not Registered');
             }
         }
-        if ($request->loginAs == 'tutor') {
+        if ($loginAs == 'tutor') {
 
             $mobile = $request->mobile;
             $countryCode = $request->country_code;
@@ -709,7 +710,8 @@ class HomeController extends Controller
             'password' => 'required',
             'loginAs' => 'required',
         ]);
-        if ($request->loginAs == 'student') {
+        $loginAs = $request->loginAs === 'parents' ? 'parent' : $request->loginAs;
+        if ($loginAs == 'student') {
             $mobile = $request->mobile;
             $countryCode = $request->country_code;
             $fullMobileWithPlus = CommonHelper::ensureE164($mobile, $countryCode);
@@ -750,7 +752,7 @@ class HomeController extends Controller
                 return back()->with('fail', 'Mobile No. Not Registered');
             }
         }
-        if ($request->loginAs == 'parent') {
+        if ($loginAs == 'parent') {
             $fullMobile = CommonHelper::ensureE164($request->mobile, $request->country_code);
             // Find the student by mobile
             $user = studentregistration::where('mobile', $fullMobile)->first();
@@ -767,7 +769,7 @@ class HomeController extends Controller
                 return back()->with('fail', 'Mobile No. Not Registered');
             }
         }
-        if ($request->loginAs == 'tutor') {
+        if ($loginAs == 'tutor') {
             $mobile = $request->mobile;
                 $countryCode = $request->country_code;
                 $fullMobileWithPlus = CommonHelper::ensureE164($mobile, $countryCode);
@@ -939,8 +941,9 @@ class HomeController extends Controller
         // dd($request->all());
         // Format the input to match your E.164 database entries
         $fullMobile = CommonHelper::ensureE164($request->mobile, $request->country_code);
+        $loginAs = $request->loginAs === 'parents' ? 'parent' : $request->loginAs;
 
-        if ($request->loginAs == 'student') {
+        if ($loginAs == 'student') {
             $user = studentregistration::where('mobile', $fullMobile)->first();
             // dd($user->toArray());
             if ($user) {
@@ -977,7 +980,7 @@ class HomeController extends Controller
                 return back()->with('fail', 'Mobile No. Not Registered');
             }
         }
-        if ($request->loginAs == 'parent') {
+        if ($loginAs == 'parent') {
                // Format the mobile number to E.164 (same as stored during registration)
             $fullMobile = CommonHelper::ensureE164($request->mobile, $request->country_code);
             // Find the student by mobile
@@ -997,7 +1000,7 @@ class HomeController extends Controller
                 return back()->with('fail', 'Mobile No. Not Registered');
             }
         }
-        if ($request->loginAs == 'tutor') {
+        if ($loginAs == 'tutor') {
             $user = tutorregistration::where('mobile', $fullMobile)->first();
             if ($user) {
                 if (Hash::check($request->password, $user->password)) {
@@ -1033,6 +1036,8 @@ class HomeController extends Controller
                 return back()->with('fail', 'Mobile No. Not Registered');
             }
         }
+
+        return back()->with('fail', 'Invalid login type selected')->withInput();
     }
 
     public function forget_password(Request $request)

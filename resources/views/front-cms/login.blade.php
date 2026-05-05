@@ -7,7 +7,7 @@
 
             </div>
             <h3 class="text-center">Login</h3>
-            <form class="loginForm" action="{{ route('userLogin') }}" method="GET">
+            <form class="loginForm" action="{{ route('userLogin') }}" method="POST">
                 @csrf
                 {{-- <div class="form-group">
                     <label for="number">Mobile Number</label>
@@ -65,7 +65,7 @@
                         </div>
                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                             <div class="radioLogin parents">
-                                <input type="radio" value="parents" name="loginAs" id="parents">
+                                <input type="radio" value="parent" name="loginAs" id="parents">
                                 <span>Parents</span>
                             </div>
                         </div>

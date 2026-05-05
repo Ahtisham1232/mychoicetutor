@@ -7,7 +7,7 @@
 
             </div>
             <h3 class="text-center">Login</h3>
-            <form class="loginForm" action="{{ url('/enroll-class-student-login') }}" method="GET">
+            <form class="loginForm" action="{{ url('/enroll-class-student-login') }}" method="POST">
               @csrf
               <input type="hidden" id="tutorid" name="tutorid" value="{{$tutorid}}">
                 <div class="form-group">
@@ -20,12 +20,23 @@
                                   <div class="alert alert-danger">{{ Session::get('fail') }}</div>
                               @endif
                     <label for="number">Mobile Number</label>
-                    <input type="number" class="form-control" id="username" name="username" aria-describedby="" 
-                    placeholder="Your mobile number" value="{{old('mobile')}}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    <div style="display:flex; gap:10px;">
+                        <select class="form-control" id="country_code" name="country_code" style="max-width:100px;">
+                            @foreach (config('phone') as $country)
+                                <option value="{{ $country['code'] }}"
+                                    {{ old('country_code', '+92') == $country['code'] ? 'selected' : '' }}>
+                                    {{ $country['code'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <input type="number" class="form-control" id="mobile" name="mobile" aria-describedby="" 
+                            placeholder="Your mobile number" value="{{ old('mobile') }}" maxlength="20"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,20)">
+                    </div>
                        
                 </div>
                 <span class="text-danger  login-errorMessage">
-                    @error('username')
+                    @error('mobile')
                         {{ $message }}
                     @enderror
                 </span>

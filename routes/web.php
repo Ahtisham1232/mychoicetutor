@@ -76,17 +76,22 @@ Route::post('/student/register',[HomeController::class,'student_tutor_registrati
 Route::get('/student/login', [HomeController::class, 'std_login'])->name('studentlogin');
 Route::get('/student/mobile-verify',[HomeController::class,'student_mobile_verify'])->name('student_mobile_verify');
 Route::post('/student/mobile-verify',[HomeController::class,'verify_student_mobile'])->name('verify_student_mobile');
-Route::get('/student-login',[HomeController::class, 'userLogin'])->name('userLogin');
+// Credentials must never be sent via GET (they end up in the URL).
+Route::post('/student-login',[HomeController::class, 'userLogin'])->name('userLogin');
+// Backward compatibility for older GET forms/links.
+Route::get('/student-login', function () {
+    return redirect()->route('studentlogin');
+});
 Route::post('/forget-password',[HomeController::class, 'forget_password'])->name('forget_password');
 Route::get('reset-password/{token}', [HomeController::class, 'reset_password_form'])->name('reset.password.get');
 // Handle reset
 Route::post('/reset-password/reset_password_submit', [HomeController::class, 'reset_password_submit'])->name('reset.password');
 
 Route::get('/free-trial-class/student-login/{id}',[HomeController::class, 'free_trial_class_student_login_form'])->name('student_login_trial');
-Route::get('/free-trial-class-student-login',[HomeController::class, 'free_trial_class_student_login'])->name('student_login_trial_post');
+Route::post('/free-trial-class-student-login',[HomeController::class, 'free_trial_class_student_login'])->name('student_login_trial_post');
 
 Route::get('/enroll-class/student-login/{id}',[HomeController::class, 'enroll_class_student_login_form'])->name('student_login_enroll');
-Route::get('/enroll-class-student-login',[HomeController::class, 'enroll_class_student_login'])->name('student_login_enroll_post');
+Route::post('/enroll-class-student-login',[HomeController::class, 'enroll_class_student_login'])->name('student_login_enroll_post');
 
 Route::post('tutor-search-guest', [TutorSearchController::class, 'tutorsindexsearch'])->name('guest.tutorsindexsearch');
 Route::post('tutor-dashboard-search',[TutorSearchController::class, 'tutorsdashboardsearch'])->name('student.tutorsdashboardsearch');
