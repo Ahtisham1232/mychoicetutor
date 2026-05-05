@@ -141,7 +141,7 @@
                             <li class="nav-item cta-btn">
                                 <div class="btnSec">
                                     @if(!$isUserLoggedIn)
-                                        <button class="btn btn-sm" data-toggle="modal" data-target="#loginPopup">Login</button>
+                                        <a href="{{ route('studentlogin')}}" class="btn btn-sm" style="color: white">Login</a>
                                         <a href="{{ url('/student/register') }}" class="btn btn-sm">Get Started</a>
                                     @else
                                         <div class="dropdown d-inline-block">
