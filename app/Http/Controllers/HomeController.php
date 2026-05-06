@@ -578,6 +578,123 @@ class HomeController extends Controller
     {
         return view('front-cms.login');
     }
+
+    public function userLogin(Request $request)
+    {
+
+        $request->validate([
+            'mobile' => 'required|numeric|digits_between:7,20',
+            'country_code' => 'required|numeric',
+            'password' => 'required',
+            'loginAs' => 'required',
+        ]);
+        // dd($request->all());
+        // Format the input to match your E.164 database entries
+        $fullMobile = CommonHelper::ensureE164($request->mobile, $request->country_code);
+        $loginAs = $request->loginAs === 'parents' ? 'parent' : $request->loginAs;
+
+        if ($loginAs == 'student') {
+            $user = studentregistration::where('mobile', $fullMobile)->first();
+            // dd($user->toArray());
+            if ($user) {
+                if (Hash::check($request->password, $user->password)) {
+                    //  event(new Registered($user));
+
+                    $user_role = Auth::user();
+                    // dd($user->role_id);
+                    $request->session()->put('userid', $user);
+                    $request->session()->put('usertype', 'Student');
+                    switch ($user->role_id) {
+                        case 1:
+                            echo "Admin - Under development";
+                            dd($user->role_id);
+                            break;
+                        case 2:
+                            // if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('tutor/dashboard')]);
+                            return redirect('tutor/dashboard');
+                        case 3:
+                            // if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('student/dashboard')]);
+                            return redirect('student/dashboard');
+                        case 4:
+                            echo "Parent";
+                            dd($user->role_id);
+
+                            break;
+                    }
+                    // return redirect(RouteServiceProvider::HOME);
+                }
+                // if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Password does not match']);
+                // return back()->with('fail', 'Password does not match');
+                return back()->withErrors(['password' => 'Password does not match'])->withInput();
+            } else {
+                // if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Mobile No. Not Registered']);
+                // return back()->with('fail', 'Mobile No. Not Registered');
+                return back()->withErrors(['mobile' => 'Mobile No. Not Registered'])->withInput();
+            }
+        }
+        if ($loginAs == 'parent') {
+               // Format the mobile number to E.164 (same as stored during registration)
+            $fullMobile = CommonHelper::ensureE164($request->mobile, $request->country_code);
+            // Find the student by mobile
+            $user = studentregistration::where('mobile', $fullMobile)->first();
+
+            if ($user) {
+                if (Hash::check($request->password, $user->parent_password)) {
+                    $request->session()->put('userid', $user);
+                    $request->session()->put('usertype', 'Parent');
+                    // if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('student/dashboard')]);
+                    return redirect('student/dashboard');
+                }
+                // if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Password does not match']);
+                // return back()->with('fail', 'Password does not match');
+                                return back()->withErrors(['password' => 'Password does not match'])->withInput();
+            } else {
+                // if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Mobile No. Not Registered']);
+                // return back()->with('fail', 'Mobile No. Not Registered');
+                return back()->withErrors(['mobile' => 'Mobile No. Not Registered'])->withInput();
+            }
+        }
+        if ($loginAs == 'tutor') {
+            $user = tutorregistration::where('mobile', $fullMobile)->first();
+            if ($user) {
+                if (Hash::check($request->password, $user->password)) {
+                    //  event(new Registered($user));
+
+                    $user_role = Auth::user();
+                    // dd($user->role_id);
+                    $request->session()->put('userid', $user);
+
+                    switch ($user->role_id) {
+                        case 1:
+                            echo "Admin - Under development";
+                            dd($user->role_id);
+                            break;
+                        case 2:
+                            // if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('tutor/dashboard')]);
+                            return redirect('tutor/dashboard');
+                        case 3:
+                            // if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('student/dashboard')]);
+                            return redirect('student/dashboard');
+                        case 4:
+                            echo "Parent";
+                            dd($user->role_id);
+
+                            break;
+                    }
+                    // return redirect(RouteServiceProvider::HOME);
+                }
+                // if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Password does not match']);
+                // return back()->with('fail', 'Password does not match');
+                                return back()->withErrors(['password' => 'Password does not match'])->withInput();
+            } else {
+                // if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Mobile No. Not Registered']);
+                // return back()->with('fail', 'Mobile No. Not Registered');
+                return back()->withErrors(['mobile' => 'Mobile No. Not Registered'])->withInput();
+            }
+        }
+
+        return back()->with('fail', 'Invalid login type selected')->withInput();
+    }
     
     public function free_trial_class_student_login_form($id)
     {
@@ -929,116 +1046,6 @@ class HomeController extends Controller
     //     }
     // }
 
-    public function userLogin(Request $request)
-    {
-
-        $request->validate([
-            'mobile' => 'required|numeric|digits_between:7,20',
-            'country_code' => 'required|numeric',
-            'password' => 'required',
-            'loginAs' => 'required',
-        ]);
-        // dd($request->all());
-        // Format the input to match your E.164 database entries
-        $fullMobile = CommonHelper::ensureE164($request->mobile, $request->country_code);
-        $loginAs = $request->loginAs === 'parents' ? 'parent' : $request->loginAs;
-
-        if ($loginAs == 'student') {
-            $user = studentregistration::where('mobile', $fullMobile)->first();
-            // dd($user->toArray());
-            if ($user) {
-                if (Hash::check($request->password, $user->password)) {
-                    //  event(new Registered($user));
-
-                    $user_role = Auth::user();
-                    // dd($user->role_id);
-                    $request->session()->put('userid', $user);
-                    $request->session()->put('usertype', 'Student');
-                    switch ($user->role_id) {
-                        case 1:
-                            echo "Admin - Under development";
-                            dd($user->role_id);
-                            break;
-                        case 2:
-                            // if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('tutor/dashboard')]);
-                            return redirect('tutor/dashboard');
-                        case 3:
-                            // if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('student/dashboard')]);
-                            return redirect('student/dashboard');
-                        case 4:
-                            echo "Parent";
-                            dd($user->role_id);
-
-                            break;
-                    }
-                    // return redirect(RouteServiceProvider::HOME);
-                }
-                // if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Password does not match']);
-                return back()->with('fail', 'Password does not match');
-            } else {
-                // if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Mobile No. Not Registered']);
-                return back()->with('fail', 'Mobile No. Not Registered');
-            }
-        }
-        if ($loginAs == 'parent') {
-               // Format the mobile number to E.164 (same as stored during registration)
-            $fullMobile = CommonHelper::ensureE164($request->mobile, $request->country_code);
-            // Find the student by mobile
-            $user = studentregistration::where('mobile', $fullMobile)->first();
-
-            if ($user) {
-                if (Hash::check($request->password, $user->parent_password)) {
-                    $request->session()->put('userid', $user);
-                    $request->session()->put('usertype', 'Parent');
-                    // if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('student/dashboard')]);
-                    return redirect('student/dashboard');
-                }
-                // if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Password does not match']);
-                return back()->with('fail', 'Password does not match');
-            } else {
-                // if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Mobile No. Not Registered']);
-                return back()->with('fail', 'Mobile No. Not Registered');
-            }
-        }
-        if ($loginAs == 'tutor') {
-            $user = tutorregistration::where('mobile', $fullMobile)->first();
-            if ($user) {
-                if (Hash::check($request->password, $user->password)) {
-                    //  event(new Registered($user));
-
-                    $user_role = Auth::user();
-                    // dd($user->role_id);
-                    $request->session()->put('userid', $user);
-
-                    switch ($user->role_id) {
-                        case 1:
-                            echo "Admin - Under development";
-                            dd($user->role_id);
-                            break;
-                        case 2:
-                            // if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('tutor/dashboard')]);
-                            return redirect('tutor/dashboard');
-                        case 3:
-                            // if ($request->ajax()) return response()->json(['status' => 'success', 'redirectUrl' => url('student/dashboard')]);
-                            return redirect('student/dashboard');
-                        case 4:
-                            echo "Parent";
-                            dd($user->role_id);
-
-                            break;
-                    }
-                    // return redirect(RouteServiceProvider::HOME);
-                }
-                // if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Password does not match']);
-                return back()->with('fail', 'Password does not match');
-            } else {
-                // if ($request->ajax()) return response()->json(['status' => 'error', 'message' => 'Mobile No. Not Registered']);
-                return back()->with('fail', 'Mobile No. Not Registered');
-            }
-        }
-
-        return back()->with('fail', 'Invalid login type selected')->withInput();
-    }
 
     public function forget_password(Request $request)
     {

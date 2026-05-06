@@ -64,8 +64,7 @@
 
                         <div class="page-title-right">
                             <ol class="breadcrumb m-0">
-                                {{-- <li class="breadcrumb-item"><a href="javascript: void(0);">Dashboards</a></li> --}}
-                                {{-- <li class="breadcrumb-item active">Analytics</li> --}}
+
                             </ol>
                         </div>
 
@@ -146,7 +145,7 @@
 
 
 
-                <div class="col-md-3 col-sm-12 col-xs-12 col-lg-3">
+                {{-- <div class="col-md-3 col-sm-12 col-xs-12 col-lg-3">
                     <div class="card card-animate dashboardcard">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
@@ -175,7 +174,6 @@
 
                                     <div class="circular-progress " data-inner-circle-color="lightgrey"
                                         data-percentage="{{80}}" data-progress-color="#88B0F1"
-                                        {{-- data-percentage="{{round($progressperc)}}" data-progress-color="#88B0F1" --}}
                                         data-bg-color="white">
                                         <div class="inner-circle"></div>
                                         <p class="percentage">0%</p>
@@ -187,8 +185,26 @@
                                         class="badge bg-secondry p-2 text-dark border-0">View Results
                                     </button></a>
                             </div>
-                        </div><!-- end card body -->
-                    </div> <!-- end card-->
+                        </div>
+                    </div> 
+                </div> --}}
+
+                <div class="col-md-3 col-sm-12 col-xs-12 col-lg-3">
+                    <div class="card card-animate dashboardcard">
+                        <div class="card-body" style="height:140.6px">
+                            <div class="d-flex justify-content-between">
+                                <div class="dashCard">
+                                    <p class="fw-medium mb-0"><b>All Assignments</b></p>
+                    
+                                </div>
+                            </div>
+                            <div style="float:right">
+                                <a href="{{route('student.assignments.list')}}" class="text-decoration-underline">
+                                    <button class="badge bg-secondry p-2 text-dark border-0" style="margin-top:57px">View All</button>
+                                </a>
+                            </div>
+                        </div>
+                    </div> 
                 </div>
             </div>
 
@@ -666,292 +682,6 @@
                 </div>
             </div>
 
-
-            {{-- <div class="allSubjects" id="allSubjects" hidden>
-
-                <div class="sliderr mb-5">
-                    <div class="slides">
-
-                        <div id="slide-1">
-                            <div class="subSlide">
-                                <div class="card card-animate">
-                                    <div class="card-body">
-                                        <h5>Arts</h5>
-                                        <div class="subItems">
-
-                                            <ul>
-                                                <li><a href="#">Fine Art</a></li>
-                                                <li><a href="#">Media Studies</a></li>
-                                                <li><a href="#">Photography</a></li>
-                                                <li><a href="#">Textile</a></li>
-                                                <li><a href="#">theatre Studies</a></li>
-                                                <li><a href="#">Music Practicle</a></li>
-                                                <li><a href="#">Performing Art</a></li>
-                                            </ul>
-                                        </div>
-
-                                    </div><!-- end card body -->
-                                </div> <!-- end card-->
-                            </div>
-
-                        </div>
-
-                        <div id="slide-1">
-                            <div class="subSlide">
-                                <div class="card card-animate">
-                                    <div class="card-body">
-                                        <h5>Business</h5>
-                                        <div class="subItems">
-
-                                            <ul>
-                                                <li><a href="">Business Studies</a></li>
-                                                <li><a href="">Finance</a></li>
-                                                <li><a href="">Business Managment</a></li>
-                                                <li><a href="">Economics</a></li>
-                                                <li><a href="">Travel & Tourism</a></li>
-                                                <li><a href="">Global Perspective</a></li>
-
-                                            </ul>
-                                        </div>
-
-                                    </div><!-- end card body -->
-                                </div> <!-- end card-->
-                            </div>
-
-                        </div>
-
-                        <div id="slide-1">
-                            <div class="subSlide">
-                                <div class="card card-animate cardWidth">
-                                    <div class="card-body">
-                                        <h5>English</h5>
-                                        <div class="subItems">
-                                            <ul>
-                                                <li><a href="">English Language</a></li>
-                                                <li><a href="">English Literature</a></li>
-                                                <li><a href="">IELTS</a></li>
-                                                <li><a href="">EFL(English As A Foreign Language)</a></li>
-                                            </ul>
-                                        </div>
-                                    </div><!-- end card body -->
-                                </div> <!-- end card-->
-                            </div>
-                        </div>
-
-                        <div id="slide-1">
-                            <div class="subSlide">
-                                <div class="card card-animate">
-                                    <div class="card-body">
-                                        <h5>Entrance Exams</h5>
-                                        <div class="subItems">
-                                            <ul>
-                                                <li><a href="">4+ Exams & Prep</a></li>
-                                                <li><a href="">7+ & 8+ Entrance Exam Prep</a></li>
-                                                <li><a href="">SAT's</a></li>
-                                                <li><a href="">11+ & 13+ Common Entrance</a></li>
-                                                <li><a href="">science</a></li>
-
-
-                                            </ul>
-                                        </div>
-                                    </div><!-- end card body -->
-                                </div> <!-- end card-->
-                            </div>
-                        </div>
-
-                        <div id="slide-1">
-                            <div class="subSlide">
-                                <div class="card card-animate">
-                                    <div class="card-body">
-                                        <h5>Humanities</h5>
-                                        <div class="subItems">
-                                            <ul>
-                                                <li><a href="">extended Essay</a></li>
-                                                <li><a href="">T.O.K</a></li>
-                                                <li><a href="">Theology</a></li>
-                                                <li><a href="">Anthropology</a></li>
-                                                <li><a href="">History</a></li>
-
-
-                                            </ul>
-                                        </div>
-                                    </div><!-- end card body -->
-                                </div> <!-- end card-->
-                            </div>
-                        </div>
-
-                        <div id="slide-1">
-                            <div class="subSlide">
-                                <div class="card card-animate">
-                                    <div class="card-body">
-                                        <h5>Languages</h5>
-                                        <div class="subItems">
-                                            <ul>
-                                                <li><a href="">Japanese</a></li>
-                                                <li><a href="">Farsi</a></li>
-                                                <li><a href="">Spanish</a></li>
-                                                <li><a href="">Greek</a></li>
-                                                <li><a href="">Latin</a></li>
-                                                <li><a href="">English Language</a></li>
-
-                                            </ul>
-                                        </div>
-                                    </div><!-- end card body -->
-                                </div> <!-- end card-->
-                            </div>
-                        </div>
-
-
-
-
-
-
-
-
-
-                    </div>
-                </div>
-
-
-
-                <div class="row" hidden>
-                    <div class="col-md-2 col-lg-2">
-                        <div class="card card-animate subCard">
-                            <div class="card-body">
-                                <h5>Arts</h5>
-                                <div class="subItems">
-
-                                    <ul>
-                                        <li><a href="#">Fine Art</a></li>
-                                        <li><a href="#">Media Studies</a></li>
-                                        <li><a href="#">Photography</a></li>
-                                        <li><a href="#">Textile</a></li>
-                                        <li><a href="#">theatre Studies</a></li>
-                                        <li><a href="#">Music Practicle</a></li>
-                                        <li><a href="#">Performing Art</a></li>
-                                    </ul>
-                                </div>
-
-                            </div><!-- end card body -->
-                        </div> <!-- end card-->
-                    </div>
-
-
-                    <div class="col-md-2 col-lg-2">
-                        <div class="card card-animate subCard">
-                            <div class="card-body">
-                                <h5>Business</h5>
-                                <div class="subItems">
-
-                                    <ul>
-                                        <li><a href="">Business Studies</a></li>
-                                        <li><a href="">Finance</a></li>
-                                        <li><a href="">Business Managment</a></li>
-                                        <li><a href="">Economics</a></li>
-                                        <li><a href="">Travel & Tourism</a></li>
-                                        <li><a href="">Global Perspective</a></li>
-
-                                    </ul>
-                                </div>
-
-                            </div><!-- end card body -->
-                        </div> <!-- end card-->
-
-                    </div>
-                    <div class="col-md-2 col-lg-2">
-                        <div class="card card-animate subCard">
-                            <div class="card-body">
-                                <h5>English</h5>
-                                <div class="subItems">
-
-                                    <ul>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                    </ul>
-                                </div>
-
-                            </div><!-- end card body -->
-                        </div> <!-- end card-->
-
-                    </div>
-
-                    <div class="col-md-2 col-lg-2">
-                        <div class="card card-animate subCard">
-                            <div class="card-body">
-                                <h5>Entrance Exams</h5>
-                                <div class="subItems">
-
-                                    <ul>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                    </ul>
-                                </div>
-
-                            </div><!-- end card body -->
-                        </div> <!-- end card-->
-
-                    </div>
-
-                    <div class="col-md-2 col-lg-2">
-                        <div class="card card-animate subCard">
-                            <div class="card-body">
-                                <h5>Humanities</h5>
-                                <div class="subItems">
-
-                                    <ul>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                    </ul>
-                                </div>
-
-                            </div><!-- end card body -->
-                        </div> <!-- end card-->
-
-                    </div>
-
-
-                    <div class="col-md-2 col-lg-2">
-                        <div class="card card-animate subCard">
-                            <div class="card-body">
-                                <h5>Languages</h5>
-                                <div class="subItems">
-
-                                    <ul>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                        <li><a href=""></a></li>
-                                    </ul>
-                                </div>
-
-                            </div><!-- end card body -->
-                        </div> <!-- end card-->
-
-                    </div>
-
-                </div>
-
-
-
-            </div> --}}
 
             <!--
             <div class="allSubjects" id="allSubjects" hidden>

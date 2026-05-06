@@ -25,11 +25,11 @@
                         @endforeach
                     </select>
 
-                    <input type="number" class="form-control" id="mobile" name="mobile" placeholder="Your Number"
+                    <input type="text" class="form-control" id="mobile" name="mobile" placeholder="Your Number"
                         required value="{{ old('mobile') }}" oninput="this.value=this.value.slice(0,20)">
                 </div>
                 <span class="text-danger  login-errorMessage">
-                    @error('username')
+                    @error('mobile')
                         {{ $message }}
                     @enderror
                 </span>
