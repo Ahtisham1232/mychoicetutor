@@ -206,8 +206,7 @@
                             </div> --}}
 
                             <div class="haveAnAccount">
-                                <p>Already have an account <a href="#" data-toggle="modal"
-                                        data-target="#loginPopup"><u>Login now</u></a></p>
+                                <p>Already have an account <a href="{{route('studentlogin')}}"><u>Login now</u></a></p>
                             </div>
 
                         </form>

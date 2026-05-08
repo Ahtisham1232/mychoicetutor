@@ -629,11 +629,7 @@ class TutorSearchController extends Controller
                 'stripeKey' => $stripekey
             ]);
         } catch (\Exception $e) {
-            return redirect()->back()->with(
-                'fail',
-                'Something went wrong while processing your request. Please try again or contact support.'
-            );
-            Log::error('Purchase Class Error', [
+              Log::error('Purchase Class Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -643,6 +639,11 @@ class TutorSearchController extends Controller
                 'request_data' => $request->all(),
                 'user_id' => session('userid')->id ?? null,
             ]);
+            return redirect()->back()->with(
+                'fail',
+                'Something went wrong while processing your request. Please try again or contact support.'
+            );
+          
         }
     }
     // public function purchaseclass(Request $request)
@@ -934,14 +935,15 @@ class TutorSearchController extends Controller
 
             return redirect()->route('student.admission', ['id' => $data['tutorenrollid']])->with('success', 'Payment successful and enrollment request submitted. Admin will review and approve your request.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('fail', 'Something went wrong processing your successful payment. Please contact admin.');
-            Log::error('Stripe Payment Success Flow Error', [
+              Log::error('Stripe Payment Success Flow Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
                 'user_id' => session('userid')->id ?? null,
             ]);
+            return redirect()->back()->with('fail', 'Something went wrong processing your successful payment. Please contact admin.');
+          
         }
     }
 

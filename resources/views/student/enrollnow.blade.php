@@ -141,7 +141,7 @@
                         <div class="col-md-2 mt-4">
                             <label for="">Required Class<i style="color: red">*</i></label>
                             <input type="number" class="form-control" name="requiredclassenroll" id="requiredclassenroll"
-                                onkeyup="calculate();valuechanged()" required>
+                                onkeyup="calculate();" required>
                             <span class="text-danger">
                                 @error('requiredclassenroll')
                                     {{ $message }}
@@ -162,7 +162,12 @@
                     </div>
 
                     <hr>
-
+                    <div class="alert alert-primary mt-3 mb-3">
+                        <h5 class="mb-0">
+                            <i class="fa fa-calendar-check-o"></i>
+                            Available Slots of This Tutor
+                        </h5>
+                    </div>
                     <div class="full-width-table-responsive">
                         @if (count($groupedSlots) > 0)
                             <table class="table table-hover table-striped align-middle table-nowrap mb-0 users-table"
