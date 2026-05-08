@@ -566,112 +566,106 @@ class PaymentsController extends Controller
      */
     public function approveEnrollmentRequest(Request $request)
     {
+        $request->validate([
+            'transaction_id' => 'required|string',
+            'payment_verified' => 'required|boolean'
+        ]);
+
+        $transactionId = $request->transaction_id;
+        $paymentVerified = (bool) $request->payment_verified;
+
         try {
-            $request->validate([
-                'transaction_id' => 'required|string',
-                'payment_verified' => 'required|boolean'
-            ]);
+            $paymentDetails = paymentdetails::where('transaction_id', $transactionId)->first();
+            if (!$paymentDetails) {
+                return redirect()->route('admin.enrollment-requests')->with('fail', 'Payment record not found for this transaction.');
+            }
 
-            $transactionId = $request->transaction_id;
-            $paymentVerified = $request->payment_verified;
-
-        // Update payment details
-        $paymentDetails = paymentdetails::where('transaction_id', $transactionId)->first();
-        if ($paymentDetails) {
-            $paymentDetails->status = $paymentVerified ? 1 : 0; // 1 = approved, 0 = pending
-            $paymentDetails->save();
-        }
-
-        // Update slot bookings
-        $slotBookings = SlotBooking::where('transaction_id', $transactionId)->get();
-        foreach ($slotBookings as $slot) {
-            $slot->status = $paymentVerified ? 1 : 0; // 1 = confirmed, 0 = pending
-            $slot->save();
-        }
-
-        if ($paymentVerified) {
-            // Get student and tutor info for notifications
             $studentPayment = paymentstudents::where('transaction_id', $transactionId)->first();
-            $student = studentregistration::find($studentPayment->student_id);
-            $tutor = tutorregistration::find($studentPayment->tutor_id);
+            if (!$studentPayment) {
+                return redirect()->route('admin.enrollment-requests')->with('fail', 'Enrollment data not found for this transaction.');
+            }
 
-            // Send notification to student
-            $notificationdata = new Notification();
-            $notificationdata->alert_type = 9; // New alert type for enrollment approval
-            $notificationdata->notification = 'Your enrollment request has been approved! Classes are now confirmed.';
-            $notificationdata->initiator_id = session('userid')->id;
-            $notificationdata->initiator_role = session('userid')->role_id;
-            $notificationdata->event_id = $studentPayment->tutor_id;
-            $notificationdata->show_to_student = 1;
-            $notificationdata->show_to_student_id = $studentPayment->student_id;
-            $notificationdata->read_status = 0;
-            $notificationdata->save();
-            broadcast(new RealTimeMessage($notificationdata));
+            DB::transaction(function () use ($paymentDetails, $transactionId, $paymentVerified) {
+                // Update payment details
+                $paymentDetails->status = $paymentVerified ? 1 : 0; // 1 = approved, 0 = pending
+                $paymentDetails->save();
 
-            // Send notification to tutor
-            $tutorNotification = new Notification();
-            $tutorNotification->alert_type = 10; // New alert type for tutor notification
-            $tutorNotification->notification = $student->name . ' enrollment has been approved for your classes.';
-            $tutorNotification->initiator_id = session('userid')->id;
-            $tutorNotification->initiator_role = session('userid')->role_id;
-            $tutorNotification->event_id = $studentPayment->student_id;
-            $tutorNotification->show_to_tutor = 1;
-            $tutorNotification->show_to_tutor_id = $studentPayment->tutor_id;
-            $tutorNotification->read_status = 0;
-            $tutorNotification->save();
-            broadcast(new RealTimeMessage($tutorNotification));
+                // Update slot bookings
+                $slotBookings = SlotBooking::where('transaction_id', $transactionId)->get();
+                foreach ($slotBookings as $slot) {
+                    $slot->status = $paymentVerified ? 1 : 0; // 1 = confirmed, 0 = pending
+                    $slot->save();
+                }
+            });
 
-            // Send email to student
-            $details = [
-                'name' => $student->name,
-                'total_classes' => $studentPayment->classes_purchased,
-                'tutor_name' => $tutor->name,
-                'mailtype' => 6, // New mail type for enrollment approval
-            ];
-            Mail::to($student->email)->send(new SendMail($details));
+            // If not verified, we intentionally keep it pending
+            if (!$paymentVerified) {
+                return redirect()->route('admin.enrollment-requests')->with('info', 'Enrollment request marked as pending payment verification.');
+            }
 
-            // Send WhatsApp notification to Student when admin approves enrollment
+            // Notifications/emails are best-effort: approval should not look "failed" if these fail.
             try {
-                $whatsApp = app(TwilioWhatsAppService::class);
-                $studentProfile = studentprofile::where('student_id', $studentPayment->student_id)->first();
-                Log::error('student mobile  for admin approval: ' . $studentProfile->mobile);
-                if (!empty($studentProfile->mobile)) {
-                    $templateIdStudent = 1637; // TODO: Replace with actual template ID for admin approval notification
-                    $studentNumber = $studentProfile->mobile;
-                    $bodyVariablesStudent = [
-                        $student->name,
-                        $tutor->name,
-                        $studentPayment->classes_purchased,
-                        $studentPayment->rate_per_hr,
+                $student = studentregistration::find($studentPayment->student_id);
+                $tutor = tutorregistration::find($studentPayment->tutor_id);
+
+                if ($student && $tutor) {
+                    $notificationdata = new Notification();
+                    $notificationdata->alert_type = 9; // New alert type for enrollment approval
+                    $notificationdata->notification = 'Your enrollment request has been approved! Classes are now confirmed.';
+                    $notificationdata->initiator_id = session('userid')->id;
+                    $notificationdata->initiator_role = session('userid')->role_id;
+                    $notificationdata->event_id = $studentPayment->tutor_id;
+                    $notificationdata->show_to_student = 1;
+                    $notificationdata->show_to_student_id = $studentPayment->student_id;
+                    $notificationdata->read_status = 0;
+                    $notificationdata->save();
+                    broadcast(new RealTimeMessage($notificationdata));
+
+                    $tutorNotification = new Notification();
+                    $tutorNotification->alert_type = 10; // New alert type for tutor notification
+                    $tutorNotification->notification = $student->name . ' enrollment has been approved for your classes.';
+                    $tutorNotification->initiator_id = session('userid')->id;
+                    $tutorNotification->initiator_role = session('userid')->role_id;
+                    $tutorNotification->event_id = $studentPayment->student_id;
+                    $tutorNotification->show_to_tutor = 1;
+                    $tutorNotification->show_to_tutor_id = $studentPayment->tutor_id;
+                    $tutorNotification->read_status = 0;
+                    $tutorNotification->save();
+                    broadcast(new RealTimeMessage($tutorNotification));
+
+                    $details = [
+                        'name' => $student->name,
+                        'total_classes' => $studentPayment->classes_purchased,
+                        'tutor_name' => $tutor->name,
+                        'mailtype' => 6, // New mail type for enrollment approval
                     ];
-                    $whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdStudent);
+                    Mail::to($student->email)->send(new SendMail($details));
+
+                    try {
+                        $whatsApp = app(TwilioWhatsAppService::class);
+                        $studentProfile = studentprofile::where('student_id', $studentPayment->student_id)->first();
+                        if ($studentProfile && !empty($studentProfile->mobile)) {
+                            $templateIdStudent = 1637; // TODO: Replace with actual template ID for admin approval notification
+                            $studentNumber = $studentProfile->mobile;
+                            $bodyVariablesStudent = [
+                                $student->name,
+                                $tutor->name,
+                                $studentPayment->classes_purchased,
+                                $studentPayment->rate_per_hr,
+                            ];
+                            $whatsApp->sendMessage($studentNumber, $bodyVariablesStudent, $templateIdStudent);
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('WhatsApp send failed for admin approval: ' . $e->getMessage());
+                    }
+                } else {
+                    Log::warning('Approve enrollment: missing student/tutor record for transaction ' . $transactionId);
                 }
             } catch (\Exception $e) {
-                Log::error('WhatsApp send failed for admin approval: ' . $e->getMessage());
+                Log::error('Post-approval notifications failed for transaction ' . $transactionId . ': ' . $e->getMessage());
             }
-            $enrollmentRequests = paymentdetails::select(
-                'paymentdetails.*', 
-                'paymentstudents.*',
-                'studentregistrations.name as student_name',
-                'studentregistrations.email as student_email',
-                'tutorregistrations.name as tutor_name',
-                'subjects.name as subject_name',
-                'classes.name as class_name'
-            )
-            ->join('paymentstudents', 'paymentstudents.transaction_id', 'paymentdetails.transaction_id')
-            ->join('studentregistrations', 'studentregistrations.id', 'paymentstudents.student_id')
-            ->join('tutorregistrations', 'tutorregistrations.id', 'paymentstudents.tutor_id')
-            ->join('subjects', 'subjects.id', 'paymentstudents.subject_id')
-            ->join('classes', 'classes.id', 'paymentstudents.class_id')
-            ->where('paymentdetails.status', 0) // 0 = pending approval
-            ->where('paymentdetails.payment_mode', paymentdetails::MODE_STRIPE)
-            ->orderBy('paymentdetails.created_at', 'desc')
-            ->paginate(10);
 
             return redirect()->route('admin.enrollment-requests')->with('success', 'Enrollment request approved successfully!');
-        } else {
-            return redirect()->route('admin.enrollment-requests')->with('info', 'Enrollment request marked as pending payment verification.');
-        }
         } catch (\Exception $e) {
             return redirect()->route('admin.enrollment-requests')->with('fail', 'Something went wrong. Please try again. Error: ' . $e->getMessage());
         }

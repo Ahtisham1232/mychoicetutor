@@ -275,7 +275,7 @@
                                                         @if(!empty($tutorlist->subject))
                                                             <a href="enrollnow/{{ $tutorlist->tutor_id }}">
                                                                 <button class="btn btn-sm btn-success">
-                                                                    Enroll Now
+                                                                    Book a Calss
                                                                 </button>
                                                             </a>
                                                         @else
@@ -289,7 +289,7 @@
                                                                     disabled
                                                                     style="pointer-events:none;"
                                                                 >
-                                                                    Enroll Now
+                                                                    Book a Calss
                                                                 </button>
                                                             </span>
                                                         @endif 
