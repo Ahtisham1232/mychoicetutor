@@ -651,7 +651,7 @@
                     </span>
                 </a>
                 <!-- Light Logo-->
-                <a href="/tutor/dashboard" class="logo logo-light">
+                <a href="{{route('home')}}" class="logo logo-light">
                     <span class="logo-sm">
                         <img src="/images/MCTsmallLogo.png" alt="logo" height="35">
                     </span>

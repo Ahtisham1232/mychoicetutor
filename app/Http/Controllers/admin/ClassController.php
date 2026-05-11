@@ -100,6 +100,7 @@ class ClassController extends Controller
         ->where('zoom_classes.tutor_id', $tutorId) // Ensure only this tutor's recordings
         ->whereNotNull('zoom_classes.recording_link') // Only show classes with recordings
         ->where('zoom_classes.recording_link', '!=', '') // Exclude empty recording links
+        ->orderBy('zoom_classes.completed_at', 'DESC')
         ->get();
 
     $classes = (new CommonController)->classes();
@@ -203,44 +204,45 @@ class ClassController extends Controller
         return view('parent.classes', get_defined_vars());
 
     }
+
     public function studentCompletedclass()
-{
-    $targetValue = session('userid')->id; // Get the current student's ID
+    {
+        $targetValue = session('userid')->id; // Get the current student's ID
 
-    $classes = zoom_classes::select(
-            'zoom_classes.*',
-            'zoom_classes.id as class_id',
-            'zoom_classes.topic_name as topics',
-            'subjects.id as subject_id',
-            'subjects.name as subject_name',
-            'zoom_classes.tutor_id',
-            'tutorregistrations.name as tutor_name',
-            'tutorreviews.ratings as tutor_review', // Adding tutor review
-            'tutorreviews.name as tutor_review_text' // Adding tutor review
-        )
-        ->join('tutorregistrations', 'tutorregistrations.id', '=', 'zoom_classes.tutor_id')
-        ->join('slot_bookings', 'slot_bookings.meeting_id', '=', 'zoom_classes.id')
-        ->join('subjects', 'subjects.id', '=', 'slot_bookings.subject_id')
-        ->leftJoin('tutorreviews', function($join) use ($targetValue) {
-            $join->on('tutorreviews.tutor_id', '=', 'zoom_classes.tutor_id')
-                 ->on('tutorreviews.subject_id', '=', 'subjects.id')
-                 ->where('tutorreviews.student_id', '=', $targetValue); // Match tutor_id, subject_id, and student_id
-        })
-        ->where('zoom_classes.is_active', 1)
-        ->where('zoom_classes.student_id', $targetValue) // Ensure only this student's recordings
-        ->where('slot_bookings.student_id', $targetValue) // Double-check with slot_bookings
-        ->where('zoom_classes.is_completed', 1)
-        ->whereNotNull('zoom_classes.recording_link') // Only show classes with recordings
-        ->where('zoom_classes.recording_link', '!=', '') // Exclude empty recording links
-        ->paginate(10000);
+        $classes = zoom_classes::select(
+                'zoom_classes.*',
+                'zoom_classes.id as class_id',
+                'zoom_classes.topic_name as topics',
+                'subjects.id as subject_id',
+                'subjects.name as subject_name',
+                'zoom_classes.tutor_id',
+                'tutorregistrations.name as tutor_name',
+                'tutorreviews.ratings as tutor_review', // Adding tutor review
+                'tutorreviews.name as tutor_review_text' // Adding tutor review
+            )
+            ->join('tutorregistrations', 'tutorregistrations.id', '=', 'zoom_classes.tutor_id')
+            ->join('slot_bookings', 'slot_bookings.meeting_id', '=', 'zoom_classes.id')
+            ->join('subjects', 'subjects.id', '=', 'slot_bookings.subject_id')
+            ->leftJoin('tutorreviews', function($join) use ($targetValue) {
+                $join->on('tutorreviews.tutor_id', '=', 'zoom_classes.tutor_id')
+                    ->on('tutorreviews.subject_id', '=', 'subjects.id')
+                    ->where('tutorreviews.student_id', '=', $targetValue); // Match tutor_id, subject_id, and student_id
+            })
+            ->where('zoom_classes.is_active', 1)
+            ->where('zoom_classes.student_id', $targetValue) // Ensure only this student's recordings
+            ->where('slot_bookings.student_id', $targetValue) // Double-check with slot_bookings
+            ->where('zoom_classes.is_completed', 1)
+            ->whereNotNull('zoom_classes.recording_link') // Only show classes with recordings
+            ->where('zoom_classes.recording_link', '!=', '') // Exclude empty recording links
+            ->orderBy('zoom_classes.completed_at', 'DESC')
+            ->paginate(10000);
 
-    // Fetch active subjects and batches
-    $subjects = subjects::where('is_active', 1)->get();
-    $batches = batches::where('is_active', 1)->get();
+        // Fetch active subjects and batches
+        $subjects = subjects::where('is_active', 1)->get();
+        $batches = batches::where('is_active', 1)->get();
 
-    return view('student.completed-classes', get_defined_vars());
-}
-
+        return view('student.completed-classes', get_defined_vars());
+    }
 
     public function studentCompletedclasssearch(Request $request)
     {
