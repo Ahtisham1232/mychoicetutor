@@ -51,7 +51,7 @@
                             </select>
                         </div>
 
-                        {{-- <div class="col-md-2">
+                    {{-- <div class="col-md-2">
                         <label>Start Date</label>
                         <input type="date" class="form-control" name="start_date" id="start_date">
                     </div>

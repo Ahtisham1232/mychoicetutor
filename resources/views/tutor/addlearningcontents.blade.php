@@ -122,6 +122,7 @@
                                 <label>Upload Video</label>
                                 <input type="file" accept="video/mp4,video/x-m4v,video/*" class="form-control"
                                     id="uploadvideo" name="uploadvideo">
+                                <small class="text-danger">Maximum file size should be 20 MB.</small>
                                 @if (isset($ucontents) && $ucontents->video_link)
                                     <small class="text-success">Current file: <a
                                             href="{{ url('uploads/videos/learningcontents') }}/{{ $ucontents->video_link }}"
