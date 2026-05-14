@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\admin;
 
-use App\Models\Blogs;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Blogs;
 
 class BlogsController extends Controller
 {
@@ -96,8 +97,6 @@ class BlogsController extends Controller
             'message' => 'Status updated successfully'
         ]);
     }
-
-
 
     /**
      * Display the specified resource.

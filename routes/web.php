@@ -12,12 +12,14 @@ use App\Http\Controllers\admin\PaymentsController;
 use App\Http\Controllers\admin\QuestionBankController;
 use App\Http\Controllers\admin\SubjectController;
 use App\Http\Controllers\admin\TopicController;
+use App\Http\Controllers\admin\BlogsController;
+use App\Http\Controllers\admin\FaqsController;
 use App\Http\Controllers\AssignmentsController;
 use App\Http\Controllers\CommonController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JitsiController;
-use App\Http\Controllers\BlogsController;
+// use App\Http\Controllers\BlogsController;
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\MessagesController;
 use App\Http\Controllers\ReportController;
@@ -32,11 +34,13 @@ use App\Http\Controllers\student\SubjectsController;
 use App\Http\Controllers\student\TutorSearchController;
 
 use App\Http\Controllers\TutorreviewsController;
+use App\Http\Controllers\CmsController;
 use App\Http\Controllers\ZoomClassesController;
 use App\Http\Controllers\SlotBookingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StripePaymentController;
 use Illuminate\Support\Facades\Cache;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -52,6 +56,7 @@ use Illuminate\Support\Facades\Cache;
 
 //************************************************ Home Route ************************************************
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/faqs', [CmsController::class, 'index'])->name('faqs');
 
 // Route::get('/deepesh', function(){
 //     event(new RealTimeMessage('uyuyyuy this is a sample broadcast'));
@@ -380,12 +385,19 @@ Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], funct
     // Route::get('classes-report',[ReportController::class, 'admin_class_report'])->name('admin.reports.class-list');
     Route::get('chat-report',[ReportController::class, 'admin_chat_report'])->name('admin.reports.chat-list');
     Route::post('payouts-search',[PaymentsController::class,'adminPayoutsSearch'])->name('admin.payouts-search');
+
     Route::get('blogs', [BlogsController::class, 'index'])->name('admin.blogs.list');
     Route::get('blogs/create', [BlogsController::class, 'create'])->name('admin.blogs.create');
     Route::post('blogs/create', [BlogsController::class, 'store'])->name('admin.blogs.store');
     Route::get('blogs/update/{id}', [BlogsController::class, 'edit'])->name('admin.blogs.edit');
     Route::post('blogs/status', [BlogsController::class, 'changeStatus'])->name('admin.blogs.status');
 
+    // Admin Faqs Routes
+    Route::get('faqs', [FaqsController::class, 'index'])->name('admin.faqs.list');
+    Route::get('faqs/create', [FaqsController::class, 'create'])->name('admin.faqs.create');
+    Route::post('faqs', [FaqsController::class, 'store'])->name('admin.faqs.store');
+    Route::get('faqs/{id}/edit', [FaqsController::class, 'edit'])->name('admin.faqs.edit');
+    Route::post('faqs/status', [FaqsController::class, 'changeStatus'])->name('admin.faqs.status');
 
 });
 
