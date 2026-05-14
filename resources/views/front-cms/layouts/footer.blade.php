@@ -99,6 +99,9 @@
                     <a href="/refundpolicy">
                         <li>Refund Policy</li>
                     </a>
+                    <a href="{{route('faqs')}}">
+                        <li>FAQS</li>
+                    </a>
 
                 </ul>
             </div>

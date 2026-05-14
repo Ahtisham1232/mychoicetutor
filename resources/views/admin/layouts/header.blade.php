@@ -639,6 +639,12 @@
                             </a>
 
                         </li>
+                         <li class="nav-item">
+                            <a class="nav-link menu-link {{ Request::is('admin.faqs.list') ? 'active' : '' }}" href="{{route('admin.faqs.list')}}" role="button" aria-expanded="false" aria-controls="sidebarDashboards">
+                                <i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">Faqs</span>
+                            </a>
+
+                        </li>
                         <li class="nav-item">
                         @php
                             $isLCActive = Request::is('admin/learningcontents') || Request::is('admin/assignments');
