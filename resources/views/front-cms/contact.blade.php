@@ -104,7 +104,7 @@
                             </div>
                             <div class="contactDetails">
                                 <p><b>Send us a message</b></p>
-                                <a href="mailto:mychoicetutor@gmail.com"><b>mychoicetutor@gmail.com</b></a>
+                                <a href="mailto:{{config('mail.support_address')}}"><b>{{config('mail.support_address')}}</b></a>
                             </div>
                         </div>
                     </div>

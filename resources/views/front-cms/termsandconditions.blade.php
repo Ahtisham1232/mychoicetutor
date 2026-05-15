@@ -90,7 +90,7 @@
     <p class="mb-5">We reserve the right to modify these Terms at any time. We will notify you of any changes by posting the new Terms on our website. You are advised to review these Terms periodically for any changes. Your continued use of My Choice Tutor after the posting of changes constitutes your acceptance of such changes.</p>
 
     <h5 calss="mb-2">13. Contact Information</h5>
-    <p class="mb-5">If you have any questions about these Terms, please contact us at <a href="mailto:info@mychoicetutor.com">info@mychoicetutor.com</a>.</p>
+    <p class="mb-5">If you have any questions about these Terms, please contact us at <a href="mailto:{{config('mail.support_address')}}">{{config('mail.support_address')}}</a>.</p>
 
     <h5 calss="mb-2"></h5>
     <p class="mb-5"></p>

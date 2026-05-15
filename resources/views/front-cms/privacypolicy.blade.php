@@ -70,7 +70,7 @@ our Meta lead form ads.</p>
     <p>If you have any questions or concerns regarding this Privacy Policy, you can contact us at:</p>
     <ul>
        <strong>My Choice Tutor</strong>
-        <li>Email: <a href="mailto:mychoicetutor@gmail.com">mychoicetutor@gmail.com</a></li>
+        <li>Email: <a href="mailto:{{config('mail.support_address')}}">{{config('mail.support_address')}}</a></li>
         <li>Phone: +44 07761 975326</li>
     </ul>
 

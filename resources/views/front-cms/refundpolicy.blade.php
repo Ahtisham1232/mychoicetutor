@@ -35,13 +35,6 @@
 <h5 class="mb-2">5. Contact Information</h5>
 <p class="mb-5">For any questions or further clarification regarding our refund policy, please contact us</p>
 
-{{-- <ul class="contactDetail">
-    <li><img src="{{ url('frontendnew/img/icons/Group.png') }}" alt="">07761 975326</li>
-    <li><img src="{{ url('frontendnew/img/icons/Vector.png') }}" alt="">07761 975326</li>
-    <li><img src="{{ url('frontendnew/img/icons/email.png') }}" alt="">info@mychoicetutor.com
-    </li>
-
-</ul> --}}
 </section>
 
 @endsection

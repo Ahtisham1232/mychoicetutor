@@ -94,7 +94,8 @@
                             <li class="nav-item cta-btn mobBtn">
                                 @if(!$isUserLoggedIn)
                                     <div class="mobLogin">
-                                        <button class="btn btn-sm" data-toggle="modal" data-target="#loginPopup">Login</button>
+                                        <a href="{{ route('studentlogin')}}" class="btn btn-sm" style="color: black">Login</a>
+
                                     </div>
                                     <div >
                                         <a href="{{ url('/student/register') }}" class="btn btn-sm ">Get Started</a>
