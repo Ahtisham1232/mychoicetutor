@@ -66,10 +66,18 @@
                                 </select>
                             </div>
                         </div>
+
                         <div class="col-md-3">
-                            <div class="form-group">
-                                <button class="btn btn-primary" style="float:right"> <span class="fa fa-search"></span>
-                                    Search</button>
+                            <div class="form-group d-flex gap-2 justify-content-end">
+
+                                <button type="submit" class="btn btn-primary">
+                                    <span class="fa fa-search"></span> Search
+                                </button>
+
+                                <a href="{{ route('admin.tutors') }}" class="btn btn-secondary">
+                                    Reset
+                                </a>
+
                             </div>
                         </div>
                     </div>
@@ -79,7 +87,7 @@
                 <hr>
 
                 <div class="mt-4 table-responsive" id="">
-                    <table class="table table-hover table-striped align-middlemb-0 users-table">
+                    <table class="table table-hover table-striped align-middle mb-0 users-table">
                         <thead>
                             <tr>
                                 <th scope="col">S.No</th>
@@ -99,7 +107,7 @@
                                     <td>{{ $loop->iteration }}</td>
                                     <td>
                                         {{-- @if ($ttrlist->subject_name) --}}
-                                            <a href="tutorprofile/{{ $ttrlist->tutor_id }}">{{ $ttrlist->tutor_name }}</a>
+                                        <a href="tutorprofile/{{ $ttrlist->tutor_id }}">{{ $ttrlist->tutor_name }}</a>
                                         {{-- @else
                                             {{ $ttrlist->tutor_name }}
                                         @endif --}}
@@ -108,19 +116,23 @@
                                     <td>{{ $ttrlist->tutor_mobile }}</td>
                                     {{-- <td>£ {{ $ttrlist->rate }}</td> --}}
                                     @if ($ttrlist->tutor_status == 1)
-                                    <td><a href="#"
-                                        onclick="updaterate('{{ $ttrlist->tutor_id }}','{{ $ttrlist->rate }}')">
-                                        {{ $ttrlist->rate }} <span class="badge bg-primary ml-3"> Update</span> </a>
-                                </td>
-                                <td><a href="#"
-                                        onclick="updatecommission('{{ $ttrlist->tutor_id }}','{{ $ttrlist->admin_commission }}')">
-                                        {{ $ttrlist->admin_commission }}% <span class="badge bg-primary ml-3">
-                                            Update</span> </a></td>
-                                            @else
-                                            <td><p style="color: rgb(164, 164, 164)">{{ $ttrlist->rate }}</p></td>
-                                        <td><p style="color: rgb(164, 164, 164)">{{ $ttrlist->admin_commission }}%</p></td>
-
-                                            @endif
+                                        <td><a href="#"
+                                                onclick="updaterate('{{ $ttrlist->tutor_id }}','{{ $ttrlist->rate }}')">
+                                                {{ $ttrlist->rate }} <span class="badge bg-primary ml-3"> Update</span>
+                                            </a>
+                                        </td>
+                                        <td><a href="#"
+                                                onclick="updatecommission('{{ $ttrlist->tutor_id }}','{{ $ttrlist->admin_commission }}')">
+                                                {{ $ttrlist->admin_commission }}% <span class="badge bg-primary ml-3">
+                                                    Update</span> </a></td>
+                                    @else
+                                        <td>
+                                            <p style="color: rgb(164, 164, 164)">{{ $ttrlist->rate }}</p>
+                                        </td>
+                                        <td>
+                                            <p style="color: rgb(164, 164, 164)">{{ $ttrlist->admin_commission }}%</p>
+                                        </td>
+                                    @endif
 
                                     <td><a href="tutorslotscheck/{{ $ttrlist->tutor_id }}"><span
                                                 class="badge bg-success ml-3">Check Slots</span> </a></td>
@@ -132,9 +144,9 @@
                                             @else
                                                 <i class="ri-close-circle-line align-middle text-danger"></i> Inactive
                                             @endif
-                                            <input class="form-check-input" type="checkbox" role="switch" id="SwitchCheck1"
+                                            <input class="form-check-input checkbox" type="checkbox" role="switch" id="SwitchCheck1"
                                                 onclick="changestatus('{{ $ttrlist->tutor_id }}','{{ $ttrlist->tutor_status }}');"
-                                                class="checkbox" @if ($ttrlist->tutor_status == 1) then checked @endif>
+                                             @if ($ttrlist->tutor_status == 1) checked @endif>
 
                                         </div>
                                     </td>
@@ -246,7 +258,7 @@
 
 
 
-  <!-- Tutor Delete Confirmation -->
+    <!-- Tutor Delete Confirmation -->
     <div id="deleteTutorModal" class="modal fade zoomIn" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -263,7 +275,8 @@
                         </div>
                     </div>
                     <div class="d-flex gap-2 justify-content-center mt-4 mb-2">
-                        <button type="button" class="btn btn-light text-dark w-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-light text-dark w-sm"
+                            data-bs-dismiss="modal">Cancel</button>
                         <a href="#" class="btn w-sm btn-danger" id ="confirmDeleteBtn">Yes, Delete</a>
                     </div>
                 </div>
@@ -308,7 +321,8 @@
             $('#commissionperhr').val(rate);
             $('#admincommissionmodal').modal('show')
         }
-        function closecommisionmodal(){
+
+        function closecommisionmodal() {
             $('#admincommissionmodal').modal('hide')
         }
 
@@ -317,7 +331,8 @@
             $('#rateperhour').val(rate);
             $('#adminratemodal').modal('show')
         }
-        function closeratemodal(){
+
+        function closeratemodal() {
             $('#adminratemodal').modal('hide')
         }
 
@@ -370,7 +385,6 @@
                 }
             });
         }
-
     </script>
     <script>
         function updateTableAndPagination(data) {
@@ -434,11 +448,10 @@
         });
     </script>
     <script>
-    function deleteTutor(id)
-    {
-        var deleteUrl = "tutordelete/" + id;
-        $('#confirmDeleteBtn').attr('href', deleteUrl);
-        $('#deleteTutorModal').modal('show');
-    }
+        function deleteTutor(id) {
+            var deleteUrl = "tutordelete/" + id;
+            $('#confirmDeleteBtn').attr('href', deleteUrl);
+            $('#deleteTutorModal').modal('show');
+        }
     </script>
 @endsection

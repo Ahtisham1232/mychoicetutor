@@ -32,6 +32,9 @@ use App\Http\Controllers\student\MyLearningController;
 use App\Http\Controllers\student\StudentProfileController;
 use App\Http\Controllers\student\SubjectsController;
 use App\Http\Controllers\student\TutorSearchController;
+use App\Http\Controllers\JibriRecordingController;
+use App\Http\Controllers\JitsiWebhookController;
+use App\Http\Controllers\admin\RecordingsController;
 
 use App\Http\Controllers\TutorreviewsController;
 use App\Http\Controllers\CmsController;
@@ -56,8 +59,6 @@ use Illuminate\Support\Facades\Cache;
 
 //************************************************ Home Route ************************************************
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/faqs', [CmsController::class, 'index'])->name('faqs');
-
 // Route::get('/deepesh', function(){
 //     event(new RealTimeMessage('uyuyyuy this is a sample broadcast'));
 // });
@@ -109,12 +110,8 @@ Route::get('/tutor/mobile-verify',[HomeController::class,'tutor_mobile_verify'])
 Route::post('/tutor/mobile-verify',[HomeController::class,'verify_tutor_mobile'])->name('verify_tutor_mobile');
 Route::get('/tutor-login',[HomeController::class, 'tutor_login'])->name('tutor_login');
 
-//parent authentications
-Route::get('/parent/login', [HomeController::class, 'parent_login'])->name('parentlogin');
-Route::post('/parent/login', [HomeController::class, 'parent_login_attempt'])->name('parent.login');
 
 // Tutor search in index page
-
 Route::post('tutorsearch', [TutorSearchController::class, 'tutorsearchindex'])->name('tutorsearchindex');
 
 
@@ -130,6 +127,62 @@ Route::post('batchbysubject', [CommonController::class, 'batchbysubject'])->name
 Route::post('studentsbybatch', [CommonController::class, 'studentsbybatch'])->name('studentsbybatch');
 Route::post('fetchtutors', [CommonController::class, 'fetchtutors'])->name('fetchtutors');
 Route::get('subjects',[SubjectController::class,'allsubjects'])->name('all-subjects');
+
+// Create Jitsi Meeting
+Route::get('/jitsi', [JitsiController::class, 'index']);
+
+// Jitsi Webhook for automatic recording processing
+Route::post('/webhook/jitsi/recording', [JitsiWebhookController::class, 'handleWebhook'])->name('webhook.jitsi.recording');
+
+// Jibri HTTP API routes (bypass buggy XMPP in Jibri 8.0)
+Route::prefix('jibri')->group(function () {
+    Route::post('/start-recording', [JibriRecordingController::class, 'startRecording'])->name('jibri.start');
+    Route::post('/stop-recording', [JibriRecordingController::class, 'stopRecording'])->name('jibri.stop');
+    Route::get('/status', [JibriRecordingController::class, 'getStatus'])->name('jibri.status');
+});
+
+// Test page for Jibri recording (remove in production)
+Route::get('/test-recording', function () {
+    return view('test-recording');
+});
+// Route::get('oauth2callback', [GoogleCalendarController::class,'oauthCallback'])->name('oauth2callback');
+Route::get('tutorprofile/{id}', [TutorSearchController::class, 'teacherprofile'])->name('tutorprofile');
+Route::get('/tutor/dashboard/oauth2callback', [GoogleCalendarController::class, 'oauth2callbackdemo']);
+Route::get('allsubjects',[HomeController::class,'allsubjects'])->name('allsubjectindex');
+
+
+Route::get('/faqs', [CmsController::class, 'index'])->name('faqs');
+Route::get('/howitworks', [CmsController::class, 'howitworks'])->name('howitworks');
+Route::get('/why-choose-us', [CmsController::class, 'whychooseus'])->name('whychooseus');
+Route::get('/aboutus', [CmsController::class, 'aboutus'])->name('aboutus');
+Route::get('/contact', [CmsController::class, 'contact'])->name('contact');
+Route::get('/privacypolicy', [CmsController::class, 'privacypolicy'])->name('privacypolicy');
+Route::get('/refundpolicy', [CmsController::class, 'refundpolicy'])->name('refundpolicy');
+Route::get('/termsandconditions', [CmsController::class, 'termsandconditions'])->name('termsandconditions');
+
+Route::get('password-change-confirmation', function(){
+    return view('front-cms/password-change-confirmation');
+})->name('password.change.confirmation');
+
+Route::get('/listen', function(){
+    return view('listen');
+});
+
+Route::get('/.well-known/pki-validation/{filename}', function ($filename) {
+    $path = public_path('.well-known/pki-validation/' . $filename);
+
+    if (File::exists($path)) {
+        return response()->file($path);
+    }
+
+    abort(404);
+});
+
+Route::get('/debug-cache', function () {
+    Cache::put('test_key', true, 300);
+    return Cache::has('test_key') ? 'CACHE WORKING' : 'CACHE FAIL';
+});
+
 
 
 //************************************************ Student  Routes ************************************************
@@ -255,12 +308,12 @@ Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], funct
     Route::post('tutorslotssearch', [SlotBookingController::class, 'admintutorslotssearch'])->name('admin.tutorslotssearch');
     
     // Recordings
-    Route::get('recordings', [\App\Http\Controllers\admin\RecordingsController::class, 'index'])->name('admin.recordings');
-    Route::get('recordings/view/{id}', [\App\Http\Controllers\admin\RecordingsController::class, 'view'])->name('admin.recordings.view');
-    Route::get('recordings/analytics', [\App\Http\Controllers\admin\RecordingsController::class, 'analytics'])->name('admin.recordings.analytics');
-    Route::get('recordings/download/{id}', [\App\Http\Controllers\admin\RecordingsController::class, 'download'])->name('admin.recordings.download');
-    Route::delete('recordings/{id}', [\App\Http\Controllers\admin\RecordingsController::class, 'destroy'])->name('admin.recordings.delete');
-    Route::post('recordings/{id}/update-link', [\App\Http\Controllers\admin\RecordingsController::class, 'updateRecordingLink'])->name('admin.recordings.update-link');
+    Route::get('recordings', [RecordingsController::class, 'index'])->name('admin.recordings');
+    Route::get('recordings/view/{id}', [RecordingsController::class, 'view'])->name('admin.recordings.view');
+    Route::get('recordings/analytics', [RecordingsController::class, 'analytics'])->name('admin.recordings.analytics');
+    Route::get('recordings/download/{id}', [RecordingsController::class, 'download'])->name('admin.recordings.download');
+    Route::delete('recordings/{id}', [RecordingsController::class, 'destroy'])->name('admin.recordings.delete');
+    Route::post('recordings/{id}/update-link', [RecordingsController::class, 'updateRecordingLink'])->name('admin.recordings.update-link');
 
     // Subjects
     Route::get('subject', [SubjectController::class, 'index'])->name('admin.subject');
@@ -419,8 +472,6 @@ Route::group(['prefix' => 'tutor', 'middleware' => ['TutorAuthenticate']], funct
     // Tutor Class Mapping
     Route::post('classmapping', [TutorProfileController::class, 'classmapping'])->name('tutor.classmapping');
     Route::get('classmappingdelete/{id}', [TutorProfileController::class, 'classmappingdelete'])->name('tutor.classmappingdelete');
-    // Tutor Class Scheduling
-    // Route::post('classschedule',[ClassScheduleController::class,'create'])->name('tutor.classschedule.create');
 
     // Demo List
     Route::get('demolist', [DemoController::class, 'tutordemolist'])->name('tutor.demolist');
@@ -535,6 +586,9 @@ Route::group(['prefix' => 'tutor', 'middleware' => ['TutorAuthenticate']], funct
 
 });
 
+//parent authentications
+Route::get('/parent/login', [HomeController::class, 'parent_login'])->name('parentlogin');
+Route::post('/parent/login', [HomeController::class, 'parent_login_attempt'])->name('parent.login');
 //************************************************ Parent Routes ************************************************
 Route::group(['prefix' => 'parent', 'middleware' => ['StudentAuthenticate']], function () {
     // student dashboard
@@ -608,85 +662,4 @@ Route::group(['prefix' => 'parent', 'middleware' => ['StudentAuthenticate']], fu
 
 });
 
-// Create Jitsi Meeting
-Route::get('/jitsi', [JitsiController::class, 'index']);
-
-// Jitsi Webhook for automatic recording processing
-Route::post('/webhook/jitsi/recording', [\App\Http\Controllers\JitsiWebhookController::class, 'handleWebhook'])->name('webhook.jitsi.recording');
-
-// Jibri HTTP API routes (bypass buggy XMPP in Jibri 8.0)
-Route::prefix('jibri')->group(function () {
-    Route::post('/start-recording', [\App\Http\Controllers\JibriRecordingController::class, 'startRecording'])->name('jibri.start');
-    Route::post('/stop-recording', [\App\Http\Controllers\JibriRecordingController::class, 'stopRecording'])->name('jibri.stop');
-    Route::get('/status', [\App\Http\Controllers\JibriRecordingController::class, 'getStatus'])->name('jibri.status');
-});
-
-// Test page for Jibri recording (remove in production)
-Route::get('/test-recording', function () {
-    return view('test-recording');
-});
-// Route::get('oauth2callback', [GoogleCalendarController::class,'oauthCallback'])->name('oauth2callback');
-Route::get('tutorprofile/{id}', [TutorSearchController::class, 'teacherprofile'])->name('tutorprofile');
-Route::get('/tutor/dashboard/oauth2callback', [GoogleCalendarController::class, 'oauth2callbackdemo']);
-
-Route::get('howitworks', function(){
-    return view('front-cms/howitworks');
-});
-
-Route::get('price', function(){
-    return view('front-cms/price');
-});
-
-Route::get('allsubjects',[HomeController::class,'allsubjects'])->name('allsubjectindex');
-
-Route::get('courses', function(){
-    return view('front-cms/courses');
-});
-
-Route::get('why-choose-us', function(){
-    return view('front-cms/whychooseus');
-});
-
-Route::get('aboutus', function(){
-    return view('front-cms/about_us');
-});
-
-Route::get('contact', function(){
-    return view('front-cms/contact');
-});
-
-Route::get('privacypolicy', function(){
-    return view('front-cms/privacypolicy');
-});
-
-Route::get('refundpolicy', function(){
-    return view('front-cms/refundpolicy');
-});
-
-Route::get('termsandconditions', function(){
-    return view('front-cms/termsandconditions');
-})->name('termsandconditions');
-
-Route::get('password-change-confirmation', function(){
-    return view('front-cms/password-change-confirmation');
-})->name('password.change.confirmation');
-
-Route::get('/listen', function(){
-    return view('listen');
-});
-
-Route::get('/.well-known/pki-validation/{filename}', function ($filename) {
-    $path = public_path('.well-known/pki-validation/' . $filename);
-
-    if (File::exists($path)) {
-        return response()->file($path);
-    }
-
-    abort(404);
-});
-
-Route::get('/debug-cache', function () {
-    Cache::put('test_key', true, 300);
-    return Cache::has('test_key') ? 'CACHE WORKING' : 'CACHE FAIL';
-});
 

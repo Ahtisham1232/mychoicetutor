@@ -82,7 +82,7 @@
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label>Start Date</label>
-                                <input type="date" class="form-control" name="start_date" id="smob"
+                                <input type="date" class="form-control" name="start_date" id="start_date"
                                     placeholder="Student Mobile">
 
                             </div>
@@ -90,7 +90,7 @@
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label>End Date</label>
-                                <input type="date" class="form-control" name="end_date" id="smob"
+                                <input type="date" class="form-control" name="end_date" id="end_date"
                                     placeholder="Student Mobile">
 
                             </div>
@@ -106,19 +106,24 @@
                                 </select>
                             </div>
                         </div>
+   
                         <div class="col-md-6 mt-4">
-                            <div class="form-group">
-                                <button class="btn btn-primary" style="float:right"> <span class="fa fa-search"></span>
-                                    Search</button>
+                            <div class="form-group d-flex gap-2 justify-content-end">
+
+                                <button type="submit" class="btn btn-primary">
+                                    <span class="fa fa-search"></span> Search
+                                </button>
+
+                                <a href="{{ route('admin.demolist') }}" class="btn btn-secondary">
+                                    Reset
+                                </a>
+
                             </div>
                         </div>
                     </div>
 
                 </form>
                 <hr>
-
-
-
 
                 <div class="table-responsive">
                     <table class="table table-hover table-striped align-middle table-nowrap mb-0 users-table">
@@ -207,7 +212,9 @@
 
                                     <td>
                                         @if ($demo->slot_confirmed)
-                                            {{ \App\Helpers\TimezoneHelper::formatInUserTz($demo->slot_confirmed, 'd-m-Y', 'UTC') }} <span style="color: #299CDB;">{{ \App\Helpers\TimezoneHelper::formatInUserTz($demo->slot_confirmed, 'h:i A', 'UTC') }}</span>
+                                            {{ \App\Helpers\TimezoneHelper::formatInUserTz($demo->slot_confirmed, 'd-m-Y', 'UTC') }}
+                                            <span
+                                                style="color: #299CDB;">{{ \App\Helpers\TimezoneHelper::formatInUserTz($demo->slot_confirmed, 'h:i A', 'UTC') }}</span>
                                         @endif
                                     </td>
                                     {{-- <td><a href="{{ $demo->demo_link }}">{{ $demo->demo_link }}</a></td> --}}
