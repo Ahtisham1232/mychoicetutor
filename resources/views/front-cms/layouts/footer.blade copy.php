@@ -203,8 +203,7 @@
                 <ul class="contactDetail">
                     <li><img src="{{ url('frontendnew/img/icons/Group.png') }}" alt="">07761 975326</li>
                     <li><img src="{{ url('frontendnew/img/icons/Vector.png') }}" alt="">07761 975326</li>
-                    <li><img src="{{ url('frontendnew/img/icons/email.png') }}" alt="">info@mychoicetutor.com
-                    </li>
+                    <li><img src="{{ url('frontendnew/img/icons/email.png') }}" alt="">info@mychoicetutor.com</li>
 
                 </ul>
 

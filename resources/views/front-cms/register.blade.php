@@ -151,17 +151,17 @@
                             <div class="radioBtn">
                                 <div class="row">
                                     <div class="col-6">
-                                        <div class="radioLogin student active-btn">
+                                        <label class="radioLogin student active-btn" for="student">
                                             <input type="radio" value="student" name="registerAs" id="student" checked>
                                             <span>Student</span>
-                                        </div>
+                                        </label>
                                     </div>
 
                                     <div class="col-6">
-                                        <div class="radioLogin tutor">
+                                        <label class="radioLogin tutor" for="tutor">
                                             <input type="radio" value="tutor" name="registerAs" id="tutor">
                                             <span>Tutor</span>
-                                        </div>
+                                        </label>
                                     </div>
 
                                 </div>
