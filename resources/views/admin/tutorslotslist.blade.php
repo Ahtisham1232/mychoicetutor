@@ -24,7 +24,7 @@
                 <div class="page-title-box">
                     <h3 class="">Slots List</h3>
                 </div>
-                <form action="{{route('admin.tutorslotssearch')}}" method="POST">
+                <form action="{{ route('admin.tutorslotssearch') }}" method="POST">
                     @csrf
                     <div class="row py-3">
 
@@ -38,7 +38,7 @@
                         </div>
                         <div class="col-md-2">
                             <div class="form-group">
-                                <input type="text" class="form-control" name="student_mobile" id="smob"
+                                <input type="text" class="form-control" name="student_mobile" id="student_mobile"
                                     placeholder="Student Mobile">
 
                             </div>
@@ -46,24 +46,24 @@
 
                         <div class="col-md-2">
                             <div class="form-group">
-                                <input type="text" class="form-control" name="tutor_name" id="tname"
+                                <input type="text" class="form-control" name="tutor_name" id="tutor_name"
                                     placeholder="Tutor Name">
 
                             </div>
                         </div>
                         <div class="col-md-2">
                             <div class="form-group">
-                                <input type="text" class="form-control" name="tutor_mobile" id="tmob"
+                                <input type="text" class="form-control" name="tutor_mobile" id="tutor_mobile"
                                     placeholder="Tutor Mobile">
                             </div>
                         </div>
-                        
+
                     </div>
                     <div class="row">
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label>Start Date</label>
-                                <input type="date" class="form-control" name="start_date" id="smob"
+                                <input type="date" class="form-control" name="start_date" id="start_date"
                                     placeholder="Student Mobile">
 
                             </div>
@@ -71,7 +71,7 @@
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label>End Date</label>
-                                <input type="date" class="form-control" name="end_date" id="smob"
+                                <input type="date" class="form-control" name="end_date" id="end_date"
                                     placeholder="Student Mobile">
 
                             </div>
@@ -81,17 +81,25 @@
                             <div class="form-group">
                                 <select class="form-control" name="status" id="ststus">
                                     <option value="">-- Status --</option>
-                                    
-                                        <option value="1">Booked</option>
-                                        <option value="0">Available</option>
-                                 
+
+                                    <option value="1">Booked</option>
+                                    <option value="0">Available</option>
+
                                 </select>
                             </div>
                         </div>
+   
                         <div class="col-md-6 mt-4">
-                            <div class="form-group">
-                                <button class="btn btn-primary" type="submit" style="float:right"> <span class="fa fa-search"></span>
-                                    Search</button>
+                            <div class="form-group d-flex gap-2 justify-content-end">
+
+                                <button type="submit" class="btn btn-primary">
+                                    <span class="fa fa-search"></span> Search
+                                </button>
+
+                                <a href="{{ route('admin.tutorslots') }}" class="btn btn-secondary">
+                                    Reset
+                                </a>
+
                             </div>
                         </div>
                     </div>
@@ -120,46 +128,46 @@
                         </thead>
                         <tbody>
                             @foreach ($slots as $slot)
-                                @if($slot->status == 0)
-                                <tr style="background-color: rgb(191, 255, 191)">
-                                @elseif ($slot->status == 1)
-                                <tr style="background-color: rgb(255, 189, 189);">
-                                @elseif ($slot->status == 2)
-                                <tr>
-                                @endif
-                                    <td>{{$loop->iteration}}</td>
-                                    <td>{{$slot->tutor_name}}</td>
-                                    <td>{{ \Carbon\Carbon::parse($slot->date)->format('d/m/Y') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($slot->slot)->format('h:i A') }}</td>
-                                    @if ($slot->status == 0)
-                                    <td>Available</td>
+                                @if ($slot->status == 0)
+                                    <tr style="background-color: rgb(191, 255, 191)">
                                     @elseif ($slot->status == 1)
+                                    <tr style="background-color: rgb(255, 189, 189);">
+                                    @elseif ($slot->status == 2)
+                                    <tr>
+                                @endif
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $slot->tutor_name }}</td>
+                                <td>{{ \Carbon\Carbon::parse($slot->date)->format('d/m/Y') }}</td>
+                                <td>{{ \Carbon\Carbon::parse($slot->slot)->format('h:i A') }}</td>
+                                @if ($slot->status == 0)
+                                    <td>Available</td>
+                                @elseif ($slot->status == 1)
                                     <td>Booked</td>
-                                    @else
+                                @else
                                     <td>Completed</td>
-                                    @endif
-                                    <td>{{$slot->student_name}}</td>
-                                    <td>{{$slot->booked_at}}</td>
-                                    <td>{{$slot->subject}}</td>
-                                   
-                                    
+                                @endif
+                                <td>{{ $slot->student_name }}</td>
+                                <td>{{ $slot->booked_at }}</td>
+                                <td>{{ $slot->subject }}</td>
+
+
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
-                   
+
                     <br>
-    
+
                     {{-- <form action="{{ route('tutor.liveclass.getuser') }}" method="GET">
                     @csrf
                     <input type="text" id="zuser" name="zuser"><button type="submit" class="success">Submit</button>
                     </form> --}}
-    
+
                 </div>
             </div>
         </div>
     </div>
-   
+
     <!-- content-wrapper ends -->
 
     <!--confirm modal -->
