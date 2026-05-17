@@ -105,4 +105,13 @@ class TimezoneHelper
         $datetime = Carbon::createFromFormat('Y-m-d H:i:s', $date . ' ' . $time, 'UTC');
         return self::toUserTz($datetime, 'UTC', $user);
     }
+
+    public static function formatDate($date, $format = 'd F, Y')
+    {
+        if (empty($date)) {
+            return '';
+        }
+
+        return Carbon::parse($date)->format($format);
+    }
 }
