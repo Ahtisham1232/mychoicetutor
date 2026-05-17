@@ -79,6 +79,9 @@
                     </tbody>
                 </table>
 
+                <div class="mt-3">
+                    {{ $blogs->links() }}
+                </div>
             </div>
         </div>
         <!-- content-wrapper ends -->

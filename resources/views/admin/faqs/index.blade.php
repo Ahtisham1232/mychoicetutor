@@ -11,6 +11,7 @@
                 display: flex;
                 justify-content: space-between;
             }
+
             /* Ensures long answers don't break the table layout */
             .text-truncate-custom {
                 max-width: 250px;
@@ -81,7 +82,9 @@
                         </tbody>
                     </table>
                 </div>
-
+                <div class="mt-3">
+                    {{ $faqs->links() }}
+                </div>
             </div>
         </div>
 

@@ -13,7 +13,7 @@ class BlogsController extends Controller
      */
     public function index()
     {
-        $blogs = Blogs::select('*')->orderby('created_at', 'desc')->get();
+        $blogs = Blogs::select('*')->orderby('created_at', 'desc')->paginate(10);
         return view('admin.blogs', compact('blogs'));
     }
 
