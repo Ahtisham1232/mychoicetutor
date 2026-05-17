@@ -53,6 +53,9 @@
             padding: 20px;
         }
     }
+    .footer-bottom{
+        background:linear-gradient(135deg, #6a307d, #8e44ad);
+    }
 </style>
 
 
