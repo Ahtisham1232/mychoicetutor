@@ -210,7 +210,7 @@
     <!-- tutor section -->
     <section class="tutor-section">
         <div class="container tutor-card">
-            <h4>10 million evaluated private tutors</h4>
+            <h4>Experienced & Qualified Tutors</h4>
             <br>
             <div class="row">
                 @foreach ($tutors->slice(0, 8) as $tutor)

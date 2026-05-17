@@ -14,7 +14,7 @@ class FaqsController extends Controller
     public function index()
     {
         // Fetching all FAQs ordered by newest first
-        $faqs = Faq::orderby('created_at', 'desc')->get();
+        $faqs = Faq::orderby('created_at', 'desc')->paginate(10);
         return view('admin.faqs.index', compact('faqs'));
     }
 
