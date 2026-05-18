@@ -167,7 +167,9 @@
                                 <div class="form-group col-md-6">
                                     <label for="">Subject</label>
                                     <input type="text" class="form-control" placeholder="Enter Subject Name"
-                                        id="subject" name="subject" required>
+                                        id="subject" name="subject" required maxlength="200">
+                                        <small class="form-text text-muted">Maximum 200 characters allowed.</small>
+
                                 </div>
                             </div>
                             <div class="row">

@@ -151,6 +151,7 @@ Route::get('/howitworks', [CmsController::class, 'howitworks'])->name('howitwork
 Route::get('/why-choose-us', [CmsController::class, 'whychooseus'])->name('whychooseus');
 Route::get('/aboutus', [CmsController::class, 'aboutus'])->name('aboutus');
 Route::get('/contact', [CmsController::class, 'contact'])->name('contact');
+Route::post('/contact', [CmsController::class, 'contactsave'])->name('contactsave');
 Route::get('/privacypolicy', [CmsController::class, 'privacypolicy'])->name('privacypolicy');
 Route::get('/refundpolicy', [CmsController::class, 'refundpolicy'])->name('refundpolicy');
 Route::get('/termsandconditions', [CmsController::class, 'termsandconditions'])->name('termsandconditions');

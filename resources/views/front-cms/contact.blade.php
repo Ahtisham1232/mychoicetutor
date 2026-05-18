@@ -19,18 +19,23 @@
             outline: none;
             background-color: #e0e0e0;
         }
+
         @media (max-width: 576px) {
-        .tutorHeader h1 {
-            font-size: 2rem; /* Shrinks the 'Contact Us' text so it fits better */
+            .tutorHeader h1 {
+                font-size: 2rem;
+                /* Shrinks the 'Contact Us' text so it fits better */
+            }
+
+            .contactHeader p {
+                font-size: 14px;
+                /* Slightly smaller text for mobile */
+                line-height: 1.6 !important;
+            }
+
+            .text-response p {
+                line-height: 1.2 !important;
+            }
         }
-        .contactHeader p {
-            font-size: 14px; /* Slightly smaller text for mobile */
-            line-height: 1.6 !important;
-        }
-        .text-response p{
-           line-height: 1.2 !important; 
-        }
-    }
     </style>
     <section class="bannerSec tutBann">
         <div class="container-fluid">
@@ -104,7 +109,8 @@
                             </div>
                             <div class="contactDetails">
                                 <p><b>Send us a message</b></p>
-                                <a href="mailto:{{config('mail.support_address')}}"><b>{{config('mail.support_address')}}</b></a>
+                                <a
+                                    href="mailto:{{ config('mail.support_address') }}"><b>{{ config('mail.support_address') }}</b></a>
                             </div>
                         </div>
                     </div>
@@ -115,11 +121,16 @@
                 <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                     <h2>Send us a message</h2>
                     <div class="contactform mt-4">
-                        <form action="https://api.web3forms.com/submit" method="POST">
-                            <input type="hidden" name="access_key" value="4b32d89d-c763-494c-8e4e-2c5556dbbedf">
+                        <form action="{{ route('contactsave') }}" method="POST">
+                            @csrf
+                            {{-- <form action="https://api.web3forms.com/submit" method="POST"> --}}
+
+                            {{-- <input type="hidden" name="access_key" value="4b32d89d-c763-494c-8e4e-2c5556dbbedf"> --}}
                             <div class="form-group">
                                 <label for="name">Name:</label>
-                                <input type="text" id="name" name="name" required>
+                                <input type="text" id="name" name="name" required maxlength="100">
+                                <small>Maximum 100 characters</small>
+
                             </div>
                             <div class="form-group">
                                 <label for="email">Email:</label>
@@ -127,7 +138,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="message">Message:</label>
-                                <textarea id="message" name="message" required></textarea>
+                                <textarea id="message" name="message" required maxlength="150"></textarea>
+                                <small>Maximum 150 characters</small>
                             </div>
                             <div class="form-group mb-5">
                                 <div class="contactSubmitBtn">
