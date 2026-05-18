@@ -43,4 +43,24 @@ class CmsController extends Controller
     {
         return view('front-cms/termsandconditions');
     }
+
+    public function contactsave(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|max:150',
+            'message' => 'required|string|max:150',
+        ]);
+
+        // Example: Save to database (uncomment when model is ready)
+        /*
+        ContactMessage::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'message' => $request->message,
+        ]);
+        */
+
+        return redirect()->back()->with('success', 'Your message has been sent successfully!');
+    }
 }
