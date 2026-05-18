@@ -9,12 +9,7 @@
             <h3 class="text-center">Login</h3>
             <form class="loginForm" action="{{ route('userLogin') }}" method="POST">
                 @csrf
-                {{-- <div class="form-group">
-                    <label for="number">Mobile Number</label>
-                    <input type="number" class="form-control" id="username" name="username" aria-describedby=""
-                        placeholder="Your Number">
-                </div> --}}
-
+                    <input type="hidden" name="timezone" id="timezone">
                 <div style="display:flex; gap:10px; margin-bottom: 15px;">
                     <select class="form-control" id="country_code" name="country_code" style="max-width:100px;">
                         @foreach (config('phone') as $country)
@@ -192,6 +187,7 @@
     </div>
 @endsection
 <script src="{{ url('frontendnew/js/jquery-3.3.1.min.js') }}"></script>
+<script src="{{ asset('js/timezone/timezone.js') }}"></script>
 <script>
     $(document).ready(function() {
         $(document).on('click', '.toggle-password', function() {
