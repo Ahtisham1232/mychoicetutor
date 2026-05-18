@@ -206,7 +206,7 @@
                             </div> --}}
 
                             <div class="haveAnAccount">
-                                <p>Already have an account <a href="{{route('studentlogin')}}"><u>Login now</u></a></p>
+                                <p>Already have an account <a href="{{ route('studentlogin') }}"><u>Login now</u></a></p>
                             </div>
 
                         </form>
@@ -217,7 +217,7 @@
         </div>
 
     </section>
-
+    <script src="{{ asset('js/timezone/timezone.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const studentRadio = document.getElementById('student');
@@ -254,7 +254,7 @@
     </script>
 
     {{-- Pick the timezone of the user and log  --}}
-    <script>
+    {{-- <script>
         document.addEventListener("DOMContentLoaded", function() {
             const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -262,7 +262,7 @@
 
             document.getElementById("timezone").value = timezone;
         });
-    </script>
+    </script> --}}
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {

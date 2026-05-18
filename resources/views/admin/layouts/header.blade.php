@@ -692,7 +692,7 @@
                         <li class="nav-item">
                         @php
                             $isPayActive = Request::is('admin/tutorpaymentslist') || Request::is('admin/payments') || Request::is('admin/enrollment-requests') || Request::is('admin/blogs');
-                            @endphp
+                        @endphp
 
                             <a class="nav-link menu-link" href="#sidebarFormsPay" data-bs-toggle="collapse" role="button" aria-expanded="{{ $isPayActive ? 'true' : 'false' }}" aria-controls="sidebarForms">
                                 <i class="ri-file-list-3-line"></i> <span data-key="t-forms">Payments</span>
