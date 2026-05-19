@@ -57,7 +57,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div class="dashCard">
-                                    <p class="fw-medium  mb-0"><b>Pending Classes</b></p>
+                                    <p class="fw-medium  mb-0"><b>Pending Schedule Classes</b></p>
                                     <div class="topCradCount">
                                         <h2 class="pt-2 text-primary"><span class="counter-value1"
                                                 data-target="">{{$totalUpcomingClasses}}</span>

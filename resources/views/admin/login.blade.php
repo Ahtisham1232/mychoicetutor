@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +15,8 @@
         }
 
         body {
-            background: #f4ecf7; /* Soft purple tint background to match your brand */
+            background: #f4ecf7;
+            /* Soft purple tint background to match your brand */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -85,7 +87,7 @@
         .container {
             background-color: #fff;
             border-radius: 12px;
-            box-shadow: 0 14px 28px rgba(0,0,0,0.1), 0 10px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.1);
             display: flex;
             width: 850px;
             max-width: 95%;
@@ -167,19 +169,43 @@
                 flex-direction: column;
                 width: 400px;
             }
+
             .image-container {
-                display: none; /* Hides image side on mobile for space optimization */
+                display: none;
+                /* Hides image side on mobile for space optimization */
             }
+
             .form-container {
                 padding: 40px 30px;
             }
         }
+
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-wrapper input {
+            width: 100%;
+            padding-right: 45px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #8e44ad;
+            font-size: 16px;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="container" id="container">
-        
+
         <!-- Left Section: Interactive Image side (col-md-6) -->
         <div class="image-container">
             <!-- Dynamic Vector Image representing an LMS / Admin Dashboard -->
@@ -190,31 +216,62 @@
 
         <!-- Right Section: Login Form side (col-md-6) -->
         <div class="form-container">
-            <form action="{{url('admin/login')}}" method="GET">
+            <form action="{{ url('admin/login') }}" method="GET">
                 @csrf
                 <h1>Admin Login</h1>
                 <p>Sign in to manage your system</p>
-                
+
                 <input type="email" id="username" name="username" placeholder="Email Address" required />
                 <span class="text-danger">
                     @error('username')
-                    {{ $message }}
+                        {{ $message }}
                     @enderror
                 </span>
-                
-                <input type="password" id="loginpassword" name="loginpassword" placeholder="Password" required />
+
+                <div class="password-wrapper">
+                    <input type="password" id="loginpassword" name="loginpassword" placeholder="Password" required />
+
+                    <i class="fa fa-eye-slash toggle-password" id="eyeIcon" onclick="togglePassword()"></i>
+                </div>
+
                 <span class="text-danger">
                     @error('loginpassword')
-                    {{ $message }}
+                        {{ $message }}
                     @enderror
                 </span>
-                
+
                 <a href="#">Forgot your password?</a>
                 <button type="submit">Log In</button>
             </form>
         </div>
-        
+
     </div>
 
 </body>
+
 </html>
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById("loginpassword");
+        const eyeIcon = document.getElementById("eyeIcon");
+
+        if (passwordInput.type === "password") {
+
+            // Show password
+            passwordInput.type = "text";
+
+            // Eye open
+            eyeIcon.classList.remove("fa-eye-slash");
+            eyeIcon.classList.add("fa-eye");
+
+        } else {
+
+            // Hide password
+            passwordInput.type = "password";
+
+            // Eye slash
+            eyeIcon.classList.remove("fa-eye");
+            eyeIcon.classList.add("fa-eye-slash");
+        }
+    }
+</script>

@@ -24,7 +24,7 @@
                 <div class="page-title-box">
                     <h3 class="">Scheduled Classes</h3>
                 </div>
-                <form action="{{route('admin.scheduledclass-search')}}" method="POST">
+                <form action="{{ route('admin.scheduledclass-search') }}" method="POST">
                     @csrf
                     <div class="row py-3">
 
@@ -98,10 +98,23 @@
                         </div>
 
 
-                        <div class="col-md-6 mt-4">
+                        {{-- <div class="col-md-6 mt-4">
                             <div class="form-group">
                                 <button class="btn btn-primary" style="float:right"> <span class="fa fa-search"></span>
                                     Search</button>
+                            </div>
+                        </div> --}}
+                        <div class="col-md-6 mt-4 d-flex align-items-end justify-content-end">
+                            <div class="form-group d-flex gap-2">
+
+                                <button class="btn btn-primary" type="submit">
+                                    <span class="fa fa-search"></span> Search
+                                </button>
+
+                                <a href="{{ route('admin.scheduledclasses') }}" class="btn btn-secondary">
+                                    <span class="fa fa-refresh"></span> Reset
+                                </a>
+
                             </div>
                         </div>
                     </div>
@@ -131,38 +144,40 @@
                             </tr>
                         </thead>
                         <tbody>
-                           @foreach ($scheduledclasses as $scheduledclass)
-                           @if ($scheduledclass->meeting_status == 'Started' || $scheduledclass->meeting_status == 'started')
-                           <tr style="background-color:rgba(0, 128, 0, 0.13); color:rgb(0, 0, 0)">
-                            @endif
-                            @if ($scheduledclass->meeting_status == 'Waiting' || $scheduledclass->meeting_status == 'waiting')
-                           <tr style="background-color:rgba(11, 0, 128, 0.13); color:rgb(0, 0, 0)">
-                            @endif
-                               <td>{{$loop->iteration}}</td>
-                               <td>{{$scheduledclass->meeting_status}}</td>
-                               <td>
-                                {{ $scheduledclass->started_at ? \Carbon\Carbon::parse($scheduledclass->started_at)->format('d-m-Y h:i A') : '' }}
-                            </td>
-                            <td>
-                                {{ $scheduledclass->completed_at ? \Carbon\Carbon::parse($scheduledclass->completed_at)->format('d-m-Y h:i A') : '' }}
-                            </td>
-
-                               <td>{{$scheduledclass->student_name}}</td>
-                               <td>{{$scheduledclass->student_mobile}}</td>
-                               <td>{{$scheduledclass->tutor_name}}</td>
-                               <td>{{$scheduledclass->tutor_mobile}}</td>
-                               <td>{{$scheduledclass->class_name}}</td>
-                               <td>{{$scheduledclass->subject_name}}</td>
-                               <td>{{$scheduledclass->topic_name}}</td>
-                               @if ($scheduledclass->meeting_status == 'Started' || $scheduledclass->meeting_status == 'started')
-                               <td><a href="{{$scheduledclass->meeting_id}}"><button class="btn btn-sm btn-success">Join Live Class</td>
-                               @elseif ($scheduledclass->meeting_status == 'Completed' || $scheduledclass->meeting_status == 'Completed')
-                               <td><a href="{{$scheduledclass->recording_link}}"><button class="btn btn-sm btn-primary">View Recording</td>
-                                @else
-                                <td></td>
+                            @foreach ($scheduledclasses as $scheduledclass)
+                                @if ($scheduledclass->meeting_status == 'Started' || $scheduledclass->meeting_status == 'started')
+                                    <tr style="background-color:rgba(0, 128, 0, 0.13); color:rgb(0, 0, 0)">
                                 @endif
-                            </tr>
-                           @endforeach
+                                @if ($scheduledclass->meeting_status == 'Waiting' || $scheduledclass->meeting_status == 'waiting')
+                                    <tr style="background-color:rgba(11, 0, 128, 0.13); color:rgb(0, 0, 0)">
+                                @endif
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $scheduledclass->meeting_status }}</td>
+                                <td>
+                                    {{ $scheduledclass->started_at ? \Carbon\Carbon::parse($scheduledclass->started_at)->format('d-m-Y h:i A') : '' }}
+                                </td>
+                                <td>
+                                    {{ $scheduledclass->completed_at ? \Carbon\Carbon::parse($scheduledclass->completed_at)->format('d-m-Y h:i A') : '' }}
+                                </td>
+
+                                <td>{{ $scheduledclass->student_name }}</td>
+                                <td>{{ $scheduledclass->student_mobile }}</td>
+                                <td>{{ $scheduledclass->tutor_name }}</td>
+                                <td>{{ $scheduledclass->tutor_mobile }}</td>
+                                <td>{{ $scheduledclass->class_name }}</td>
+                                <td>{{ $scheduledclass->subject_name }}</td>
+                                <td>{{ $scheduledclass->topic_name }}</td>
+                                @if ($scheduledclass->meeting_status == 'Started' || $scheduledclass->meeting_status == 'started')
+                                    <td><a href="{{ $scheduledclass->meeting_id }}"><button
+                                                class="btn btn-sm btn-success">Join Live Class</td>
+                                @elseif ($scheduledclass->meeting_status == 'Completed' || $scheduledclass->meeting_status == 'Completed')
+                                    <td><a href="{{ $scheduledclass->recording_link }}"><button
+                                                class="btn btn-sm btn-primary">View Recording</td>
+                                @else
+                                    <td></td>
+                                @endif
+                                </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
