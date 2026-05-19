@@ -37,10 +37,19 @@
         <div class="page-content">
             <div class="container-fluid">
                 @if (Session::has('success'))
-                    <div class="alert alert-success">{{ Session::get('success') }}</div>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ Session::get('success') }}
+
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 @endif
+
                 @if (Session::has('fail'))
-                    <div class="alert alert-danger">{{ Session::get('fail') }}</div>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ Session::get('fail') }}
+
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 @endif
                 <!-- <h3 class="text-center"></h3> -->
                 <div id="" class="mb-3 listHeader page-title-box">
@@ -51,11 +60,13 @@
                 <form action="{{ route('admin.blogs.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="row">
-                        <input type="hidden" id="id" name="id" value="{{ $blog->id ?? '' }}" class="form-group">
+                        <input type="hidden" id="id" name="id" value="{{ $blog->id ?? '' }}"
+                            class="form-group">
 
                         <div class="col-md-8">
                             <label for="title">Title <i style="color:red">*</i></label>
-                            <input type="text" class="form-control" id="title" name="title" required value="{{ $blog->name ?? '' }}">
+                            <input type="text" class="form-control" id="title" name="title" required
+                                value="{{ $blog->name ?? '' }}">
                             <span class="text-danger">
                                 @error('title')
                                     {{ 'Please enter title' }}
@@ -79,12 +90,15 @@
                     <div class="row">
                         <div class="col-md-6 mt-3">
                             <label for="image">Image <i style="color:red">*</i></label>
-                            <input type="file" class="form-control" id="image" name="image" accept="image/*" onchange="previewImage(event)">
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*"
+                                onchange="previewImage(event)">
                             <div id="imagePreview" class="mt-3" style="max-width: 200px; max-height: 200px;">
-                                @if(isset($blog->image))
-                                    <img id="preview" src="{{ asset('images/blogs/' . $blog->image) }}" alt="Image Preview" style="width: 100%; height: auto;" />
+                                @if (isset($blog->image))
+                                    <img id="preview" src="{{ asset('images/blogs/' . $blog->image) }}"
+                                        alt="Image Preview" style="width: 100%; height: auto;" />
                                 @else
-                                    <img id="preview" src="#" alt="Image Preview" style="display: none; width: 100%; height: auto;" />
+                                    <img id="preview" src="#" alt="Image Preview"
+                                        style="display: none; width: 100%; height: auto;" />
                                 @endif
                             </div>
                             <span class="text-danger">
@@ -97,12 +111,15 @@
                     <div class="row">
                         <div class="col-md-6 mt-3">
                             <label for="image">Banner Image <i style="color:red">*</i></label>
-                            <input type="file" class="form-control" id="banner" name="banner" accept="image/*" onchange="previewBannerImage(event)">
+                            <input type="file" class="form-control" id="banner" name="banner" accept="image/*"
+                                onchange="previewBannerImage(event)">
                             <div id="imageBannerPreview" class="mt-3" style="max-width: 200px; max-height: 200px;">
-                                @if(isset($blog->banner))
-                                    <img id="bannerpreview" src="{{ asset('images/blogs/' . $blog->banner) }}" alt="Image Preview" style="width: 100%; height: auto;" />
+                                @if (isset($blog->banner))
+                                    <img id="bannerpreview" src="{{ asset('images/blogs/' . $blog->banner) }}"
+                                        alt="Image Preview" style="width: 100%; height: auto;" />
                                 @else
-                                    <img id="bannerpreview" src="#" alt="Image Preview" style="display: none; width: 100%; height: auto;" />
+                                    <img id="bannerpreview" src="#" alt="Image Preview"
+                                        style="display: none; width: 100%; height: auto;" />
                                 @endif
                             </div>
                             <span class="text-danger">
@@ -116,7 +133,8 @@
                     <div class="row mt-4">
                         <div class="col-md-12 col-sm-12 col-12">
                             <div style="display:flex; justify-content: end;">
-                                <button type="submit" id="" class="btn btn-success btn-sm float-right">Save Blog</button>
+                                <button type="submit" id="" class="btn btn-success btn-sm float-right">Save
+                                    Blog</button>
                             </div>
                         </div>
                     </div>
@@ -132,6 +150,7 @@
                         }
                         reader.readAsDataURL(event.target.files[0]);
                     }
+
                     function previewBannerImage(event) {
                         var reader = new FileReader();
                         reader.onload = function() {

@@ -144,9 +144,10 @@
                                             @else
                                                 <i class="ri-close-circle-line align-middle text-danger"></i> Inactive
                                             @endif
-                                            <input class="form-check-input checkbox" type="checkbox" role="switch" id="SwitchCheck1"
+                                            <input class="form-check-input checkbox" type="checkbox" role="switch"
+                                                id="SwitchCheck1"
                                                 onclick="changestatus('{{ $ttrlist->tutor_id }}','{{ $ttrlist->tutor_status }}');"
-                                             @if ($ttrlist->tutor_status == 1) checked @endif>
+                                                @if ($ttrlist->tutor_status == 1) checked @endif>
 
                                         </div>
                                     </td>
@@ -190,9 +191,21 @@
                         <input type="hidden" id="commissionid" name="commissionid">
 
                         <div class="col-12 col-md-4 col-ms-12">
-                            <label>Commission/Hr<i style="color: red;">*</i></label>
-                            <input type="text" class="form-control" id="commissionperhr" name="commissionperhr"
-                                placeholder="0">
+                            <label>
+                                Commission/Hr <i style="color: red;">*</i>
+                            </label>
+
+                            <input type="number" class="form-control" id="commissionperhr" name="commissionperhr"
+                                placeholder="0" min="1" max="100" step="0.01"
+                                oninput="
+                                    if(this.value > 100) this.value = 100;
+                                    if(this.value.length > 6) this.value = this.value.slice(0,6);
+                                ">
+
+                            <small class="text-muted text-nowrap">
+                                Commission must be between 1 and 100
+                            </small>
+
                             <span class="text-danger">
                                 @error('commissionperhr')
                                     {{ $message }}
@@ -234,8 +247,18 @@
 
                         <div class="col-12 col-md-4 col-ms-12">
                             <label>Rate/Hr<i style="color: red;">*</i></label>
-                            <input type="text" class="form-control" id="rateperhour" name="rateperhour"
-                                placeholder="0">
+                            {{-- <input type="text" class="form-control" id="rateperhour" name="rateperhour"
+                                placeholder="0" maxlength="5"> --}}
+                            <input type="number" class="form-control" id="rateperhour" name="rateperhour"
+                                placeholder="0" min="3" max="50" step="0.01"
+                                oninput="
+                                    if(this.value > 50) this.value = 50;
+                                    if(this.value.length > 5) this.value = this.value.slice(0,5);">
+
+                            <small class="text-muted text-nowrap">
+                                Rate must be between 3 and 50
+                            </small>
+
                             <span class="text-danger">
                                 @error('rateperhour')
                                     {{ $message }}
@@ -365,6 +388,14 @@
             var url = "{{ URL('admin/rate/update') }}";
             var id = $('#rateid').val()
             var rate = $('#rateperhour').val()
+            if (rate === '' || isNaN(rate)) {
+                alert('Please enter a valid number');
+                return;
+            }
+            if (rate < 3 || rate > 50) {
+                alert('Rate must be between 3 and 50');
+                return;
+            }
             $.ajax({
                 url: url,
                 type: "GET",
