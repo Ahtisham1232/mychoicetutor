@@ -1,192 +1,220 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<link rel="stylesheet" href="style.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<title>Online Tutor Admin Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Online Tutor Admin Login</title>
     <style>
+        @import url('https://fonts.googleapis.com/css?family=Montserrat:400,600,800');
 
-@import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+        * {
+            box-sizing: border-box;
+        }
 
-* {
-	box-sizing: border-box;
-}
+        body {
+            background: #f4ecf7; /* Soft purple tint background to match your brand */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Montserrat', sans-serif;
+            height: 100vh;
+            margin: 0;
+        }
 
-body {
-	background: #f3e0e2;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	flex-direction: column;
-	font-family: 'Montserrat', sans-serif;
-	height: 100vh;
-	margin: -20px 0 50px;
-}
+        h1 {
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            color: #333;
+        }
 
-h1 {
-	font-weight: bold;
-	margin: 0;
-}
+        p {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
+            letter-spacing: 0.5px;
+            margin: 0 0 20px 0;
+            color: #666;
+        }
 
-p {
-	font-size: 14px;
-	font-weight: 100;
-	line-height: 20px;
-	letter-spacing: 0.5px;
-	margin: 20px 0 30px;
-}
+        .text-danger {
+            font-size: 12px;
+            color: #e74c3c;
+            align-self: flex-start;
+            margin-bottom: 5px;
+            display: block;
+        }
 
-span {
-	font-size: 12px;
-}
+        a {
+            color: #8e44ad;
+            font-size: 14px;
+            text-decoration: none;
+            margin: 15px 0;
+            transition: color 0.2s ease;
+        }
 
-a {
-	color: #333;
-	font-size: 14px;
-	text-decoration: none;
-	margin: 15px 0;
-}
+        a:hover {
+            color: #6a307d;
+        }
 
-button {
-	border-radius: 20px;
-	border: 1px solid #FF4B2B;
-	background-color: #FF4B2B;
-	color: #FFFFFF;
-	font-size: 12px;
-	font-weight: bold;
-	padding: 12px 45px;
-	letter-spacing: 1px;
-	text-transform: uppercase;
-	transition: transform 80ms ease-in;
-}
+        button {
+            border-radius: 25px;
+            border: none;
+            background: linear-gradient(135deg, #6a307d, #8e44ad);
+            color: #FFFFFF;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 12px 45px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 80ms ease-in, box-shadow 0.2s ease;
+            box-shadow: 0 4px 10px rgba(142, 68, 173, 0.3);
+        }
 
-form {
-	background-color: #FFFFFF;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-direction: column;
-	padding: 0 50px;
-	height: 100%;
-	text-align: center;
-}
+        button:hover {
+            box-shadow: 0 6px 15px rgba(142, 68, 173, 0.4);
+        }
 
-input {
-	background-color: #eee;
-	border: none;
-	padding: 12px 15px;
-	margin: 8px 0;
-	width: 100%;
-}
+        button:active {
+            transform: scale(0.95);
+        }
 
-.container {
-	background-color: #fff;
-	border-radius: 10px;
-  	box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-	position: relative;
-	overflow: hidden;
-	width: 340px;
-	max-width: 100%;
-	min-height: 480px;
-}
+        /* Two-Column Split Container */
+        .container {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 14px 28px rgba(0,0,0,0.1), 0 10px 10px rgba(0,0,0,0.1);
+            display: flex;
+            width: 850px;
+            max-width: 95%;
+            min-height: 500px;
+            overflow: hidden;
+        }
 
-.form-container {
-	position: absolute;
-	top: 0;
-	height: 100%;
-}
+        /* left column (image) -> Equivalent to col-md-6 */
+        .image-container {
+            flex: 1;
+            background: linear-gradient(135deg, #6a307d, #8e44ad);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: #ffffff;
+            text-align: center;
+        }
 
-.log-in-container {
-	left: 0;
-	width: 100%;
-	z-index: 2;
-}
+        .image-container img {
+            width: 90%;
+            max-width: 320px;
+            height: auto;
+            margin-bottom: 20px;
+        }
 
+        .image-container h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
 
-.overlay-container {
-	position: absolute;
-	top: 0;
-	left: 50%;
-	width: 50%;
-	height: 100%;
-}
+        .image-container p {
+            color: #e2d2e8;
+            font-size: 13px;
+            margin: 0;
+        }
 
+        /* Right column (form) -> Equivalent to col-md-6 */
+        .form-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 50px;
+            background-color: #FFFFFF;
+        }
 
-.overlay {
-	background: #FF416C;
-	background: -webkit-linear-gradient(to right, #FF4B2B, #FF416C);
-	background: linear-gradient(to right, #FF4B2B, #FF416C);
-	background-repeat: no-repeat;
-	background-size: cover;
-	background-position: 0 0;
-	color: #FFFFFF;
-	position: relative;
-	left: -100%;
-	height: 100%;
-	width: 200%;
-}
+        form {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
 
-.overlay-panel {
-	position: absolute;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-direction: column;
-	padding: 0 40px;
-	text-align: center;
-	top: 0;
-	height: 100%;
-	width: 50%;
-}
+        input {
+            background-color: #f4f5f7;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin: 8px 0;
+            width: 100%;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
 
+        input:focus {
+            outline: none;
+            border-color: #8e44ad;
+            background-color: #fff;
+        }
 
-.overlay-right {
-	right: 0;
-}
-
-
-.social-container {
-	margin: 50px 0;
-}
-
-.social-container a {
-	border: 1px solid #DDDDDD;
-	border-radius: 50%;
-	display: inline-flex;
-	justify-content: center;
-	align-items: center;
-	margin: 0 5px;
-	height: 40px;
-	width: 40px;
-}
-</style>
+        /* Responsive handling for smaller screens */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                width: 400px;
+            }
+            .image-container {
+                display: none; /* Hides image side on mobile for space optimization */
+            }
+            .form-container {
+                padding: 40px 30px;
+            }
+        }
+    </style>
 </head>
 <body>
-	<div class="container" id="container">
-		<div class="form-container log-in-container">
-			<form action="{{url('admin/login')}}" method="GET">
+
+    <div class="container" id="container">
+        
+        <!-- Left Section: Interactive Image side (col-md-6) -->
+        <div class="image-container">
+            <!-- Dynamic Vector Image representing an LMS / Admin Dashboard -->
+            <img src="{{ asset('images/admin/admin.jpg') }}" alt="Admin Portal Illustration">
+            <h2>MyChoiceTutor</h2>
+            <p>Management & Analytics Control Panel</p>
+        </div>
+
+        <!-- Right Section: Login Form side (col-md-6) -->
+        <div class="form-container">
+            <form action="{{url('admin/login')}}" method="GET">
                 @csrf
-				<h1>Login</h1>
-				{{-- <div class="social-container"> --}}
-					<p>Login to continue</p>
-				{{-- </div> --}}
-				<input type="email" id="username" name="username" placeholder="Email" />
+                <h1>Admin Login</h1>
+                <p>Sign in to manage your system</p>
+                
+                <input type="email" id="username" name="username" placeholder="Email Address" required />
                 <span class="text-danger">
                     @error('username')
                     {{ $message }}
                     @enderror
                 </span>
-				<input type="password" id="loginpassword" name="loginpassword" placeholder="Password" />
+                
+                <input type="password" id="loginpassword" name="loginpassword" placeholder="Password" required />
                 <span class="text-danger">
                     @error('loginpassword')
                     {{ $message }}
                     @enderror
                 </span>
-				<a href="#">Forgot your password?</a>
-				<button type="submit">Log In</button>
-			</form>
-		</div>
-		
-	</div>
+                
+                <a href="#">Forgot your password?</a>
+                <button type="submit">Log In</button>
+            </form>
+        </div>
+        
+    </div>
+
 </body>
 </html>
