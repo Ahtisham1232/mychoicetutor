@@ -231,7 +231,7 @@
                 <div class="password-wrapper">
                     <input type="password" id="loginpassword" name="loginpassword" placeholder="Password" required />
 
-                    <i class="fa fa-eye toggle-password" id="eyeIcon" onclick="togglePassword()"></i>
+                    <i class="fa fa-eye-slash toggle-password" id="eyeIcon" onclick="togglePassword()"></i>
                 </div>
 
                 <span class="text-danger">
@@ -256,18 +256,22 @@
         const eyeIcon = document.getElementById("eyeIcon");
 
         if (passwordInput.type === "password") {
+
+            // Show password
             passwordInput.type = "text";
 
-            // Show slash icon when password becomes visible
-            eyeIcon.classList.remove("fa-eye");
-            eyeIcon.classList.add("fa-eye-slash");
-
-        } else {
-            passwordInput.type = "password";
-
-            // Show eye icon when password becomes hidden
+            // Eye open
             eyeIcon.classList.remove("fa-eye-slash");
             eyeIcon.classList.add("fa-eye");
+
+        } else {
+
+            // Hide password
+            passwordInput.type = "password";
+
+            // Eye slash
+            eyeIcon.classList.remove("fa-eye");
+            eyeIcon.classList.add("fa-eye-slash");
         }
     }
 </script>
