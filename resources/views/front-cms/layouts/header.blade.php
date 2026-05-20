@@ -16,6 +16,8 @@
         <link rel="stylesheet" href="{{url('frontendnew/css/style.css')}}">
         <link rel="stylesheet" href="{{url('frontendnew/css/responsive.css')}}">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="{{url('frontendnew/css/custom.css')}}">
+        
         <!-- Favicon -->
         <link rel="icon" href="{{url('frontendnew/img/icons/mct-favicon.png')}}" type="image/x-icon">
         <title>My Choice Tutor</title>

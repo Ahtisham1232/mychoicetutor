@@ -258,7 +258,7 @@
     </div>
 </section>
 
-<!-- tutor section -->
+<!-- Tutor listing section -->
 <section class=" mar-top-40">
     <div class="container tutor-card padd-80">
         <h4>Explore our evaluated private tutors</h4>
@@ -268,16 +268,27 @@
             <a href="tutor-details/{{$tutor->tutor_id}}" style="color: black">
                 <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-xs-12 tutorCol">
                     <div class="tutorDetails">
-                        <div class="tutorImg">
+                        <div class="tutorImg" style="position: relative;">
                             <img src="{{ url('images/tutors/profilepics', '/') }}{{ $tutor->profile_pic }}" width="100%" alt="" onerror="this.onerror=null;this.src='https://mychoicetutor.com/images/avatar/default_avatar_img.jpg';">
+                            {{-- <div class="tutor-badge">
+                                <img src="{{ url('frontendnew/img/footer-logo.png') }}" alt="Verified">
+                            </div> --}}
                         </div>
-                        <div class="star">
-                            <span>
-                                <i class="fa fa-star"></i>
-                                {{ $tutor->avg_rating }} ({{ $tutor->total_reviews }})
-                            </span>
-                            <span>&#163; {{ $tutor->rateperhour }}/h</span>
+
+                        <div class="star d-flex justify-content-between align-items-center">
+
+                            <div>
+                                @if($tutor->total_reviews > 0 && $tutor->avg_rating !== null)
+                                    <span>
+                                        <i class="fa fa-star"></i>
+                                        {{ $tutor->avg_rating }} ({{ $tutor->total_reviews }})
+                                    </span>
+                                @endif
+                            </div>
+
+                            <span class="rateperhour">&#163; {{ $tutor->rateperhour }}/h</span>
                         </div>
+
                         <a href="tutor-details/{{$tutor->tutor_id}}" style="color: black;line-height: 0px;"> 
                             <span class="name">
                                 {{ $tutor->name }}

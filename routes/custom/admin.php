@@ -21,6 +21,7 @@ use App\Http\Controllers\MessagesController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\admin\BlogsController;
 use App\Http\Controllers\admin\FaqsController;
+use App\Http\Controllers\admin\ContactMessageController;
 
 
 //************************************************ Admin Authenticate Routes ************************************************
@@ -185,4 +186,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], funct
     Route::post('faqs', [FaqsController::class, 'store'])->name('admin.faqs.store');
     Route::get('faqs/{id}/edit', [FaqsController::class, 'edit'])->name('admin.faqs.edit');
     Route::post('faqs/status', [FaqsController::class, 'changeStatus'])->name('admin.faqs.status');
+
+    Route::get('/contact-messages', [ContactMessageController::class, 'index'])->name('admin.contact.messages');
+    Route::delete('/contact-messages/{id}', [ContactMessageController::class, 'destroy'])->name('admin.contact.messages.delete');
 });

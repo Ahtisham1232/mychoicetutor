@@ -646,6 +646,12 @@
 
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link menu-link {{ Request::is('admin.contact.messages') ? 'active' : '' }}" href="{{route('admin.contact.messages')}}" role="button" aria-expanded="false" aria-controls="sidebarDashboards">
+                                <i class="ri-dashboard-2-line"></i> <span data-key="t-dashboards">Contact Us</span>
+                            </a>
+
+                        </li>
+                        <li class="nav-item">
                         @php
                             $isLCActive = Request::is('admin/learningcontents') || Request::is('admin/assignments');
                         @endphp
