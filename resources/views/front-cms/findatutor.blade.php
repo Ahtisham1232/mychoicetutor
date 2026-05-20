@@ -12,7 +12,7 @@
                 <h1 class="findtutorHeader">
                     Discover the perfect tutor for you
                 </h1>
-                <form action="{{ url('toptutorsearch') }}" method="POST">
+                <form action="{{ route('toptutorsearch') }}" method="POST">
                     @csrf
                     <div class="findtutor-btns">
                         <div class="custom-select" style="width:300px;">
@@ -41,7 +41,7 @@
 
                         <div class="drpdwnSearch">
                             <button type="submit" class="btn search-tutor">Search</button>
-                            <a href="{{ url('findatutor') }}" class="btn search-tutor">
+                            <a href="{{ route('findatutor') }}" class="btn search-tutor">
                                 Reset Filters
                             </a>
                         </div>
@@ -72,7 +72,7 @@
                             </div>
                             <div id="collapseTwo" class="collapse collapseAdvSearch" aria-labelledby="headingTwo"
                                 data-parent="#accordion">
-                                <form class="advSearchForm" action="{{ url('advancesearch') }}" method="POST">
+                                <form class="advSearchForm" action="{{ route('advancesearch') }}" method="POST">
                                     @csrf
 
                                     <div class="row mb-3">
@@ -180,13 +180,20 @@
                                         width="100%" alt=""
                                         onerror="this.onerror=null;this.src='https://mychoicetutor.com/images/avatar/default_avatar_img.jpg';">
                                 </div>
-                                <div class="star">
-                                    <span>
-                                        <i class="fa fa-star"></i>
-                                        {{ $tutor->avg_rating }} ({{ $tutor->total_reviews }})
-                                    </span>
-                                    <span>&#163; {{ $tutor->rateperhour }}/h</span>
+                                 <div class="star d-flex justify-content-between align-items-center">
+
+                                    <div>
+                                        @if($tutor->total_reviews > 0 && $tutor->avg_rating !== null)
+                                            <span>
+                                                <i class="fa fa-star"></i>
+                                                {{ $tutor->avg_rating }} ({{ $tutor->total_reviews }})
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <span class="rateperhour">&#163; {{ $tutor->rateperhour }}/h</span>
                                 </div>
+                                
                                 <a href="tutor-details/{{ $tutor->tutor_id }}" style="color: black;line-height: 0px;">
                                     <span class="name">{{ $tutor->name }}</span>
                                 </a>

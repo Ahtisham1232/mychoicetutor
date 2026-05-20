@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\admin\Faq;
+use App\Models\ContactMessage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ContactUsMail;
+
 
 class CmsController extends Controller
 {
@@ -44,23 +48,54 @@ class CmsController extends Controller
         return view('front-cms/termsandconditions');
     }
 
-    public function contactsave(Request $request)
+    public function contactSave(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email|max:150',
-            'message' => 'required|string|max:150',
+        // 1. Validate request
+        $validated = $request->validate([
+            'name'    => 'required|string|max:100',
+            'email'   => 'required|email|max:150',
+            'message' => 'required|string|max:500',
         ]);
 
-        // Example: Save to database (uncomment when model is ready)
-        /*
-        ContactMessage::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'message' => $request->message,
-        ]);
-        */
+        // 2. Get IP address
+        $ip = $request->ip();
 
-        return redirect()->back()->with('success', 'Your message has been sent successfully!');
+        // 3. Daily limit check (5 messages per day)
+        $dailyCount = ContactMessage::where(function ($query) use ($validated, $ip) {
+            $query->where('email', $validated['email'])
+                ->orWhere('ip_address', $ip);
+        })
+            ->whereDate('created_at', today())
+            ->count();
+
+        if ($dailyCount >= 5) {
+            return back()->with(
+                'error',
+                'Your daily contact request limit has been reached. Please try again tomorrow.'
+            );
+        }
+
+        // 4. Check duplicate message within 5 minutes
+        $isDuplicate = ContactMessage::where('email', $validated['email'])
+            ->where('message', $validated['message'])
+            ->where('created_at', '>=', now()->subMinutes(5))
+            ->exists();
+
+        if ($isDuplicate) {
+            return back()->with('error', 'You already sent a similar message recently.');
+        }
+
+        // 5. Save message
+        $contact = ContactMessage::create([
+            'name'       => $validated['name'],
+            'email'      => $validated['email'],
+            'message'    => $validated['message'],
+            'ip_address' => $ip,
+        ]);
+
+        // 6. Send email to admin
+        Mail::to('mychoicetutor@gmail.com')->send(new ContactUsMail($contact));
+
+        return back()->with('success', 'Your message has been sent successfully!');
     }
 }
