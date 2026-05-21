@@ -31,10 +31,6 @@ class CmsController extends Controller
         return view('front-cms/about_us');
     }
 
-    public function contact()
-    {
-        return view('front-cms/contact');
-    }
     public function privacypolicy()
     {
         return view('front-cms/privacypolicy');
@@ -46,6 +42,11 @@ class CmsController extends Controller
     public function termsandconditions()
     {
         return view('front-cms/termsandconditions');
+    }
+
+    public function contact()
+    {
+        return view('front-cms/contact');
     }
 
     public function contactSave(Request $request)

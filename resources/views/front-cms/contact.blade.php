@@ -121,6 +121,23 @@
                 <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                     <h2>Send us a message</h2>
                     <div class="contactform mt-4">
+                        @if (session('success'))
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                {{ session('success') }}
+
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                            </div>
+                        @endif
+
+                        @if (session('error'))
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                {{ session('error') }}
+
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                            </div>
+                        @endif
                         <form action="{{ route('contactsave') }}" method="POST">
                             @csrf
                             {{-- <form action="https://api.web3forms.com/submit" method="POST"> --}}

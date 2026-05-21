@@ -56,6 +56,7 @@
                             <div class="row mt-4">
                                 <div class="col-md-12">
                                     <button class="btn  btn-primary float-right">Search</button>
+                                    <a href="{{ route('admin.payments') }}" class="btn btn-secondary float-right mr-2">Reset</a>
                                 </div>
                             </div>
                         </div>
@@ -128,7 +129,7 @@
                         <h3 class="text-center mb-3"><u>Update Payment Status</u></h3>
                         <form action="{{ route('admin.payments.update') }}" method="POST">
                             @csrf
-                            <div class=" row">
+                            <div class="row mb-2">
                                 <div class="form-group col-md-6">
                                     <label for="">Transaction No.</label>
                                     <input type="hidden" class="" id="transactionid" name="transactionid">
@@ -171,7 +172,7 @@
                             <button type="submit" id="" class="btn btn-sm btn-primary float-right"><span
                                 class="fa fa-check"></span>
                                 Update</button>
-                                <button type="button" class="btn btn-sm btn-danger mr-1 moveRight" data-dismiss="modal"><span
+                                <button type="button" class="btn btn-sm btn-danger mr-1 moveRight" data-bs-dismiss="modal"><span
                                     class="fa fa-times"></span> Close</button>
                                 </form>
 

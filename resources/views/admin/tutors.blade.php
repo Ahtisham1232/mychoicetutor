@@ -108,9 +108,7 @@
                                     <td>
                                         {{-- @if ($ttrlist->subject_name) --}}
                                         <a href="tutorprofile/{{ $ttrlist->tutor_id }}">{{ $ttrlist->tutor_name }}</a>
-                                        {{-- @else
-                                            {{ $ttrlist->tutor_name }}
-                                        @endif --}}
+
                                     </td>
                                     <td>{{ $ttrlist->tutor_email }}</td>
                                     <td>{{ $ttrlist->tutor_mobile }}</td>
@@ -139,16 +137,13 @@
                                     {{-- @if ($ttrlist->subject_name) --}}
                                     <td>
                                         <div class="form-check form-switch">
-                                            @if ($ttrlist->tutor_status == 1)
-                                                <i class="ri-checkbox-circle-line align-middle text-success"></i> Active
-                                            @else
-                                                <i class="ri-close-circle-line align-middle text-danger"></i> Inactive
-                                            @endif
-                                            <input class="form-check-input checkbox" type="checkbox" role="switch"
-                                                id="SwitchCheck1"
+                                            <input class="form-check-input" type="checkbox" role="switch"
                                                 onclick="changestatus('{{ $ttrlist->tutor_id }}','{{ $ttrlist->tutor_status }}');"
                                                 @if ($ttrlist->tutor_status == 1) checked @endif>
 
+                                            <label class="form-check-label">
+                                                {{ $ttrlist->tutor_status == 1 ? 'Active' : 'Inactive' }}
+                                            </label>
                                         </div>
                                     </td>
                                     <td>
