@@ -41,7 +41,7 @@
                     </div>
                 @endif
 
-                This will show a close (×) button on the alert message so the user can dismiss it manually.
+                {{-- This will show a close (×) button on the alert message so the user can dismiss it manually. --}}
                 <div class=" listHeader mb-3 page-title-box">
                     <h3>Tutor Payments </h3>
                     <button class="btn btn-sm btn-primary" onclick="openmodal();"> <span class="fa fa-plus"></span> Make
@@ -316,7 +316,7 @@
                         </div>
                         <div class="btns">
                             <button type="submit" id="" class="btn btn-sm btn-success">Submit</button>
-                            <button type="button" class="btn btn-sm btn-danger  " data-dismiss="modal"><span
+                            <button type="button" class="btn btn-sm btn-danger  " data-bs-dismiss="modal"><span
                                     class="fa fa-times"></span> Close</button>
 
                         </div>
