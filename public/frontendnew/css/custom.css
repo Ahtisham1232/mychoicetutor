@@ -1,31 +1,38 @@
 .tutorImg {
     position: relative;
     overflow: hidden;
-    border-radius: 8px; /* Optional: makes the image look cleaner */
+    border-radius: 8px;
+    /* Optional: makes the image look cleaner */
 }
 
 .tutor-badge {
     position: absolute;
     top: 10px;
     right: 10px;
-    background: rgba(255, 255, 255, 0.9); /* White background to make it pop */
+    background: rgba(255, 255, 255, 0.9);
+    /* White background to make it pop */
     padding: 5px;
-    border-radius: 50%; /* Makes it a circle */
-    width: 35px; /* Small and subtle */
+    border-radius: 50%;
+    /* Makes it a circle */
+    width: 35px;
+    /* Small and subtle */
     height: 35px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .tutor-badge img {
-    width: 20px !important; /* Forces the logo to stay small */
+    width: 20px !important;
+    /* Forces the logo to stay small */
     height: auto;
 }
-.rateperhour{
+
+.rateperhour {
+    font-size: 14px;
     background: linear-gradient(135deg, #6a307d, #8e44ad);
-    padding: 7px;
-    border-radius: 24px;
+    padding: 4px;
+    border-radius: 7px;
     color: white;
 }
