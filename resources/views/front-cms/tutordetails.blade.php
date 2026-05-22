@@ -197,15 +197,17 @@
                                         @for ($i = 1; $i <= round($averagereview->avg_rating); $i++)
                                             <i class="fa fa-star"></i>
                                         @endfor
-                                    @else
-                                        {{-- Display no stars if no average rating is available --}}
-                                        <i class="fa fa-star"></i>
                                     @endif
+                                    {{-- @else
+                                        <i class="fa fa-star"></i>
+                                    @endif --}}
 
                                     {{-- Show the average rating and review count --}}
                                     <span class="ml-2">
-                                        {{ $averagereview->avg_rating ?? '0' }}
-                                        ({{ $averagecount ?? '0' }} reviews)
+                                        @if(isset($averagereview->avg_rating) && $averagereview->avg_rating !== null)
+                                            {{ $averagereview->avg_rating ?? '0' }}
+                                            ({{ $averagecount ?? '0' }} reviews)
+                                        @endif
                                     </span>
                                 </span>
                             </div>
@@ -216,7 +218,7 @@
 
                                 <tr>
                                     <td>Hourly rate:</td>
-                                    <td>£{{ $tutorpd->rateperhour ?? '' }}</td>
+                                    <td class="rateperhour text-white">{{config('common.currency.symbol')}}{{ $tutorpd->rateperhour ?? '' }}/h</td>
                                 </tr>
                                 <tr>
                                     <td>Experience:</td>
@@ -295,13 +297,18 @@
                                             @endif
                                         </div>
                                         <div class="star">
-                                            <span>
-                                                <i class="fa fa-star"></i>
-                                                {{ $othertutor->avg_rating }} ({{ $othertutor->total_reviews ?? '' }})
-                                            </span>
-                                            <span>£{{ $othertutor->rateperhour ?? '' }}/h</span>
+                                           @if($othertutor->total_reviews > 0 && $othertutor->avg_rating !== null)
+                                            {{ $othertutor->avg_rating }} ({{ $othertutor->total_reviews ?? '' }})
+
+                                                <span>
+                                                    <i class="fa fa-star"></i>
+                                                    {{ $othertutor->avg_rating }} ({{ $othertutor->total_reviews }})
+                                                </span>
+                                            @endif
+                                            <span class="rateperhour">{{config('common.currency.symbol')}}{{ $othertutor->rateperhour ?? '' }}/h</span>
                                         </div>
-                                        <a href="/findatutor" style="color: black"> <span class="name">
+
+                                        <a href="{{route('findatutor')}}" style="color: black"> <span class="name">
                                                 {{ $othertutor->name }}
                                                 <p>{{ $primarysubjects->subject_name ?? '' }} teacher</p>
                                             </span></a>

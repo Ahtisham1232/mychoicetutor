@@ -204,7 +204,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="tu-Joincommunity">
+                        {{-- <div class="tu-Joincommunity">
                             <div class="tu-particles">
                                 <div id="tu-particlev2"></div>
                             </div>
@@ -215,7 +215,7 @@
                             <div class="tu-Joincommunity_btn">
                                 <a href="/tutor/register" class="tu-yellowbtn">Join our community</a>
                             </div>
-                        </div>
+                        </div> --}}
                        
                     </div>
                    

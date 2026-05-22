@@ -196,6 +196,7 @@
 
                 <div class="social my-5">
                     <a href="{{ route('home') }}">
+                        {{-- <img src="{{ url('frontendnew/img/footer-logo1.png') }}" width="220px" alt="Home"> --}}
                         <img src="{{ url('frontendnew/img/footer-logo.png') }}" width="160px" alt="Home">
                     </a>
                 </div>
