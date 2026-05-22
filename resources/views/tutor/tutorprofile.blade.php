@@ -82,7 +82,7 @@
                                     <i class="icon icon-globe"></i>
                                     <a href="{{$tutorpd->intro_video_link}}" target="_blank"><button class="btn btn-sm btn-primary">Watch Intro</button></a>
                                 </div>
-                                <a href="profileupdate"><button class="btn btn-sm btn-success">Update Profile</button></a>
+                                {{-- <a href="profileupdate"><button class="btn btn-sm btn-success">Update Profile</button></a> --}}
                                 {{-- <ul class="tu-profilelinksbtn">
                                     <li>
                                         <a class="tu-linkheart" href="javascript:void(0);"><i class="icon icon-heart"></i><span>Save</span></a>
