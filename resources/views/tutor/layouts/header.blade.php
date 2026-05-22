@@ -559,12 +559,19 @@
                             <div class="dropdown-menu dropdown-menu-end">
                                 <!-- item-->
                                 <h6 class="dropdown-header">Welcome {{ session('userid')->name }}</h6>
-                                <a class="dropdown-item" href="{{ url('tutor/profile') }}"><i
-                                        class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> <span
-                                        class="align-middle">Profile</span></a>
-                                <a class="dropdown-item" href="{{ route('tutor.messages') }}"><i
-                                        class="mdi mdi-message-text-outline text-muted fs-16 align-middle me-1"></i>
-                                    <span class="align-middle">Messages</span></a>
+                                <a class="dropdown-item" href="{{ url('tutor/profile') }}">
+                                    <i class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> 
+                                    <span class="align-middle">View Profile</span>
+                                </a>
+                                <a class="dropdown-item" href="{{ route ('tutor.profileupdate') }}">
+                                    {{-- <i class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i>  --}}
+                                        <i class="mdi mdi-account-edit text-muted fs-16 align-middle me-1"></i>
+                                    <span class="align-middle">Update Profile</span>
+                                </a>
+                                <a class="dropdown-item" href="{{ route('tutor.messages') }}">
+                                    <i class="mdi mdi-message-text-outline text-muted fs-16 align-middle me-1"></i>
+                                    <span class="align-middle">Messages</span>
+                                </a>
                                 {{-- <a class="dropdown-item" href="apps-tasks-kanban.html"><i class="mdi mdi-calendar-check-outline text-muted fs-16 align-middle me-1"></i> <span class="align-middle">Taskboard</span></a> --}}
                                 {{-- <a class="dropdown-item" href="pages-faqs.html"><i class="mdi mdi-lifebuoy text-muted fs-16 align-middle me-1"></i> <span class="align-middle">Help</span></a> --}}
                                 <div class="dropdown-divider"></div>

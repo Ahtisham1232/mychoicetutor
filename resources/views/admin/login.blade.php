@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <title>Online Tutor Admin Login</title>
     <style>
         @import url('https://fonts.googleapis.com/css?family=Montserrat:400,600,800');
@@ -60,7 +62,7 @@
             color: #6a307d;
         }
 
-        button {
+        .button {
             border-radius: 25px;
             border: none;
             background: linear-gradient(135deg, #6a307d, #8e44ad);
@@ -75,11 +77,11 @@
             box-shadow: 0 4px 10px rgba(142, 68, 173, 0.3);
         }
 
-        button:hover {
+        .button:hover {
             box-shadow: 0 6px 15px rgba(142, 68, 173, 0.4);
         }
 
-        button:active {
+        .button:active {
             transform: scale(0.95);
         }
 
@@ -199,6 +201,16 @@
             color: #8e44ad;
             font-size: 16px;
         }
+
+        .btn-forgot-link {
+            background: none;
+            border: none;
+            color: #8e44ad;
+            font-size: 14px;
+            text-decoration: underline;
+            cursor: pointer;
+            margin: 15px 0;
+        }
     </style>
 </head>
 
@@ -216,8 +228,31 @@
 
         <!-- Right Section: Login Form side (col-md-6) -->
         <div class="form-container">
-            <form action="{{ url('admin/login') }}" method="GET">
+            <form action="{{ route('admin.login') }}" method="POST">
                 @csrf
+                <div class="form-group" style="margin-bottom: 0;">
+                    <div id="forgetPasswordAlert" style="display:none;" class="alert"></div>
+                    @if (Session::has('login_success'))
+                        <div class="alert alert-success py-2 text-center" style="font-size: 14px;">
+                            {{ Session::get('login_success') }}</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+
+                        <input type="hidden" id="showForgetPasswordPopup" name="showForgetPasswordPopup"
+                            value="0">
+                    @endif
+                    @if (Session::has('login_fail'))
+                        <input type="hidden" id="showForgetPasswordPopup" name="showForgetPasswordPopup"
+                            value="1">
+                        <div class="alert alert-danger py-2 text-center"
+                            style="font-size: 14px; background-color: #fce4e4; border-color: #f9c7c7; color: #cc2a2a;">
+                            {{ Session::get('login_fail') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                aria-label="Close"></button>
+
+                        </div>
+                    @endif
+                </div>
+
                 <h1>Admin Login</h1>
                 <p>Sign in to manage your system</p>
 
@@ -240,11 +275,92 @@
                     @enderror
                 </span>
 
-                <a href="#">Forgot your password?</a>
-                <button type="submit">Log In</button>
+                {{-- <a href="#">Forgot your password?</a> --}}
+                <button type="button" class="btn-forgot-link" data-bs-toggle="modal"
+                    data-bs-target="#forgetPasswordPopup">
+                    Forgot password?
+                </button>
+                <button type="submit" class="button">Log In</button>
             </form>
         </div>
 
+    </div>
+
+    <div class="modal fade" id="forgetPasswordPopup" tabindex="-1" aria-labelledby="forgetPasswordTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; padding: 20px; border: none; background: #ffffff;">
+
+                <div class="modal-header" style="border: none; padding: 0; position: relative;">
+                    <h3 class="modal-title w-100 text-center" id="forgetPasswordTitle"
+                        style="font-weight: 800; font-size: 24px; color: #333; margin-top: 10px;">
+                        Forgot Password
+                    </h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        style="position: absolute; right: 5px; top: 5px; font-size: 16px; opacity: 0.7; shadow: none; outline: none;">
+                    </button>
+                </div>
+
+                <form class="loginForm" id="forgetPasswordFormAjax" action="{{ route('admin.forget-password') }}"
+                    method="POST"
+                    style="padding: 10px 5px; display: flex; flex-direction: column; align-items: stretch; width: 100%;">
+                    @csrf
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <div id="forgetPasswordAlert" style="display:none;" class="alert"></div>
+                        @if (Session::has('success'))
+                            <div class="alert alert-success py-2 text-center" style="font-size: 14px;">
+                                {{ Session::get('success') }}</div>
+                            <input type="hidden" id="showForgetPasswordPopup" name="showForgetPasswordPopup"
+                                value="0">
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                aria-label="Close"></button>
+                        @endif
+                        @if (Session::has('fail'))
+                            <input type="hidden" id="showForgetPasswordPopup" name="showForgetPasswordPopup"
+                                value="1">
+                            <div class="alert alert-danger py-2 text-center"
+                                style="font-size: 14px; background-color: #fce4e4; border-color: #f9c7c7; color: #cc2a2a;">
+                                {{ Session::get('fail') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="form-group text-start" style="margin-bottom: 20px; width: 100%;">
+                        <label for="email"
+                            style="font-weight: 600; font-size: 14px; margin-bottom: 8px; display: block; color: #444; text-align: left;">
+                            Email Address
+                        </label>
+                        <input type="text" class="form-control" id="email" name="email"
+                            placeholder="Your Email" required
+                            style="background: #f4f5f7; border: 2px solid transparent; padding: 12px; border-radius: 8px; width: 100%; transition: all 0.3s ease;">
+
+                        <span class="lms-error-msg text-danger mt-1">
+                            @error('email')
+                                {{ $message }}
+                            @enderror
+                        </span>
+                    </div>
+
+                    <span class="lms-error-msg text-danger">
+                        @error('requestAs')
+                            {{ $message }}
+                        @enderror
+                    </span>
+
+                    <div class="text-center w-100 mt-2">
+                        <button type="submit" id="forgetPasswordBtnAjax" class="button"
+                            style="width: auto; min-width: 180px; padding: 12px 30px;">
+                            Send Code
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
     </div>
 
 </body>

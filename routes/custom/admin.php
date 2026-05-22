@@ -26,7 +26,12 @@ use App\Http\Controllers\admin\ContactMessageController;
 
 //************************************************ Admin Authenticate Routes ************************************************
 Route::get('admin/signin', [LoginController::class, 'index'])->name('signin');
-Route::get('admin/login', [LoginController::class, 'login'])->name('admin.login');
+Route::post('admin/login', [LoginController::class, 'login'])->name('admin.login');
+Route::post('admin/forget-password', [LoginController::class, 'admin_forget_password'])->name('admin.forget-password');
+Route::get('admin/reset-password/{token}', [LoginController::class, 'admin_reset_password_form'])->name('admin.reset.password.get');
+Route::post('admin/reset-password/reset_password_submit', [LoginController::class, 'admin_reset_password_submit'])->name('admin.reset.password.submit');
+
+
 
 //************************************************ Admin Routes ************************************************
 Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], function () {
