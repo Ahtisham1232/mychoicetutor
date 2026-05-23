@@ -22,7 +22,7 @@
                     <div class="alert alert-danger">{{ Session::get('fail') }}</div>
                 @endif
                 <div class="page-title-box">
-                    <h3>{{$pageTitle}}</h3>
+                    <h3>{{ $pageTitle }}</h3>
                 </div>
                 <form action="{{ route('admin.scheduledclass-search') }}" method="POST">
                     @csrf
@@ -181,6 +181,9 @@
                             @endforeach
                         </tbody>
                     </table>
+                    <div class="mt-3">
+                        {{ $scheduledclasses->links() }}
+                    </div>
                 </div>
 
             </div>
