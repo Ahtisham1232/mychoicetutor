@@ -44,6 +44,8 @@ Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], funct
     Route::post('class', [ClassController::class, 'store'])->name('admin.class.create');
     Route::get('class/status', [ClassController::class, 'status'])->name('admin.class.status');
     Route::get('scheduledclasses', [ClassController::class, 'scheduledclasses'])->name('admin.scheduledclasses');
+    Route::get('pending/scheduledclasses', [ClassController::class, 'pendingscheduledclasses'])->name('admin.pendingscheduledclasses');
+    Route::post('scheduledclass-search', [ClassController::class, 'scheduledsearch'])->name('admin.scheduledclass-search');
     Route::get('tutorslots', [SlotBookingController::class, 'admintutorslots'])->name('admin.tutorslots');
     Route::post('tutorslotssearch', [SlotBookingController::class, 'admintutorslotssearch'])->name('admin.tutorslotssearch');
 
@@ -81,7 +83,6 @@ Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], funct
     Route::post('demo/update', [DemoController::class, 'demoupdate'])->name('admin.demo.update');
     Route::get('demo/status/update', [DemoController::class, 'demostatusupdate'])->name('admin.demo.status.update');
     Route::post('demolist-search', [DemoController::class, 'demolistsearch'])->name('admin.demolist-search');
-    Route::post('scheduledclass-search', [ClassController::class, 'scheduledsearch'])->name('admin.scheduledclass-search');
     // student profile from admin side
     Route::get('studentprofile/{id}', [StudentProfileController::class, 'adminstudentprofile'])->name('admin.studentprofile');
     Route::get('studentdelete/{id}', [StudentProfileController::class, 'studentdelete'])->name('admin.studentdelete');
