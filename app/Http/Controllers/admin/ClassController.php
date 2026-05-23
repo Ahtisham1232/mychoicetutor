@@ -493,6 +493,8 @@ class ClassController extends Controller
     // Scheduled Classes in Admin Panel
     public function scheduledclasses()
     {
+        $type = 'all';
+        $pageTitle = 'All Scheduled Classes';
         $subjects = subjects::where('is_active', 1)->get();
         $classes = classes::where('is_active', 1)->get();
         $statuses = status::select('*')->get();
@@ -503,7 +505,28 @@ class ClassController extends Controller
             ->leftjoin('subjects', 'subjects.id', '=', 'topics.subject_id')
             ->leftjoin('classes', 'classes.id', '=', 'subjects.class_id')
             ->orderby('zoom_classes.created_at', 'desc')
-            ->paginate(1000000);
+            ->paginate(10);
+
+        // dd($scheduledclasses);
+        return view('admin.scheduledclasses', get_defined_vars());
+    }
+
+    public function pendingscheduledclasses()
+    {
+        $type = 'pending';
+        $pageTitle = 'All Pending Classes';
+        $subjects = subjects::where('is_active', 1)->get();
+        $classes = classes::where('is_active', 1)->get();
+        $statuses = status::select('*')->get();
+        $scheduledclasses = zoom_classes::select('zoom_classes.id as class_id','zoom_classes.started_at', 'zoom_classes.completed_at', 'zoom_classes.meeting_id as meeting_id', 'zoom_classes.topic_name as topic_name', 'zoom_classes.status as meeting_status', 'zoom_classes.start_time as meeting_start_time', 'zoom_classes.is_completed as is_completed', 'zoom_classes.recording_link as recording_link', 'tutorregistrations.id as tutor_id', 'tutorregistrations.name as tutor_name', 'tutorregistrations.mobile as tutor_mobile', 'studentregistrations.id as student_id', 'studentregistrations.name as student_name', 'studentregistrations.mobile as student_mobile', 'topics.name as topic_name', 'subjects.name as subject_name', 'classes.name as class_name')
+            ->leftjoin('tutorregistrations', 'tutorregistrations.id', '=', 'zoom_classes.tutor_id')
+            ->leftjoin('studentregistrations', 'studentregistrations.id', '=', 'zoom_classes.student_id')
+            ->leftjoin('topics', 'topics.id', '=', 'zoom_classes.topic_id')
+            ->leftjoin('subjects', 'subjects.id', '=', 'topics.subject_id')
+            ->leftjoin('classes', 'classes.id', '=', 'subjects.class_id')
+            ->where('zoom_classes.status', '!=', 'Completed')
+            ->orderby('zoom_classes.created_at', 'desc')
+            ->paginate(10);
 
         // dd($scheduledclasses);
         return view('admin.scheduledclasses', get_defined_vars());
@@ -511,7 +534,7 @@ class ClassController extends Controller
     // Scheduled Class Search
     public function scheduledsearch(Request $request)
     {
-
+        $type = $request->type ?? 'all';
         $subjects = subjects::where('is_active', 1)->get();
         $classes = classes::where('is_active', 1)->get();
         $statuses = status::select('*')->get();
@@ -523,6 +546,13 @@ class ClassController extends Controller
             ->leftjoin('classes', 'classes.id', '=', 'subjects.class_id');
         // ->where('democlasses.student_id','=', session('userid')->id)
         // ->get();
+        if ($type == 'pending') {
+            $query->where('zoom_classes.is_completed', 0);
+        }
+
+        if ($type == 'completed') {
+            $query->where('zoom_classes.is_completed', 1);
+        }
 
         if ($request->student_name) {
             $query->where('studentregistrations.name', 'like', '%' . $request->student_name . '%');
@@ -556,11 +586,11 @@ class ClassController extends Controller
         return view('admin.scheduledclasses', get_defined_vars());
     }
     // Completed Classes in Admin Panel
-    public function completedclasses()
-    {
-        $subjects = subjects::where('is_active', 1)->get();
-        $classes = classes::where('is_active', 1)->get();
-        $statuses = status::select('*')->get();
-        return view('admin.completedclasses', get_defined_vars());
-    }
+    // public function completedclasses()
+    // {
+    //     $subjects = subjects::where('is_active', 1)->get();
+    //     $classes = classes::where('is_active', 1)->get();
+    //     $statuses = status::select('*')->get();
+    //     return view('admin.completedclasses', get_defined_vars());
+    // }
 }

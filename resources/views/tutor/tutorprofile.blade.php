@@ -78,10 +78,22 @@
                                 </div>
                             </div>
                             <div class="tu-actionbts">
-                                <div class="tu-userurl">
+                                {{-- <div class="tu-userurl">
                                     <i class="icon icon-globe"></i>
+                                    @dump($tutorpd->intro_video_link)
                                     <a href="{{$tutorpd->intro_video_link}}" target="_blank"><button class="btn btn-sm btn-primary">Watch Intro</button></a>
-                                </div>
+                                </div> --}}
+                                @if (!empty($tutorpd->intro_video_link) && $tutorpd->intro_video_link != null)
+                                    <div class="tu-userurl">
+                                        <i class="icon icon-globe"></i>
+
+                                        <a href="{{ $tutorpd->intro_video_link }}" target="_blank">
+                                            <button class="btn btn-sm btn-primary">
+                                                Watch Intro
+                                            </button>
+                                        </a>
+                                    </div>
+                                @endif
                                 {{-- <a href="profileupdate"><button class="btn btn-sm btn-success">Update Profile</button></a> --}}
                                 {{-- <ul class="tu-profilelinksbtn">
                                     <li>

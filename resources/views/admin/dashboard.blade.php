@@ -59,14 +59,14 @@
                                 <div class="dashCard">
                                     <p class="fw-medium  mb-0"><b>Pending Schedule Classes</b></p>
                                     <div class="topCradCount">
-                                        <h2 class="pt-2 text-primary"><span class="counter-value1"
+                                        {{-- <h2 class="pt-2 text-primary"><span class="counter-value1"
                                                 data-target="">{{$totalUpcomingClasses}}</span>
-                                        </h2>
+                                        </h2> --}}
                                     </div>
                                 </div>
                             </div>
                             <div style="float:right">
-                                <a href="scheduledclasses" class="text-decoration-underline"><button
+                                <a href="{{route('admin.pendingscheduledclasses')}}" class="text-decoration-underline"><button
                                         class="badge bg-secondry p-2 text-dark border-0">View
                                         All</button></a>
                             </div>

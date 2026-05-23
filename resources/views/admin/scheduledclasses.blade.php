@@ -22,10 +22,11 @@
                     <div class="alert alert-danger">{{ Session::get('fail') }}</div>
                 @endif
                 <div class="page-title-box">
-                    <h3 class="">Scheduled Classes</h3>
+                    <h3>{{$pageTitle}}</h3>
                 </div>
                 <form action="{{ route('admin.scheduledclass-search') }}" method="POST">
                     @csrf
+                    <input type="hidden" name="type" value="{{ $type ?? 'all' }}">
                     <div class="row py-3">
 
                         <div class="col-md-2">
