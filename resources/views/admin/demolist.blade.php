@@ -22,19 +22,18 @@
                     <div class="alert alert-danger">{{ Session::get('fail') }}</div>
                 @endif
                 <div class="page-title-box">
-                    <h3 class="">Trial List</h3>
+                    <h3>{{ $pageTitle }}</h3>
                 </div>
                 <form id="payment-search">
+                    <input type="hidden" name="type" value="{{ $type ?? 'all' }}">
                     <div class="row py-3">
-
                         <div class="col-md-2">
                             <div class="form-group">
                                 <input type="text" class="form-control" name="student_name" id="sname"
                                     placeholder="Student Name">
-
-
                             </div>
                         </div>
+
                         <div class="col-md-2">
                             <div class="form-group">
                                 <input type="text" class="form-control" name="student_mobile" id="smob"
@@ -50,12 +49,14 @@
 
                             </div>
                         </div>
+
                         <div class="col-md-2">
                             <div class="form-group">
                                 <input type="text" class="form-control" name="tutor_mobile" id="tmob"
                                     placeholder="Tutor Mobile">
                             </div>
                         </div>
+
                         <div class="col-md-2">
                             <div class="form-group">
                                 <select name="class_name" class="form-control" id="classname" onchange="fetchSubjects()">
@@ -66,6 +67,7 @@
                                 </select>
                             </div>
                         </div>
+
                         <div class="col-md-2">
                             <div class="form-group">
                                 <select name="subject_name" class="form-control" id="subject">

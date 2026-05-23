@@ -76,13 +76,14 @@ Route::group(['prefix' => 'admin', 'middleware' => ['AdminAuthenticate']], funct
     Route::post('batches-search', [BatchesController::class, 'batchSearch'])->name('admin.batches-search');
     // Demo List
     Route::get('demolist', [DemoController::class, 'index'])->name('admin.demolist');
+    Route::get('pendingtrials', [DemoController::class, 'pendingTrial'])->name('admin.pendingtrials');
+    Route::post('demolist-search', [DemoController::class, 'demolistsearch'])->name('admin.demolist-search');
     Route::post('bookdemo', [DemoController::class, 'bookdemo'])->name('admin.bookdemo');
     Route::get('democancel/{id}', [DemoController::class, 'democancel'])->name('admin.democancel');
     Route::get('demodetails/{id}', [DemoController::class, 'demodetails'])->name('admin.demodetails');
     Route::post('demo/confirm', [GoogleCalendarController::class, 'democonfirm'])->name('admin.demo.confirm');
     Route::post('demo/update', [DemoController::class, 'demoupdate'])->name('admin.demo.update');
     Route::get('demo/status/update', [DemoController::class, 'demostatusupdate'])->name('admin.demo.status.update');
-    Route::post('demolist-search', [DemoController::class, 'demolistsearch'])->name('admin.demolist-search');
     // student profile from admin side
     Route::get('studentprofile/{id}', [StudentProfileController::class, 'adminstudentprofile'])->name('admin.studentprofile');
     Route::get('studentdelete/{id}', [StudentProfileController::class, 'studentdelete'])->name('admin.studentdelete');

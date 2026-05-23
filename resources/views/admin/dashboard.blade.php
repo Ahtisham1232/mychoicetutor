@@ -80,14 +80,14 @@
                             <div class="d-flex justify-content-between">
                                 <div class="dashCard">
                                     <p class="fw-medium  mb-0"><b>Pending Trial Classes</b></p>
-                                    <div class="topCradCount">
+                                    {{-- <div class="topCradCount">
                                         <h2 class="pt-2" style="color: #88B0F1"><span class="counter-value" data-target="{{$pending_demos ?? '0'}}">{{$pending_demos ?? '0'}}</span>
                                         </h2>
-                                    </div>
+                                    </div> --}}
                                 </div>
                             </div>
                             <div style="float:right">
-                                <a href="{{url('admin/demolist')}}" class="text-decoration-underline"><button
+                                <a href="{{url('admin.pendingtrials')}}" class="text-decoration-underline"><button
                                         class="badge bg-secondry p-2 text-dark border-0">View
                                         All</button></a>
                             </div>
