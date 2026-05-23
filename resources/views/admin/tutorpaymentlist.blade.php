@@ -141,7 +141,7 @@
                                 <th>Total Amount</th>
                                 <th>Net Amount Paid</th>
                                 <th>Admin Commission(%)</th>
-                                <th>Admin Commission(&pound;)</th>
+                                <th>Admin Commission{{config('common.currency.symbol')}}</th>
                                 <th>Account No.</th>
                                 <th>Transaction No.</th>
                                 <th>Transaction Date</th>
@@ -156,14 +156,23 @@
                                     <td>{{ $payout->name }}</td>
                                     <td>{{ $payout->mobile }}</td>
                                     <td>{{ $payout->email }}</td>
-                                    <td>&pound;{{ $payout->total_amount }}</td>
-                                    <td>&pound;{{ $payout->net_amount_received }}</td>
+                                    <td>{{config('common.currency.symbol')}}{{ $payout->total_amount }}</td>
+                                    <td>{{config('common.currency.symbol')}}{{ $payout->net_amount_received }}</td>
                                     <td>{{ $payout->admin_commission_percentage }}%</td>
-                                    <td>&pound;{{ $payout->admin_commission_amount }}</td>
+                                    <td>{{config('common.currency.symbol')}}{{ $payout->admin_commission_amount }}</td>
                                     <td>{{ $payout->account_no }}</td>
                                     <td>{{ $payout->transaction_no }}</td>
                                     <td>{{ \Carbon\Carbon::parse($payout->transaction_date)->format('d M Y') }}</td>
-                                    <td class="text-success">{{ $payout->status_name }}</td>
+                                    {{-- <td>{{ $payout->status_name }}</td> --}}
+                                    <td>
+                                        @if($payout->status_name == 'Confirmed')
+                                            <span class="badge bg-success">Confirmed</span>
+                                        @elseif($payout->status_name == 'Pending')
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        @else
+                                            <span class="badge bg-secondary">{{ $payout->status_name }}</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforeach
 

@@ -87,7 +87,7 @@
                                 </div>
                             </div>
                             <div style="float:right">
-                                <a href="{{url('admin.pendingtrials')}}" class="text-decoration-underline"><button
+                                <a href="{{route('admin.pendingtrials')}}" class="text-decoration-underline"><button
                                         class="badge bg-secondry p-2 text-dark border-0">View
                                         All</button></a>
                             </div>

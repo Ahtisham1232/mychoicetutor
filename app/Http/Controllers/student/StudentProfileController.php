@@ -245,7 +245,7 @@ class StudentProfileController extends Controller
     public function studentslist(){
         $stdlists = studentregistration::select('studentregistrations.*','studentregistrations.id as student_id','studentregistrations.name as student_name','studentregistrations.mobile as student_mobile','studentregistrations.email as student_email','studentregistrations.is_active as student_status','classes.name as class_name')
         ->leftjoin('classes','classes.id','=','studentregistrations.class_id')
-        ->orderby('studentregistrations.created_at','desc')->paginate(100);
+        ->orderby('studentregistrations.created_at','desc')->paginate(20);
         $classes = classes::where('is_active',1)->get();
         return view('admin.students', get_defined_vars());
 

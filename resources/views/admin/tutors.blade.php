@@ -159,6 +159,11 @@
                             @endforeach
                         </tbody>
                     </table>
+
+                    <div id="paginationContainer" class="mt-3">
+                        {{ $ttrlists->links() }}
+                    </div>
+
                 </div>
 
 
