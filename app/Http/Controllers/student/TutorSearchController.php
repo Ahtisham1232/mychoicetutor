@@ -981,7 +981,7 @@ class TutorSearchController extends Controller
                 'tutorprofiles.id'
             )
             ->orderBy('tutorregistrations.created_at', 'desc')
-            ->get();
+            ->paginate(10);
 
         $classes = classes::where('is_active', 1)->get();
 

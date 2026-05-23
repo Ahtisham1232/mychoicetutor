@@ -122,7 +122,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="d-flex justify-content-center" id="paginationContainer">
+                <div class="d-flex justify-content-center mt-3" id="paginationContainer">
                     {!! $stdlists->links() !!}
                 </div>
             </div>

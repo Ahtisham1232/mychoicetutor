@@ -108,7 +108,7 @@
                                 </select>
                             </div>
                         </div>
-   
+
                         <div class="col-md-6 mt-4">
                             <div class="form-group d-flex gap-2 justify-content-end">
 
@@ -126,7 +126,9 @@
 
                 </form>
                 <hr>
-
+                <div class="alert alert-primary py-3 px-3 mb-2 text-dark" role="alert">
+                    Not selected: The student did not request this slot from the tutor.
+                </div>
                 <div class="table-responsive">
                     <table class="table table-hover table-striped align-middle table-nowrap mb-0 users-table">
                         <thead>

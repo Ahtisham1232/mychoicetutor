@@ -62,7 +62,7 @@
                                 Search
                             </button>
 
-                            <a href="{{ route ('admin.subject') }}" class="btn btn-danger">
+                            <a href="{{ route('admin.subject') }}" class="btn btn-danger">
                                 Reset
                             </a>
                         </div>
@@ -104,8 +104,12 @@
                                     </td>
                                     {{-- <td>{{$subject->category}}</td> --}}
                                     <td>
-                                        <img src="{{ asset('/images/subjects/' . $subject->subject_image) }}"
-                                            width= '50' height='50' class="img img-responsive" />
+                                        @if ($subject->subject_image && file_exists(public_path('images/subjects/' . $subject->subject_image)))
+                                            <img src="{{ asset('images/subjects/' . $subject->subject_image) }}"
+                                                width="50" height="50" class="img img-responsive" />
+                                        @else
+                                            <span class="text-danger">Image not found</span>
+                                        @endif
 
                                     </td>
                                     <td>
@@ -168,15 +172,15 @@
                                     <label for="">Subject</label>
                                     <input type="text" class="form-control" placeholder="Enter Subject Name"
                                         id="subject" name="subject" required maxlength="200">
-                                        <small class="form-text text-muted">Maximum 200 characters allowed.</small>
+                                    <small class="form-text text-muted">Maximum 200 characters allowed.</small>
 
                                 </div>
                             </div>
                             <div class="row">
                                 <div class=" col-md-6 col-12 col-sm-6 form-group">
                                     <label class="ml-2">Upload Image<i style="color:red">*</i></label>
-                                    <input type="file" class="form-control" id="uploadimage" value="" accept=".jpg,.jpeg,.png,.webp"
-                                        name="uploadimage">
+                                    <input type="file" class="form-control" id="uploadimage" value=""
+                                        accept=".jpg,.jpeg,.png,.webp" name="uploadimage">
                                 </div>
                             </div>
                             <span class="text-danger">
