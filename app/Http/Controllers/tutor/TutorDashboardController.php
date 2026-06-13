@@ -25,6 +25,12 @@ class TutorDashboardController extends Controller
         $studentpro = tutorprofile::select('*')
             ->where('tutor_id', '=', session('userid')->id)
             ->first();
+            $studentpro = tutorprofile::select('*')
+            ->where('tutor_id', '=', session('userid')->id)
+            ->first();
+            $studentpro = tutorprofile::select('*')
+            ->where('tutor_id', '=', session('userid')->id)
+            ->first();
         $classmapping = teacherclassmapping::select('*')->where('teacher_id',session('userid')->id)->first();
         // if(!$classmapping){
         //     return redirect('tutor/profileupdate')->with('fail', 'Kindly update your profile & add Class/Grade Mapping.')->with('success', 'Registration Successfull. You can use your registered "Mobile Number" & "Password" to login');
